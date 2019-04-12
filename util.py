@@ -33,7 +33,7 @@
 #    on a packet dump of an R/L polarized communications satellite (e.g. Ciel)
 # * 
 
-import StringUtil as su
+from . import StringUtil as su
 from numpy import pi, sqrt, array, mat, matrix, dot, where, ndarray
 import datetime as dt
 from time import gmtime
@@ -81,7 +81,7 @@ class Angle:
         elif units == 'arcsec':
             self.radians = value / self.__arcsecperrad
         else:
-            print 'ERROR: Unknown units string, radians used'
+            print('ERROR: Unknown units string, radians used')
             self.radians = value
 
         # If modulo bool is set, make sure the value of radians
@@ -134,7 +134,7 @@ class Angle:
         elif units == 'arcsec':
             return self.radians * self.__arcsecperrad
         else:
-            print 'ERROR: Unknown units string, radians used'
+            print('ERROR: Unknown units string, radians used')
             return self.radians
 
     def __add__(self,other):
@@ -147,7 +147,7 @@ class Angle:
         elif isinstance(other,Angle):
             radians = other.radians
         else:
-            print 'Angle.__add__(): Cannot add', other, 'to an Angle()'
+            print('Angle.__add__(): Cannot add', other, 'to an Angle()')
             return 0
         
         # Create the right kind of object to return (same as self)
@@ -168,7 +168,7 @@ class Angle:
         elif isinstance(other,Angle):
             radians = other.radians
         else:
-            print 'Angle.__sub__(): Cannot subtract', other, 'from an Angle()'
+            print('Angle.__sub__(): Cannot subtract', other, 'from an Angle()')
             return 0
         
         # Create the right kind of object to return (same as self)
@@ -251,7 +251,7 @@ class Length():
                 'km' = kilometers
             """
         if not (isinstance(value, int) or isinstance(value, float)):
-            print 'Length.set(): Invalid length value',value,'Setting to zero'
+            print('Length.set(): Invalid length value',value,'Setting to zero')
             self.meters = 0.0
             
         if units == 'cm':
@@ -261,7 +261,7 @@ class Length():
         elif units == 'km':
             self.meters = value*mperkm
         else:
-            print 'Length.set(): Invalid length units',units,'Meters assumed.'
+            print('Length.set(): Invalid length units',units,'Meters assumed.')
 
         self.units = units
 
@@ -306,8 +306,8 @@ class Length():
         elif isinstance(other,int) or isinstance(other,float):
             new = Length(self.meters + other)
         else:
-            print 'Length.__add__(): Cannot add',other,\
-                'to a Length object. Returning copy of self.'
+            print('Length.__add__(): Cannot add',other,\
+                'to a Length object. Returning copy of self.')
             new = Length(self.meters)
         new.units = self.units
         
@@ -330,8 +330,8 @@ class Length():
         elif isinstance(other,int) or isinstance(other,float):
             new = Length(self.meters - other)
         else:
-            print 'Length.__sub__(): Cannot subtract',other,\
-                'from a Length object. Returning copy of self.'
+            print('Length.__sub__(): Cannot subtract',other,\
+                'from a Length object. Returning copy of self.')
             new = Length(self.meters)
         new.units = self.units
         
@@ -357,8 +357,8 @@ class Length():
             new = Length(self.meters / other)
             new.units = self.units
         else:
-            print 'Length.__div__(): Cannot divide a Length object by',other,\
-                'Error return "False"'
+            print('Length.__div__(): Cannot divide a Length object by',other,\
+                'Error return "False"')
             new = False
         
         return new
@@ -391,7 +391,7 @@ class Vector():
         if lengths is None:
             lengths = [0.0, 0.0, 0.0]
         if len(lengths) != 3:
-            print 'Vector.set(): Must supply three lengths. Object not set.'
+            print('Vector.set(): Must supply three lengths. Object not set.')
             lengths = [Length(0), Length(0), Length(0)]
 
         # If a numpy array was passed in, change to a list
@@ -412,8 +412,8 @@ class Vector():
                 else:
                     # It is neither a Length object nor a scalar constant, so
                     # it is an error.
-                    print 'Vector.set(): Item',i,'is not a Length() or a constant.\n\
-                        Replacing with a zero-length Length object'
+                    print('Vector.set(): Item',i,'is not a Length() or a constant.\n\
+                        Replacing with a zero-length Length object')
                     lengths[i] = Length()
 
         
@@ -444,8 +444,8 @@ class Vector():
                 out.lengths[i] = self.lengths[i] + other.lengths[i]
             return out
         else:
-            print 'Vector.__add__(): Object',other,'must be a Vector() object.',\
-                'Returning a zero vector.'
+            print('Vector.__add__(): Object',other,'must be a Vector() object.',\
+                'Returning a zero vector.')
             return Vector([0.0,0.0,0.0])
         
     def __sub__(self, other):
@@ -456,8 +456,8 @@ class Vector():
                 out.lengths[i] = self.lengths[i] - other.lengths[i]
             return out
         else:
-            print 'Vector.__sub__(): Object',other,'must be a Vector() object.',\
-                'Returning a zero vector.'
+            print('Vector.__sub__(): Object',other,'must be a Vector() object.',\
+                'Returning a zero vector.')
             return Vector([0.0,0.0,0.0])
         
     def magnitude(self, units='m'):
@@ -487,7 +487,7 @@ class Vector():
         if rot is None:
             rot = mat([[1,0,0],[0,1,0],[0,0,1]])
         if not isinstance(rot,matrix):
-            print 'Vector.rotate(): Object',rot,'is not a matrix.  No rotation applied.'
+            print('Vector.rotate(): Object',rot,'is not a matrix.  No rotation applied.')
             rot = mat([[1,0,0],[0,1,0],[0,0,1]])
 
         # Apply rotation (output is in meter)
@@ -505,8 +505,8 @@ class Vector():
             new = Vector((array(self.get()) * other).tolist())
             new.units = self.units
         else:
-            print 'Length.__mul__(): Cannot multiply a Length object by',other,\
-                'Error return "False"'
+            print('Length.__mul__(): Cannot multiply a Length object by',other,\
+                'Error return "False"')
             new = False
         
         return new
@@ -517,8 +517,8 @@ class Vector():
             new = Vector((array(self.get()) / other).tolist())
             new.units = self.units
         else:
-            print 'Length.__div__(): Cannot divide a Length object by',other,\
-                'Error return "False"'
+            print('Length.__div__(): Cannot divide a Length object by',other,\
+                'Error return "False"')
             new = False
         
         return new
@@ -682,7 +682,7 @@ class Time(astroTime):
              precision=None, in_subfmt=None, out_subfmt=None,
              location=None, copy=False):
         # Extend formats list to include TimeLV (LabVIEW format)
-        self.FORMATS[u'lv'] = TimeLV
+        self.FORMATS['lv'] = TimeLV
         astroTime.__init__(self, val, val2, format=format, scale=scale,
              precision=precision, in_subfmt=in_subfmt, out_subfmt=out_subfmt,
              location=location, copy=copy)
@@ -891,7 +891,7 @@ class Dec_Interpolator(QuadraticInterpolator):
         self.empty(self.emptyvalue) # Initialize to empty
 
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from os import environ, path
 
 def UT1_UTC(mjd):
@@ -912,7 +912,7 @@ def UT1_UTC(mjd):
 
 
     try:
-        h = urllib2.urlopen(IERS_url,timeout=1)
+        h = urllib.request.urlopen(IERS_url,timeout=1)
         # Copy the Bulletin IERS_file on disk, for potential fall-back
         with open(IERS_file,'w') as f:
             f.write(h.read())
@@ -923,7 +923,7 @@ def UT1_UTC(mjd):
     except:
         # DUT: Could not open URL for IERS Bulletin A, so read from
         #      existing file.
-        print 'IERS Bulletin unreachable.  Reading from cached file.'
+        print('IERS Bulletin unreachable.  Reading from cached file.')
         h = open(IERS_file,'r')
 
     for line in h:
@@ -960,8 +960,8 @@ def common_val_idx(array1,array2,precision=None):
             ar1 = round(array1*10**precision)
             ar2 = round(array2*10**precision)
         except Exception as e:
-            print 'Error: common_val_idx: arrays could not be rounded to precision',precision
-            print e
+            print('Error: common_val_idx: arrays could not be rounded to precision',precision)
+            print(e)
             return None, None
     else:
         ar1 = array1
@@ -1022,9 +1022,9 @@ def ant_str2list(ant_str):
                 if antrange != '':
                     ant_list.append(int(antrange[0])-1)
             elif len(antrange) == 2:
-                ant_list += range(int(antrange[0])-1,int(antrange[1]))
+                ant_list += list(range(int(antrange[0])-1,int(antrange[1])))
     except:
-        print 'Error: cannot interpret ant_str',ant_str
+        print('Error: cannot interpret ant_str',ant_str)
         return None
     return array(ant_list)
 
@@ -1082,7 +1082,7 @@ def lin_phase_fit(f,pha, doplot=False):
     '''
     import numpy as np
     if len(f) != len(pha):
-        print 'Error: arrays not of same size:',len(f),len(pha)
+        print('Error: arrays not of same size:',len(f),len(pha))
         return None
     dpdf = []
     good = np.where(np.logical_not(np.isnan(pha)))

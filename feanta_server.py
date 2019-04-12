@@ -20,7 +20,7 @@ import socket
 import sys
 import time
 import threading
-import gen_fem_sf
+from . import gen_fem_sf
 import traceback
 
 # Logging information.
@@ -76,7 +76,7 @@ class ServerDaemon():
         f = open(self.log_file, "a")
         f.write(log_message)
         f.close()
-        print log_message
+        print(log_message)
 
     # ---------------------------------------------------------------
     # CORE ROUTINES
@@ -108,7 +108,7 @@ class ServerDaemon():
     # endregion
     def list_workers(self):
         workers_list = ''
-        for worker in self.workers.keys():
+        for worker in list(self.workers.keys()):
             workers_list += worker + '\n'
         return workers_list
 
@@ -131,7 +131,7 @@ class ServerDaemon():
     """
     # endregion
     def list_commands(self):
-        return self.function_map.keys()
+        return list(self.function_map.keys())
 
     def make_stateframe_dict(self):
         fem_dict = {}
@@ -141,7 +141,7 @@ class ServerDaemon():
         if worker is not None:
             try:
                 fem_dict['POWERSTRIP'] = worker.stateframe_query()
-            except Exception, e:
+            except Exception as e:
                 fem_dict['POWERSTRIP'] = {}
                 self.__log(traceback.format_exc())
         else:
@@ -153,14 +153,14 @@ class ServerDaemon():
         if worker is not None:
             try:
                 working_dict = worker.stateframe_query()
-            except Exception, s:
+            except Exception as s:
                 self.__log(traceback.format_exc())
 
         worker = self.workers.get('Temp-Worker', None)
         if worker is not None:
             try:
                 working_dict['FOCUSBOX'] = worker.stateframe_query()
-            except Exception, e:
+            except Exception as e:
                 working_dict['FOCUSBOX'] = 0
                 self.__log(traceback.format_exc())
         else:
@@ -174,7 +174,7 @@ class ServerDaemon():
         if worker is not None:
             try:
                 working_dict = worker.stateframe_query()
-            except Exception, e:
+            except Exception as e:
                 pass
 
         # Handle servo cluster.
@@ -182,7 +182,7 @@ class ServerDaemon():
         if worker is not None:
             try:
                 fem_dict['SERVO'] = worker.stateframe_query()
-            except Exception, e:
+            except Exception as e:
                 fem_dict['SERVO'] = {}
                 self.__log(traceback.format_exc())
         else:
@@ -244,7 +244,7 @@ class ServerDaemon():
         self.__log('Attempt to set up listener...')
         try:
             acc_listener.bind((HOST, HOST_PORT))
-        except socket.error, msg:
+        except socket.error as msg:
             self.__log('Unable to listen at port ' + str(HOST_PORT) +
                        '. Error Code: ' + str(msg[0]) + '. Message: ' +
                        str(msg[1]))

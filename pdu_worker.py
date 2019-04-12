@@ -11,8 +11,8 @@
 #
 from bs4 import BeautifulSoup as Soup
 import mechanize
-import urllib
-import i_worker
+import urllib.request, urllib.parse, urllib.error
+from . import i_worker
 import threading
 
 # Description of the PDU device. Currently hard-coded.
@@ -65,7 +65,7 @@ class PDUWorker(i_worker.IWorker):
             self.browser.set_handle_robots(False)
             self.browser.set_handle_refresh(False)
 
-            encoded_data = urllib.urlencode(LOGIN_DATA)
+            encoded_data = urllib.parse.urlencode(LOGIN_DATA)
             self.browser.open(PDU_HOSTNAME + '/login.tgi',
                               encoded_data, timeout=PDU_TIMEOUT)
             self.browser.open(PDU_HOSTNAME + '/index.htm', timeout=PDU_TIMEOUT)

@@ -7,7 +7,7 @@
 
 import time
 import numpy as np
-import roach as r
+from . import roach as r
 
 def acc_tune(band):
     if type(band) is int:
@@ -16,7 +16,7 @@ def acc_tune(band):
         if band.lower() == 'solar.fsq' or band.lower() == 'pcal.fsq':
             fsqfile = band.lower()
     else:
-        print 'Error: Unknown band',band
+        print('Error: Unknown band',band)
         return
     cmds = ['FSEQ-OFF','FSEQ-INIT','WAIT','FSEQ-FILE '+fsqfile.lower(), 'FSEQ-ON']
     send_cmds(cmds)
@@ -31,10 +31,10 @@ def send_cmds(cmds):
     try:
         accini = stateframe.rd_ACCfile()
     except:
-        print 'Error: Could not access ACC.'
+        print('Error: Could not access ACC.')
         return
     for cmd in cmds:
-        print 'Command:',cmd
+        print('Command:',cmd)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect((accini['host'],accini['scdport']))
@@ -42,7 +42,7 @@ def send_cmds(cmds):
             time.sleep(0.01)
             s.close()
         except:
-            print 'Error: Could not send command',cmd,' to ACC.'
+            print('Error: Could not send command',cmd,' to ACC.')
     return
     
 # Insert 62 dB into FEMs, cycle through bands, get ADC levels (optionally plot results)

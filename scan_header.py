@@ -28,13 +28,13 @@
 #     Several other changes for 52-channel mode.
 #
 import struct,sys
-from sun_pos import *
+from .sun_pos import *
 from math import pi
 import numpy as np
-import util
-import chan_util_52 as cu
-from eovsa_array import *
-from eovsa_lst import *
+from . import util
+from . import chan_util_52 as cu
+from .eovsa_array import *
+from .eovsa_lst import *
 from ftplib import FTP
 
 def scan_header(sh_dict,datfile='/tmp/scan_header.dat'):
@@ -147,7 +147,7 @@ def scan_header(sh_dict,datfile='/tmp/scan_header.dat'):
     xml.write('</U32>')
 
     # Active antenna list (list of unsigned integers, length 16)
-    item = sh_dict.get('antlist',range(1,17))
+    item = sh_dict.get('antlist',list(range(1,17)))
     nants = len(item)
     fmt += 'I16I'
     buf = struct.pack('I',16)

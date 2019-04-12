@@ -10,7 +10,7 @@ def show_image(filename,chan=0,norm=False, sort=False, logrange=[None,None]):
     reclen = struct.calcsize(hdr+pp2+junk)
     nrec = fsize/reclen
     nspec = nrec/256
-    print 'This file contains',nspec,'spectra.'
+    print('This file contains',nspec,'spectra.')
     khdr = ['HeaderLength','PacketNum','FFTShift','AccumLength','GlobalAccumNum',
             'BoardID','AccumNum','DataType','PolType','Ai','Aj','ADCOverflow',
             'QuantClipNum','NSubbands','iFreq','Delay0','Delay1','Delay2','Delay3',
@@ -30,11 +30,11 @@ def show_image(filename,chan=0,norm=False, sort=False, logrange=[None,None]):
             try:
                 rec = f.read(reclen)
             except:
-                print 'End of file'
+                print('End of file')
                 break
             # Unpack the header portion and convert to dictionary
             header = struct.unpack(hdr,rec[0:88])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             n = h['PacketNum']
             a = h['AccumNum']
             # Unpack power/power-squared
@@ -149,11 +149,11 @@ def show_capture(filename,x=False):
             try:
                 rec = f.read(reclen)
             except:
-                print 'End of file'
+                print('End of file')
                 break
             # Unpack the header portion and convert to dictionary
             header = struct.unpack(hdr,rec[0:88])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             n = h['PacketNum']
             M = h['AccumLength']
             dtype = h['DataType']
@@ -161,7 +161,7 @@ def show_capture(filename,x=False):
                 # This is X-engine data
                 # Unpack X data
                 xdata = struct.unpack(x,rec[88:1496])
-                print h
+                print(h)
             else:
                 # This is P-P2 data
                 # Unpack power/power-squared
@@ -183,7 +183,7 @@ def show_capture(filename,x=False):
             # Plot X-engine data
             pass
         else:
-            response = raw_input("Plot What? [px,py,p1,p2 for power, sk*, P* for power^2, else exit]:")
+            response = input("Plot What? [px,py,p1,p2 for power, sk*, P* for power^2, else exit]:")
             if response == '':
                 response = rsav
             else:
@@ -302,4 +302,4 @@ def show_capture(filename,x=False):
                 ylim([0.1,10])
             yscale('log')
             xlabel('Channel Number')
-            print 'Accum#',h['AccumNum'],', FFTs',h['FFTShift'],', M',h['AccumLength'],', ADCOvr',h['ADCOverflow'],', P1x,y',h['PX0'],h['PY0'],', Delays',h['Delay0'],h['Delay1'],h['Delay2'],h['Delay3']
+            print('Accum#',h['AccumNum'],', FFTs',h['FFTShift'],', M',h['AccumLength'],', ADCOvr',h['ADCOverflow'],', P1x,y',h['PX0'],h['PY0'],', Delays',h['Delay0'],h['Delay1'],h['Delay2'],h['Delay3'])

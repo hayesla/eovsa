@@ -19,10 +19,10 @@ def get_xy_corr(npzlist=None, doplot=True, npzlist2=None):
            doplot    True => plot the final result, False => no plot
     '''
     if npzlist is None:
-        print 'Must provide a list of 2 NPZ files.'
+        print('Must provide a list of 2 NPZ files.')
         return None, None
-    import read_idb as ri
-    from util import lobe, Time
+    from . import read_idb as ri
+    from .util import lobe, Time
         
     if doplot: import matplotlib.pylab as plt
 
@@ -85,7 +85,7 @@ def xydelay_anal(npzfiles):
             0-degree  Low-frequency  receiver
     '''
     import matplotlib.pylab as plt
-    from util import common_val_idx
+    from .util import common_val_idx
     npzfiles = np.array(npzfiles)
     dph_lo = get_xy_corr(npzfiles[[3,0]], doplot=False)
     dph_hi = get_xy_corr(npzfiles[[2,1]])
@@ -107,8 +107,8 @@ def xydelay_anal(npzfiles):
     xi_rot[idx_hi] = dph_hi['xi_rot']   # Insert all high-receiver xi_rot
     xi_rot[idx_lo_not_hi] = dph_lo['xi_rot'][idx_lo_not_hi]   # For unique low-receiver frequencies, insert LO xi_rot
     dph_hi.update({'xi_rot':xi_rot, 'xyphase':xyphase, 'fghz':fghz})
-    print 'Referring to the output of this routine as "xyphase,"'
-    print 'run cal_header.xy_phasecal2sql(xyphase) to write the SQL record.' 
+    print('Referring to the output of this routine as "xyphase,"')
+    print('run cal_header.xy_phasecal2sql(xyphase) to write the SQL record.') 
     return dph_hi
 
 def apply_xy_corr(out,dph,dphnew=None):
@@ -116,7 +116,7 @@ def apply_xy_corr(out,dph,dphnew=None):
     '''
     import copy
     import matplotlib.pylab as plt
-    from util import lobe
+    from .util import lobe
     fghz = out['fghz']
     ph0 = np.angle(np.sum(out['x'][ri.bl2ord[:13,13]],3))
     ph1 = copy.deepcopy(ph0)
@@ -150,10 +150,10 @@ def apply_xy_corr(out,dph,dphnew=None):
 
 def apply_unrot(filename):
 
-    import read_idb as ri
-    import dbutil as db
+    from . import read_idb as ri
+    from . import dbutil as db
     import copy
-    from util import lobe, Time
+    from .util import lobe, Time
     import matplotlib.pylab as plt
     blah = np.load('/common/tmp/Feed_rotation/20170702121949_delay_phase.npz')
     dph = blah['dph']
@@ -202,10 +202,10 @@ def apply_unrot(filename):
             
 def apply_unrot_new(filename):
 
-    import read_idb as ri
-    import dbutil as db
+    from . import read_idb as ri
+    from . import dbutil as db
     import copy
-    from util import lobe, Time
+    from .util import lobe, Time
     import matplotlib.pylab as plt
     import numpy as np
     blah = np.load('/common/tmp/Feed_rotation/20171223001448_delay_phase.npz')

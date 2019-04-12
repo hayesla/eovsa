@@ -37,8 +37,8 @@
 
 import time
 import numpy as np
-import roach as r
-import stateframe as stf
+from . import roach as r
+from . import stateframe as stf
 
 def acc_tune(band,acc):
     if type(band) is int:
@@ -47,7 +47,7 @@ def acc_tune(band,acc):
         if band.lower() == 'solar.fsq' or band.lower() == 'pcal.fsq':
             fsqfile = band.lower()
     else:
-        print 'Error: Unknown band',band
+        print('Error: Unknown band',band)
         return
     cmds = ['FSEQ-OFF','FSEQ-INIT','WAIT','FSEQ-FILE '+fsqfile.lower(), 'FSEQ-ON']
     send_cmds(cmds,acc)
@@ -69,7 +69,7 @@ def send_cmds(cmds,acc):
             time.sleep(0.01)
             s.close()
         except:
-            print 'Error: Could not send command',cmd,' to ACC.'
+            print('Error: Could not send command',cmd,' to ACC.')
     return
 
 def ant_str2list(ant_str):
@@ -82,9 +82,9 @@ def ant_str2list(ant_str):
                 if antrange != '':
                     ant_list.append(int(antrange[0])-1)
             elif len(antrange) == 2:
-                ant_list += range(int(antrange[0])-1,int(antrange[1]))
+                ant_list += list(range(int(antrange[0])-1,int(antrange[1])))
     except:
-        print 'Error: cannot interpret ant_str',ant_str
+        print('Error: cannot interpret ant_str',ant_str)
         return None
     return np.array(ant_list)
                     
@@ -139,7 +139,7 @@ def chk_lo1a(accini, band, iteration=1):
     errstr = stf.extract(data,accini['sf']['LODM']['LO1A']['ERR']).split('"')[1]
     if iteration == 1 and errstr != 'No error':
         # Looks like a reboot of LO1A is needed!
-        print '10-s delay while attempting to reboot LO1A'
+        print('10-s delay while attempting to reboot LO1A')
         send_cmds(['LO1A-REBOOT'],acc)
         time.sleep(10)
         acc = {'host': accini['host'], 'scdport':accini['scdport']}
@@ -182,12 +182,12 @@ def set_dcm_attn(roach_list,fem_level=5,nd_state='on',adc_nom=25,ant_list='ant1-
         # Start with nominal DCM attenuation
         #send_cmds(['DCMATTN 12 12 '+ant_list],acc)
         #time.sleep(1)
-        print 'Band:',band+1
+        print('Band:',band+1)
         acc_tune(band+1,acc)
         time.sleep(5)
         errstr = chk_lo1a(accini,band)
         if errstr != 'No error':
-            print errstr
+            print(errstr)
             return None
         # Go through ROACH list
         for i,ro in enumerate(roach_list):
@@ -208,7 +208,7 @@ def set_dcm_attn(roach_list,fem_level=5,nd_state='on',adc_nom=25,ant_list='ant1-
             # r.adc_levels([ro])
             # ch_atn2 = np.clip(((20*np.log10(ro.adc_levels/adc_nom)+ch_atn + 1)/2).astype('int')*2,0,30)
             # print '  ',ro.roach_ip[:6],'Attn:',ch_atn,'Check:',ch_atn2
-            print '  ',ro.roach_ip[:6],'Attn:',ch_atn
+            print('  ',ro.roach_ip[:6],'Attn:',ch_atn)
             dcm_table[band,np.array(((ro.ants[0]-1)*2,(ro.ants[0]-1)*2+1,(ro.ants[1]-1)*2,(ro.ants[1]-1)*2+1))] = copy.copy(ch_atn)
     return dcm_table
     
@@ -280,13 +280,13 @@ def fseq_is_running(fseqfile,accini=None):
     ''' Check current stateframe to see if the given sequence file is
         running.  Returns True if so, False otherwise
     '''
-    import stateframe as stf
+    from . import stateframe as stf
     if accini is None:
         accini = stf.rd_ACCfile()
     # Make sure this sequence is actually running, or start it if not
     buf, msg = stf.get_stateframe(accini)
     if msg != 'No Error':
-        print 'Error reading stateframe.'
+        print('Error reading stateframe.')
         return None
     fseq = stf.extract(buf,accini['sf']['LODM']['LO1A']['FSeqFile'])
     fseq = fseq.strip('\x00')  # strip nulls from name
@@ -303,8 +303,8 @@ def bandlist2dcmtable(bandlist, toACC=False):
           toACC      optional boolean.  If True, sends results to ACC and 
                        the SQL database.  Default is False (does not send)
     '''
-    import stateframe as stf
-    import cal_header as ch
+    from . import stateframe as stf
+    from . import cal_header as ch
     from ftplib import FTP
     # Convert from 1-based bandlist to zero-based band numbers
     bands = bandlist-1
@@ -328,11 +328,11 @@ def bandlist2dcmtable(bandlist, toACC=False):
             acc.login('admin','observer')
             acc.cwd('parm')
             # Send DCM table lines to ACC
-            print acc.storlines('STOR dcm.txt',g)
+            print(acc.storlines('STOR dcm.txt',g))
             g.close()
-            print 'Successfully wrote dcm.txt to ACC'
+            print('Successfully wrote dcm.txt to ACC')
         except:
-            print 'Cannot FTP dcm.txt to ACC'
+            print('Cannot FTP dcm.txt to ACC')
     return lines
     
 def fseqfile2bandlist(fseqfile=None):
@@ -345,21 +345,21 @@ def fseqfile2bandlist(fseqfile=None):
         Returns:
            bandlist    numpy 50-element integer array of band numbers, 1-34
     '''
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
     if fseqfile is None:
-        print 'Must specify a frequency sequence.'
+        print('Must specify a frequency sequence.')
         return None
     userpass = 'admin:observer@'
-    fseq_handle = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
+    fseq_handle = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
     lines = fseq_handle.readlines()
     fseq_handle.close()
     for line in lines:
         if line.find('LIST:SEQUENCE') != -1:
             line = line[14:]
-            bands = np.array(map(int,line.split(',')))
+            bands = np.array(list(map(int,line.split(','))))
         elif line.find('LIST:DWELL') != -1:
             line = line[11:]
-            dwellist = np.array(map(float,line.split(',')))
+            dwellist = np.array(list(map(float,line.split(','))))
     bandlist = []
     for band in bands:
         bandlist += [band]*int(np.round(dwellist[band-1]/0.02))
@@ -375,13 +375,13 @@ def DCM_master_attn_cal(fseqfile=None,dcmattn=None,update=False):
         Returns the DCM_master_table in the form of lines of text
         strings, with labels (handy for viewing).
     '''
-    import pcapture2 as p
-    import dbutil as db
-    import cal_header as ch
-    import stateframe as stf
+    from . import pcapture2 as p
+    from . import dbutil as db
+    from . import cal_header as ch
+    from . import stateframe as stf
     bandlist = fseqfile2bandlist(fseqfile)
     if bandlist is None:
-        print 'Must specify a frequency sequence.'
+        print('Must specify a frequency sequence.')
         return None
 
     # Make sure this sequence is actually running, or start it if not
@@ -395,10 +395,10 @@ def DCM_master_attn_cal(fseqfile=None,dcmattn=None,update=False):
         bandlist2dcmtable(bandlist, toACC=True)
         time.sleep(3)
         if not fseq_is_running(fseqfile,accini):
-            print 'Frequency sequence could not be started.'
+            print('Frequency sequence could not be started.')
             return None
         else:
-            print 'Successfully started frequency sequence.'
+            print('Successfully started frequency sequence.')
         send_cmds(['dcmtable dcm.txt'],accini)
         send_cmds(['dcmauto-on'],accini)
 
@@ -412,7 +412,7 @@ def DCM_master_attn_cal(fseqfile=None,dcmattn=None,update=False):
     headers = p.list_header('/home/user/Python/dcm2.pcap')
     for line in headers:
         try:
-            j, id, p1,p2,p3,p4 = np.array(map(int,line.split()))[[0,3,6,7,8,9]]
+            j, id, p1,p2,p3,p4 = np.array(list(map(int,line.split())))[[0,3,6,7,8,9]]
             pwr[j,id] = (p1, p2, p3, p4)
         except:
             # This is to skip the non-data header lines in the list
@@ -420,7 +420,7 @@ def DCM_master_attn_cal(fseqfile=None,dcmattn=None,update=False):
     headers = p.list_header('/home/user/Python/dcm3.pcap')
     for line in headers:
         try:
-            j, id, p1,p2,p3,p4 = np.array(map(int,line.split()))[[0,3,6,7,8,9]]
+            j, id, p1,p2,p3,p4 = np.array(list(map(int,line.split())))[[0,3,6,7,8,9]]
             pwr[j,id] = (p1, p2, p3, p4)
         except:
             # This is to skip the non-data header lines in the list
@@ -463,9 +463,9 @@ def DCM_master_attn_cal(fseqfile=None,dcmattn=None,update=False):
     if update:
         msg = ch.dcm_master_table2sql(DCMlines)
         if msg:
-            print 'Success'
+            print('Success')
         else:
-            print 'Error writing table to SQL database!'
+            print('Error writing table to SQL database!')
     return DCMlines
     
 #def DCM_master_attn_cal(roach_list,ant_list='ant1-15'):
@@ -509,12 +509,12 @@ def DCM_attn_anal(filename):
            at2 and at4 of size (nant,npol) = (13,2)
         representing the attenuation, in dB, of the 2- and 4-bit, resp.
     '''
-    import read_idb as ri
-    import dbutil as db
-    import cal_header as ch
-    import stateframe as stf
+    from . import read_idb as ri
+    from . import dbutil as db
+    from . import cal_header as ch
+    from . import stateframe as stf
     import copy
-    from util import Time
+    from .util import Time
     import matplotlib.pylab as plt
     
     out = ri.read_idb([filename])
@@ -747,10 +747,10 @@ def gain_state(trange=None):
         as an array of size (nant, npol, nbands, ntimes).  Also returns
         the time as a Time() object array.
     '''
-    from util import Time
-    import dbutil as db
-    from fem_attn_calib import fem_attn_update
-    import cal_header as ch
+    from .util import Time
+    from . import dbutil as db
+    from .fem_attn_calib import fem_attn_update
+    from . import cal_header as ch
     
     if trange is None:
         t = Time.now()

@@ -1,4 +1,4 @@
-from show_capture_ import *
+from .show_capture_ import *
 import numpy as np
 
 def img2coeff(img):

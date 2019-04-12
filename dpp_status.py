@@ -1,5 +1,5 @@
 import subprocess, glob
-from util import Time
+from .util import Time
 def dpp_status():
     datstr = Time.now().iso[:10].replace('-','')
     out1 = sort(glob.glob('/data1/IDB/IDB'+datstr+'*'))[-5:]

@@ -1,10 +1,10 @@
 import aipy, ephem, numpy
-import util
+from . import util
 from math import cos, sin
 from numpy import pi
-from eovsa_array import *
-from readvla import readvlacaldb
-import urllib2
+from .eovsa_array import *
+from .readvla import readvlacaldb
+import urllib.request, urllib.error, urllib.parse
 
 def solar_tracktable(mjd1=None,mjd2=None):
     '''Generate a solar tracktable with 1 h separation of solar coordinates
@@ -82,7 +82,7 @@ def geosat_tracktable(srcname,mjd1=None,mjd2=None):
         mjd2 = mjd1 + 1.
 
     # Retrieve TLE file for geostationary satellites from Celestrak site.
-    f = urllib2.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt')
+    f = urllib.request.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt')
     lines = f.readlines()
     f.close()
 

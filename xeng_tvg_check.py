@@ -8,11 +8,11 @@ import sys
 def reorder_glitch():
     '''Returns channel order for glitch in 16-ant correlator circa 2016 Feb 13
     '''
-    kern = range(8)
+    kern = list(range(8))
     kern += (np.array(kern)+128).tolist()
     kern += (np.array(kern)+2048).tolist()
     kern1 = np.rollaxis(np.array(kern).reshape(4,8),1).reshape(32).tolist()
-    ad = range(0,128,8)
+    ad = list(range(0,128,8))
     ad += (np.array(ad)+1024).tolist()
     ad += (np.array(ad)+256).tolist()
     ad += (np.array(ad)+512).tolist()
@@ -116,7 +116,7 @@ if opts.reorder:
     # i.e. real_channel = rel_order[channel_label]
     rel_order = get_rel_order()
 else:
-    rel_order = range(4096)
+    rel_order = list(range(4096))
 
 bl_order = sim.get_bl_order(16)
 
@@ -137,11 +137,11 @@ spectra = np.ones([n_windows, 4096, n_bls*4], dtype=complex)*2**31
 
 for fn in args:
     with open(fn, 'r') as fh:
-        print 'loading %s'%fn
+        print('loading %s'%fn)
         capfile = savefile.load_savefile(fh)
         for pn, p in enumerate(capfile.packets[::1]):
             if pn % 10000 == 0:
-                print 'Read %d packets'%pn
+                print('Read %d packets'%pn)
             # check this is an X packet
             if p.packet_len == 4482:
                 mcnt, chan, xeng, acc_num = decode_x_header(p.raw()[42:])
@@ -161,16 +161,16 @@ for fn in args:
             if pn == limit:
                 break
 
-print ''
+print('')
 for i in range(n_windows):
     if time_slots[i] != -1:
-        print 'time %d had %d packets'%(time_slots[i], packet_cnts[i])
+        print('time %d had %d packets'%(time_slots[i], packet_cnts[i]))
 
 
 badcnt = 0
 totcnt = 0
 goodcnt = 0
-print 'Checking outputs against TVG'
+print('Checking outputs against TVG')
 expected = get_expected_output()
 
 # iterate over time slots
@@ -181,7 +181,7 @@ for t in time_slots:
         continue
     else:
         tn += 1
-    print 'Checking time slot %d (time %d).'%(tn,t),
+    print('Checking time slot %d (time %d).'%(tn,t), end=' ')
     vldpkts = 0
     # iterate over channels (= packets)
     for cn,cspec in enumerate(spectra[t%n_windows]):
@@ -194,9 +194,9 @@ for t in time_slots:
                     vldpkts += 1
                 if blspec != expected[cn, bn//4, bn%4]:
                     badcnt += 1
-                    print i, t, bn//4, bn%4, cn, cspec, expected[cn, bn//4, bn%4]
+                    print(i, t, bn//4, bn%4, cn, cspec, expected[cn, bn//4, bn%4])
                 else:
                     goodcnt += 1
-    print 'Valid packets in this time slice: %d'%vldpkts
+    print('Valid packets in this time slice: %d'%vldpkts)
 
-print '%d values checked -- %d good, %d bad'%(totcnt, goodcnt, badcnt)
+print('%d values checked -- %d good, %d bad'%(totcnt, goodcnt, badcnt))

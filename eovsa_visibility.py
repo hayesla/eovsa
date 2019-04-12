@@ -17,9 +17,9 @@ Created on Wed Jun 18 18:14:41 2014
 #   2018-Jan-11  DG
 #     Added shift_time() function.
 
-from eovsa_lst import eovsa_ha, eovsa_lst
+from .eovsa_lst import eovsa_ha, eovsa_lst
 from numpy import rad2deg
-import util
+from . import util
 
 def shift_time(told,target):
     ''' This is for calculating a time shift for a given schedule, to 
@@ -33,7 +33,7 @@ def shift_time(told,target):
     '''
     from astropy.time import TimeDelta
     dt = TimeDelta((util.lobe(eovsa_lst(target) - eovsa_lst(told))*0.158720),format='jd')
-    print dt
+    print(dt)
     return target - dt
     
 def get_27m_HAlim(dec):

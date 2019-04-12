@@ -1,4 +1,4 @@
-import eovsa_cat as ec
+from . import eovsa_cat as ec
 import copy
 satnames = array(['O3B FM']*11)
 sats = []
@@ -16,5 +16,5 @@ for satname in sats:
         sat = aa.cat[satname]
         sat.compute(aa)
         if sat.alt > 10.*pi/180.:
-            print aa.date,satname,sat.ra,sat.dec
+            print(aa.date,satname,sat.ra,sat.dec)
 

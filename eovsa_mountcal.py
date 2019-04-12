@@ -13,9 +13,9 @@
 #  2018-01-30  DG
 #    Added params2ants() function to send the new pointing parameters
 #
-from util import Time
+from .util import Time
 import numpy as np
-from eovsa_lst import eovsa_lst
+from .eovsa_lst import eovsa_lst
 dtor = np.pi/180.  # Converts degrees to radians
 lat = 37.233170*np.pi/180
 lng = -118.286953*np.pi/180
@@ -26,7 +26,7 @@ def rd_calpnt(filename):
         routines, dRA is converted to dHA by inverting the sign, while dAZ is 
         converted to dXEL (angle on the sky) by multiplying by cos(EL).
     '''
-    import dbutil
+    from . import dbutil
     f = open(filename,'r')
     lines = f.readlines()
     f.close()
@@ -36,7 +36,7 @@ def rd_calpnt(filename):
         for ant in ants:
             antlist.append(int(ant[:2]))
     except:
-        print 'Unrecognized format (header line) for',filename
+        print('Unrecognized format (header line) for',filename)
         return None
     nants = len(ants)
     lines = lines[1:]
@@ -54,7 +54,7 @@ def rd_calpnt(filename):
             break
         vals = line[9:].split()
         if len(vals) != nants*2 + 4:
-            print 'Error reading line',i+2,'of',filename
+            print('Error reading line',i+2,'of',filename)
             dra = dra[:,:i]
             ddec = ddec[:,:i]
             break
@@ -67,7 +67,7 @@ def rd_calpnt(filename):
                 dra[:,i] = np.array(vals[4::2]).astype(float)
                 ddec[:,i] = np.array(vals[5::2]).astype(float)
             except:
-                print 'Error parsing line',i+2,'of',filename
+                print('Error parsing line',i+2,'of',filename)
     # Convert HA, Dec from degrees to radians, and then convert HA to RA
     ha = np.array(ha).astype(float)*np.pi/180.
     dec = np.array(dec).astype(float)*np.pi/180.
@@ -261,9 +261,9 @@ def checkfit(indict):
         y_diff = indict['ddec'] - fit_y
 
     # Print results
-    print 'Solution for antenna',indict['ant'],'mount type:',indict['mount']
-    print '                  Times \     AZ    EL     HA    DEC       MEASURED   FITTED  DIFFERENCE (deg)'
-    print ' '
+    print('Solution for antenna',indict['ant'],'mount type:',indict['mount'])
+    print('                  Times \     AZ    EL     HA    DEC       MEASURED   FITTED  DIFFERENCE (deg)')
+    print(' ')
     if mount == 'AZEL':
         for i in range(npt):
             el  = indict['el'][i] / dtor
@@ -273,8 +273,8 @@ def checkfit(indict):
             dxel = indict['dxel'][i]
             d_el = indict['d_el'][i]
             times = indict['times'][i]
-            print times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dXEL = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,dxel,fit_x[i],x_diff[i])
-            print times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dEL  = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,d_el,fit_y[i],y_diff[i])
+            print(times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dXEL = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,dxel,fit_x[i],x_diff[i]))
+            print(times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dEL  = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,d_el,fit_y[i],y_diff[i]))
 
         # Calculate an appropriate residual
         rmsum = np.concatenate((x_diff, y_diff)).std()
@@ -283,9 +283,9 @@ def checkfit(indict):
         # Add in zero for 6th parameter
         p = np.insert(p,5,0.0)
         # Print residual and solution
-        print ' '
-        print '\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum)
-        print '\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE'
+        print(' ')
+        print('\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum))
+        print('\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE')
     elif mount == 'EQ':   
         for i in range(npt):
             el  = indict['el'][i] / dtor
@@ -295,8 +295,8 @@ def checkfit(indict):
             dha = -indict['dra'][i]
             ddec = indict['ddec'][i]
             times = indict['times'][i]
-            print times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dHA  = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,dha,fit_x[i],x_diff[i])
-            print times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dDec = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,ddec,fit_y[i],y_diff[i])
+            print(times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dHA  = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,dha,fit_x[i],x_diff[i]))
+            print(times, "\ {:6.1f}{:6.1f} {:6.1f}{:6.1f}   dDec = {:7.3f}  {:7.3f}  {:7.3f}".format(az,el,ha,dec,ddec,fit_y[i],y_diff[i]))
 
         # Calculate an appropriate residual
         rmsum = np.concatenate((x_diff, y_diff)).std()
@@ -305,13 +305,13 @@ def checkfit(indict):
         # Add in zero for 9th parameter
         p = np.insert(p,8,0.0)
         # Print residual and solution
-        print ' '
-        print '\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum)
-        print '\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE'
+        print(' ')
+        print('\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum))
+        print('\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE')
 
     # Add update to existing pointing parameters and provide new parameters
-    print '{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}'.format(*(old_p + (p*10000).astype(int)))+' \ Updated pointing parameters'
-    print ''
+    print('{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}{:7d}'.format(*(old_p + (p*10000).astype(int)))+' \ Updated pointing parameters')
+    print('')
     indict.update({'params_new':old_p + (p*10000).astype(int)})
     '''
     #    paz = Azimuth list for plotting
@@ -408,8 +408,8 @@ def checkfit(indict):
 def multi_mountcal(filename, ant_str='None'):
     ''' Process an entire set of calpnt data
     '''
-    import coord_conv as cc
-    from util import ant_str2list
+    from . import coord_conv as cc
+    from .util import ant_str2list
     
     outdict = rd_calpnt(filename)
     indict_list = []
@@ -473,8 +473,8 @@ def params2ants(indict_list):
         indict_list[i]['params_new']    contains the parameters to send
         
     '''
-    import calibration as cal
-    import stateframe as stf
+    from . import calibration as cal
+    from . import stateframe as stf
     accini = stf.rd_ACCfile()
     acc = {'host': accini['host'], 'scdport':accini['scdport']}
     for indict in indict_list:
@@ -482,6 +482,6 @@ def params2ants(indict_list):
         for i in range(9):
             cmd = 'pointingcoefficient'+str(i+1)+' '+str(indict['params_new'][i])+' ant'+ant
             cal.send_cmds([cmd],acc)
-        print 'Coefficients for ant',ant,'sent.'
+        print('Coefficients for ant',ant,'sent.')
         if int(ant) in [1,2,3,4,5,6,7,8,12]:
-            print 'Antenna',ant,'controller must be rebooted before parameters take effect.'
+            print('Antenna',ant,'controller must be rebooted before parameters take effect.')

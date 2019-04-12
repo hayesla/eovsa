@@ -44,5 +44,5 @@ def table2steps(tbl,p=None):
         # Convert to steps and print table
         x = int(lha*xstepsiz)
         y = int((dec - lat)*ystepsiz)
-        print '{:8d} {:8d} {:5d} {:8d}'.format(x, y, mjd, t)
+        print('{:8d} {:8d} {:5d} {:8d}'.format(x, y, mjd, t))
 

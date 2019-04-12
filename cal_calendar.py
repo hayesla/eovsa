@@ -1,8 +1,8 @@
 def find_calibrations(year, month):
     import calendar
-    from util import Time
-    import cal_header as ch
-    import stateframe
+    from .util import Time
+    from . import cal_header as ch
+    from . import stateframe
     hc = calendar.HTMLCalendar(calendar.SUNDAY)
     html_table = hc.formatmonth(year, month)
     lines = html_table.split('\n')
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         year = np.int(sys.argv[1])
         month = np.int(sys.argv[2])
     except:
-        print 'Error interpreting command line argument'
+        print('Error interpreting command line argument')
     txt = find_calibrations(year,month)
     f = open('/common/webplots/cal_status/{:4}{:02d}'.format(year,month)+'.txt','w')
     f.write(txt)

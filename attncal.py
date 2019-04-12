@@ -13,10 +13,10 @@
 #    when 62 dB is inserted in the front end (i.e. is the receiver
 #    contribution to the noise).
 #
-from util import Time
+from .util import Time
 import numpy as np
-import dump_tsys as dt
-import read_idb as ri
+from . import dump_tsys as dt
+from . import read_idb as ri
 
 def get_attncal(trange, do_plot=False):
     ''' Finds GAINCALTEST scans from FDB files corresponding to the days
@@ -65,7 +65,7 @@ def get_attncal(trange, do_plot=False):
         fdb = dt.rd_fdb(Time(mjd,format='mjd'))
         gcidx, = np.where(fdb['PROJECTID'] == 'GAINCALTEST')
         if len(gcidx) == 1:
-            print fdb['FILE'][gcidx]
+            print(fdb['FILE'][gcidx])
             file =  '/data1/eovsa/fits/IDB/'+fdb['FILE'][gcidx][0][3:11]+'/'+fdb['FILE'][gcidx][0]
             out = ri.read_idb([file])
             vx = np.mean(out['p'][:13,:,:,6:12],3)
@@ -110,8 +110,8 @@ def read_attncal(trange=None):
                            where nattn = 8, nant = 13, npol = 2, and nf is variable
 
     '''
-    import cal_header as ch
-    import stateframe as stf
+    from . import cal_header as ch
+    from . import stateframe as stf
     if trange is None:
         trange = Time.now()
     if type(trange.mjd) == np.float:
@@ -138,21 +138,21 @@ if __name__ == "__main__":
         analyzed and the results are written to the SQL database.
     '''
     import sys
-    import cal_header as ch
+    from . import cal_header as ch
     t = Time.now()
     if len(sys.argv) == 2:
         try:
             t = Time(sys.argv[1])
         except:
-            print 'Cannot interpret',sys.argv[1],'as a valid date/time string.'
+            print('Cannot interpret',sys.argv[1],'as a valid date/time string.')
             exit()
     if len(sys.argv) == 3:
         try:
             t = Time([sys.argv[1],sys.argv[2]])
         except:
-            print 'Cannot interpret',sys.argv[1],'and/or',sys.argv[2],'as a valid date/time string.'
+            print('Cannot interpret',sys.argv[1],'and/or',sys.argv[2],'as a valid date/time string.')
             exit()    
-    print t.iso
+    print(t.iso)
     attn_list = get_attncal(t)
     for attn in attn_list:
         ch.fem_attn_val2sql([attn])

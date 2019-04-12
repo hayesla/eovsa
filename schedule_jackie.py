@@ -12,29 +12,29 @@
 # 
 import os, signal
 os.chdir('/home/sched/Dropbox/PythonCode/Current')
-from Tkinter import *
-import ttk
-from tkMessageBox import *
-from tkFileDialog import *
+from tkinter import *
+import tkinter.ttk
+from tkinter.messagebox import *
+from tkinter.filedialog import *
 from ftplib import FTP
-import urllib2
-import util
+import urllib.request, urllib.error, urllib.parse
+from . import util
 import threading
 import subprocess
-import roach
-from eovsa_tracktable import *
-from eovsa_array import *
-from eovsa_lst import eovsa_ha
+from . import roach
+from .eovsa_tracktable import *
+from .eovsa_array import *
+from .eovsa_lst import eovsa_ha
 from math import pi
-from readvla import *
-from scan_header import *
-from gen_schedule_sf import *
-import stateframe
+from .readvla import *
+from .scan_header import *
+from .gen_schedule_sf import *
+from . import stateframe
 from aipy.phs import PointingError
 import corr, time, numpy, socket, struct, sys
 import ephem
-import eovsa_cat
-from eovsa_visibility import scan_visible
+from . import eovsa_cat
+from .eovsa_visibility import scan_visible
 
 # Ensure that output to "terminal" goes to log file.
 sys.stdout = open('/tmp/schedule.log','w')
@@ -75,14 +75,14 @@ def init_scanheader_dict(version=0.0):
 
     # Read delay center file from ACC parm directory
     try:
-        dlafile = urllib2.urlopen('ftp://acc.solar.pvt/parm/delay_centers.txt',timeout=1)
+        dlafile = urllib.request.urlopen('ftp://acc.solar.pvt/parm/delay_centers.txt',timeout=1)
         dcen = []
         for line in dlafile.readlines():
             if line[0] != '#':
                 # Skip comment lines and take second number as delay center [ns]
                 dcen.append(float(line.split()[1]))
     except:
-        print util.datime().get('str'),'ACC connection for delay centers timed out.'
+        print(util.datime().get('str'),'ACC connection for delay centers timed out.')
         dcen = [0]*16
     
     sh_dict = {'timestamp': timestamp,
@@ -223,7 +223,7 @@ class App():
         # binsize, xmlpath, scdport and sfport
         try:
             self.accini = stateframe.rd_ACCfile()
-        except urllib2.URLError:
+        except urllib.error.URLError:
             showerror('Error','ACC unreachable, or ACC.ini file does not exist\n'
                                      +'Cannot continue.')
             exit()
@@ -257,7 +257,7 @@ class App():
         pageframe = Frame(self.root)
         pageframe.pack(expand = 1, fill = BOTH)
         # Attempt to add a tab
-        self.nb = ttk.Notebook(pageframe)
+        self.nb = tkinter.ttk.Notebook(pageframe)
         self.nb.pack(fill='both',expand='yes')
 
         fmain = Frame()
@@ -455,20 +455,20 @@ class App():
             rnum = int(roach_ip[5:6])-1
             self.roaches.append(roach.Roach(roach_ip, self.accini['boffile']))
             if self.roaches[-1].msg == 'Success':
-                print roach_ip,'is reachable'
+                print(roach_ip,'is reachable')
                 try:
                     self.roaches[-1].brd_clk = self.roaches[-1].fpga.est_brd_clk()
-                    print roach_ip,'clock is',self.roaches[-1].brd_clk
+                    print(roach_ip,'clock is',self.roaches[-1].brd_clk)
                     if self.roaches[-1].brd_clk < 199 or self.roaches[-1].brd_clk > 201:
-                        print roach_ip,'clock NOT 200 MHz.'
+                        print(roach_ip,'clock NOT 200 MHz.')
                 except:
-                    print roach_ip,'could NOT read FPGA clock speed. Will mark unreachable'
+                    print(roach_ip,'could NOT read FPGA clock speed. Will mark unreachable')
                     self.roaches[-1].brd_clk = 0.0
                     self.roaches[-1].fpga.stop()
                     self.roaches[-1].fpga = None
                 sh_dict['roach_brd_clk'][rnum] = self.roaches[-1].brd_clk
             else:
-                print roach_ip,'is unreachable!',self.roaches[-1].msg
+                print(roach_ip,'is unreachable!',self.roaches[-1].msg)
                 self.roaches.pop()
 
     #============================
@@ -500,13 +500,13 @@ class App():
         w = event.widget
         command = w.get()
         if w == self.wproj:
-            print 'Project is:',command
+            print('Project is:',command)
         elif w == self.woper:
-            print 'Observer is:',command
+            print('Observer is:',command)
         elif w == self.comm:
-            print 'Comment is:',command
+            print('Comment is:',command)
         else:
-            print 'unknown widget'
+            print('unknown widget')
 
     #============================
     def display_ctl(self,event):
@@ -517,7 +517,7 @@ class App():
             # Schedule is running, so clear selection and do nothing
             w.selection_clear(0,END)
         else:
-            sel = map(int, w.curselection())
+            sel = list(map(int, w.curselection()))
             if len(sel) == 1:
                 line = w.get(sel[0])
                 cmds = line[20:].split(' ')
@@ -643,7 +643,7 @@ class App():
     #============================
     def adjust_selection(self,sel,delt):
         if len(sel) == 0:
-            sel = range(self.lastline)
+            sel = list(range(self.lastline))
         d = util.datime()
         for i in sel:
             line = self.L.get(i)
@@ -663,7 +663,7 @@ class App():
             are Hours, Minutes and Seconds. If no selection is made
             it will create an error.
         '''
-        sel = map(int, self.L.curselection())  # list of line indexes selected
+        sel = list(map(int, self.L.curselection()))  # list of line indexes selected
         if self.var.get() == 0:
             one_day = 1.
             self.adjust_selection(sel,-one_day)
@@ -683,7 +683,7 @@ class App():
             are Hours, Minutes and Seconds. If no selection is made
             it will create an error.
         '''
-        sel = map(int, self.L.curselection())  # list of line indexes selected
+        sel = list(map(int, self.L.curselection()))  # list of line indexes selected
         if self.var.get() == 0:
             one_day = 1.
             self.adjust_selection(sel,one_day)
@@ -709,7 +709,7 @@ class App():
         # Determine how many days from date of first line to today
         line = self.L.get(0)
         days = int(d.get()) - int(mjd(line))
-        print 'Adding ',days,'days.'
+        print('Adding ',days,'days.')
         for i in range(self.lastline):
             line = self.L.get(i)
             linemjd = mjd(line) + days
@@ -843,13 +843,13 @@ class App():
                     else:
                         # No source found for wide, so mark line as a failure
                         line = line[:29] + 'No Src!!' + line[37:]
-                        print 'No source after searching the following sources: '
+                        print('No source after searching the following sources: ')
                         for f in fsortwide:
                             idx = fluxwide.index(f)
                             jys = fluxwide[idx]
                             src = srclistwide[idx]
                             visible = scan_visible(src,self.aa,dtstart,dtstop)
-                            print src.name, jys, visible, src.ra, src.dec, '     ', src.az, src.alt
+                            print(src.name, jys, visible, src.ra, src.dec, '     ', src.az, src.alt)
                 self.L.delete(i)
                 self.L.insert(i,line)
 
@@ -859,7 +859,7 @@ class App():
             insert it at the insertion indicator
         '''
         self.status.configure( state = NORMAL )
-        sel = map(int, self.L.curselection())
+        sel = list(map(int, self.L.curselection()))
         if len(sel) == 1:
             index = sel[0]
             self.content = self.E1.get().upper()
@@ -980,7 +980,7 @@ class App():
             pass
         else:
             # If elapsed time is not nominal (e.g. 999 or 1000), write it to log file.
-            print util.datime().get('str'),str(int(self.telapsed*1000))
+            print(util.datime().get('str'),str(int(self.telapsed*1000)))
             sys.stdout.flush()  # Flush stdout (/tmp/schedule.log) once per second so we can see the output.
 
         # Update phase tracking (u,v,w and delays)
@@ -1037,11 +1037,11 @@ class App():
             if r.fpga:
                 r.get_delays()
                 if r.msg == 'Success':
-                    delays = dict(zip(['dx0','dy0','dx1','dy1'],r.delays))
+                    delays = dict(list(zip(['dx0','dy0','dx1','dy1'],r.delays)))
                 else:
-                    delays = dict(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0]))
+                    delays = dict(list(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0])))
             else:
-                delays = dict(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0]))
+                delays = dict(list(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0])))
             self.delays[rnum].update(delays)        
 
         for i in range(8):
@@ -1081,7 +1081,7 @@ class App():
             time.sleep(0.02)
             s.close()
         except socket.timeout: 
-            print util.datime().get('str'),'Socket time-out when writing sched stateframe to ACC'
+            print(util.datime().get('str'),'Socket time-out when writing sched stateframe to ACC')
             s.close()
         except:
             self.error = 'Err: Cannot write sched stateframe to ACC'
@@ -1206,14 +1206,14 @@ class App():
         elif cmds[0].upper() == 'STARBURST':
             sh_dict['source_id'] = cmds[1]
             sh_dict['track_mode'] = 'RADEC '
-            print 'Source is',cmds[1]
+            print('Source is',cmds[1])
         elif cmds[0].upper() == 'GEOSAT':
             sh_dict['source_id'] = cmds[1].replace('_',' ')
             # These are geostationary satellites so far.  If/when we add
             # moving satellite capability, track_mode for those should be 'SATELL'
             sh_dict['track_mode'] = 'FIXED '
             try:
-                f = urllib2.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt',timeout=2)
+                f = urllib.request.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt',timeout=2)
                 lines = f.readlines()
                 for i,line in enumerate(lines):
                      if line.find(sh_dict['source_id']) == 0:
@@ -1225,10 +1225,10 @@ class App():
                     geosat=aipy.amp.RadioFixedBody(sat.ra,sat.dec,name=sat.name)
                     self.aa.cat.add_srcs(geosat)
                 else:
-                    print 'Geosat named ',sh_dict['source_id'],'not found!'
+                    print('Geosat named ',sh_dict['source_id'],'not found!')
                     sh_dict['source_id']=None
             except:
-                print util.datime().get('str'),'Connection to Celestrak timed out.'
+                print(util.datime().get('str'),'Connection to Celestrak timed out.')
                 sh_dict['source_id']=None
         else:
             sh_dict['source_id'] = None
@@ -1286,13 +1286,13 @@ class App():
                         acc.storlines('STOR '+fname,f)
                         acc.close()
                         f.close()
-                        f = urllib2.urlopen('ftp://acc.solar.pvt/parm/'+fname)
+                        f = urllib.request.urlopen('ftp://acc.solar.pvt/parm/'+fname)
                         tbl_echo = ''
                         for line in f.readlines():
                             tbl_echo += line.rstrip()+'\n'
                         if tbl != tbl_echo:
-                            print 'Error: Transfer of track table',fname,'failed!'
-                            print tbl,'not equal\n',tbl_echo
+                            print('Error: Transfer of track table',fname,'failed!')
+                            print(tbl,'not equal\n',tbl_echo)
                     #==== SCAN-START ====
                     elif ctlline.split(' ')[0].upper() == '$SCAN-START':
                         # Do any tasks here that are required to start a new scan
@@ -1312,7 +1312,7 @@ class App():
                             srcname = None
                         set_uvw(self.aa,dsec,srcname)
                         
-                        print 'Current RA, Dec, HA:',sh_dict['ra'],sh_dict['dec'],sh_dict['ha']
+                        print('Current RA, Dec, HA:',sh_dict['ra'],sh_dict['dec'],sh_dict['ha'])
                         sys.stdout.flush()
                         #scan_header(sh_dict)
                         # Update roach katadc sensor data
@@ -1364,7 +1364,7 @@ class App():
                         try:
                             dur = int(ctlline.split(' ')[1])
                         except:
-                            print 'Could not interpret duration on $WAIT command--defaulting to 10 s'
+                            print('Could not interpret duration on $WAIT command--defaulting to 10 s')
                             dur = 10
                         self.waitmode = True
                         self.nextctlline = i+1
@@ -1377,7 +1377,7 @@ class App():
                             r.get_attn()
                             rnum = int(r.roach_ip[5:6])
                             if r.msg == 'Success':
-                                sdev = dict(zip(['sdev.adc0.h','sdev.adc0.v','sdev.adc1.h','sdev.adc1.v'],r.sdev))
+                                sdev = dict(list(zip(['sdev.adc0.h','sdev.adc0.v','sdev.adc1.h','sdev.adc1.v'],r.sdev)))
                                 sh_dict['katadc'][rnum].update(sdev)
                             else:
                                 # In case of failure, set to empty dictionary
@@ -1400,7 +1400,7 @@ class App():
                     if cmds[0].upper() == 'FSEQ-FILE':
                         # This is an FSEQ-FILE command, so find and set frequency sequence
                         # Just FTP sequence file from ACC
-                        fseqfile = urllib2.urlopen('ftp://acc.solar.pvt/parm/'+cmds[1])
+                        fseqfile = urllib.request.urlopen('ftp://acc.solar.pvt/parm/'+cmds[1])
                         nrpt = None     # Initially not defined
                         fsequence = ''  # Initially empty
                         for line in fseqfile.readlines():
@@ -1410,14 +1410,14 @@ class App():
                             if line.find(keywd) == 0:
                                 dwellseq = line[len(keywd):].split(',')
                                 if len(dwellseq) != 35:
-                                    print 'FSEQ file',cmds[1],'DWELL line must have 35 entries.'
+                                    print('FSEQ file',cmds[1],'DWELL line must have 35 entries.')
                                     break
                                 # Find nearest-integer number of 0.02 s periods
                                 nrpt = (numpy.array(dwellseq).astype('float')/0.02 + 0.5).astype('int')
                             keywd = 'LIST:SEQUENCE'
                             if line.find(keywd) == 0:
                                 if nrpt is None:
-                                    print 'FSEQ file',cmds[1],'DWELL line must come before SEQUENCE line.'
+                                    print('FSEQ file',cmds[1],'DWELL line must come before SEQUENCE line.')
                                     break
                                 bands = numpy.array(line[len(keywd):].split(',')).astype('int')
                                 # Step through bands in fsequence and repeat them according to
@@ -1427,7 +1427,7 @@ class App():
                                         fsequence += str(band)+','
                                 break
                         if fsequence == '':
-                            print 'FSEQ file',cmds[1],'not successfully interpreted.'
+                            print('FSEQ file',cmds[1],'not successfully interpreted.')
                         else:
                             sh_dict.update({'fsequence':fsequence[:-1]})   # -1 removes trailing ','
                             self.sequence2roach(fsequence[:-1])

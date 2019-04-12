@@ -1,7 +1,7 @@
 from matplotlib import pylab as plt
 import glob
-import read_idb as ri
-from util import lobe
+from . import read_idb as ri
+from .util import lobe
 files = glob.glob('/data1/eovsa/fits/UDB/2018/UDB20180826*')
 files.sort()
 files = files[:20]

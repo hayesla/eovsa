@@ -1,4 +1,4 @@
-import stateframe
+from . import stateframe
 from read_xml import *
 import copy as cp
 import os

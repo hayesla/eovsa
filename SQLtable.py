@@ -9,7 +9,7 @@
 #
 
 import struct, dbutil
-from util import Time
+from .util import Time
 import numpy as np
 
 def TPcal(x, y, calfac, offsun):

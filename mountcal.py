@@ -7,7 +7,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-from readbsc import starobs2dxeldel
+from .readbsc import starobs2dxeldel
 #+
 # NAME:
 #     KSRBL_MOUNTCAL
@@ -109,7 +109,7 @@ def mountcal(filename=None,param_string=None,star=True):
 
     # Open the file containing the raw pointing data
     if filename is None:
-        print 'Error: Must specify an input file name.'
+        print('Error: Must specify an input file name.')
         return
     if param_string is None:
         param_string = '0 0 0 0 0 0 0 0 0'
@@ -208,7 +208,7 @@ def mountcal(filename=None,param_string=None,star=True):
         npt += 2
 
     if npt == 0:
-        print 'KSRBL_MOUNTCAL: File read error.'
+        print('KSRBL_MOUNTCAL: File read error.')
         return
 
     # Solve equation for pointing parameters
@@ -240,11 +240,11 @@ def mountcal(filename=None,param_string=None,star=True):
     diff = np.array(apo) - np.array(fit)
 
     # Print results
-    print ' '
-    print '\     AZ    EL       MEASURED   FITTED  DIFFERENCE (deg)'
-    print ' '
+    print(' ')
+    print('\     AZ    EL       MEASURED   FITTED  DIFFERENCE (deg)')
+    print(' ')
     for i in range(npt):
-        print "\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aaz[i],ael[i],ahodo[i],apo[i],fit[i],diff[i])
+        print("\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aaz[i],ael[i],ahodo[i],apo[i],fit[i],diff[i]))
 
     # Calculate an appropriate residual
     rmsum = diff.std()
@@ -259,11 +259,11 @@ def mountcal(filename=None,param_string=None,star=True):
     # Add in zero for 6th parameter
     p = np.insert(p,5,0.0)
     # Print residual and solution
-    print ' '
-    print '\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum)
-    print '\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE'
+    print(' ')
+    print('\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum))
+    print('\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE')
     
-    print ''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters'
+    print(''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters')
 
 #    paz = Azimuth list for plotting
 #    pel = Elevation list for plotting
@@ -272,12 +272,12 @@ def mountcal(filename=None,param_string=None,star=True):
 #    azfit = Fit for Azimuth for plotting
 #    elfit = Fit for Elevation for plotting
     # Azimuth -- get index for sort by ascending order
-    print 'start of plot'
+    print('start of plot')
     paz = np.array(paz)
     ind = paz.argsort()
     azpo = np.array(azpo)
     elpo = np.array(elpo)
-    print 'setting drange'
+    print('setting drange')
     drange = np.sqrt((azpo.max() - azpo.min())**2 + (elpo.max() - elpo.min())**2)
     matplotlib.rcParams.update({'font.size':12})
     plt.subplot(221)
@@ -434,7 +434,7 @@ def eq_mountcal(filename=None, param_string=None, star=True, stepsize=None, sfac
     nparm = 8
     # Open the file containing the raw pointing data
     if filename is None:
-        print 'Error: Must specify an input file name.'
+        print('Error: Must specify an input file name.')
         return
     if stepsize != None:
         nparm = 10
@@ -555,7 +555,7 @@ def eq_mountcal(filename=None, param_string=None, star=True, stepsize=None, sfac
         npt += 2
 
     if npt == 0:
-        print 'EQ_MOUNTCAL: File read error.'
+        print('EQ_MOUNTCAL: File read error.')
         return
 
     # Solve equation for pointing parameters
@@ -594,11 +594,11 @@ def eq_mountcal(filename=None, param_string=None, star=True, stepsize=None, sfac
     diff = np.array(apo) - np.array(fit)
 
     # Print results
-    print ' '
-    print '\     HA    DEC      MEASURED   FITTED  DIFFERENCE (deg)'
-    print ' '
+    print(' ')
+    print('\     HA    DEC      MEASURED   FITTED  DIFFERENCE (deg)')
+    print(' ')
     for i in range(npt):
-        print "\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aha[i],adec[i],ahodo[i],apo[i],fit[i],diff[i])
+        print("\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aha[i],adec[i],ahodo[i],apo[i],fit[i],diff[i]))
 
     # Calculate an appropriate residual
     rmsum = diff.std()
@@ -611,11 +611,11 @@ def eq_mountcal(filename=None, param_string=None, star=True, stepsize=None, sfac
     if star: p = -p
 
     # Print residual and solution
-    print ' '
-    print '\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum)
-    print '\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE'
+    print(' ')
+    print('\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum))
+    print('\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE')
     
-    print ''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters'
+    print(''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters')
 
 #    pha = Hour Angle list for plotting
 #    pdec = Declination list for plotting
@@ -624,12 +624,12 @@ def eq_mountcal(filename=None, param_string=None, star=True, stepsize=None, sfac
 #    hafit = Fit for HA for plotting
 #    decfit = Fit for Declination for plotting
     # Hour Angle -- get index for sort by ascending order
-    print 'start of plot'
+    print('start of plot')
     pha = np.array(pha)
     ind = pha.argsort()
     hapo = np.array(hapo)
     decpo = np.array(decpo)
-    print 'setting drange'
+    print('setting drange')
     drange = np.sqrt((hapo.max() - hapo.min())**2 + (decpo.max() - decpo.min())**2)
     matplotlib.rcParams.update({'font.size':12})
     plt.subplot(221)
@@ -686,7 +686,7 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
     nparm = 8
     # Open the file containing the raw pointing data
     if filename is None:
-        print 'Error: Must specify an input file name.'
+        print('Error: Must specify an input file name.')
         return
     if stepsize != None:
         nparm = 10
@@ -738,7 +738,7 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
 
     for line in lines:
         nam = line[:8]
-        info = map(float,line.strip().split()[3:7])
+        info = list(map(float,line.strip().split()[3:7]))
         ha,dec,dra,ddec = info
         ha = ha#*180/np.pi
         dec = dec#*180/np.pi
@@ -807,7 +807,7 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
             npt += 1
 
     if npt == 0:
-        print 'EQ_MOUNTCAL: File read error.'
+        print('EQ_MOUNTCAL: File read error.')
         return
 
     # Solve equation for pointing parameters
@@ -846,11 +846,11 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
     diff = np.array(apo) - np.array(fit)
 
     # Print results
-    print ' '
-    print '\     HA    DEC      MEASURED   FITTED  DIFFERENCE (deg)'
-    print ' '
+    print(' ')
+    print('\     HA    DEC      MEASURED   FITTED  DIFFERENCE (deg)')
+    print(' ')
     for i in range(npt):
-        print "\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aha[i],adec[i],ahodo[i],apo[i],fit[i],diff[i])
+        print("\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aha[i],adec[i],ahodo[i],apo[i],fit[i],diff[i]))
 
     # Calculate an appropriate residual
     rmsum = diff.std()
@@ -863,11 +863,11 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
     if star: p = -p
 
     # Print residual and solution
-    print ' '
-    print '\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum)
-    print '\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE'
+    print(' ')
+    print('\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum))
+    print('\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE')
     
-    print ''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters'
+    print(''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters')
 
 #    pha = Hour Angle list for plotting
 #    pdec = Declination list for plotting
@@ -876,12 +876,12 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
 #    hafit = Fit for HA for plotting
 #    decfit = Fit for Declination for plotting
     # Hour Angle -- get index for sort by ascending order
-    print 'start of plot'
+    print('start of plot')
     pha = np.array(phah)
     ind = pha.argsort()
     hapo = np.array(hapo)
     decpo = np.array(decpo)
-    print 'setting drange'
+    print('setting drange')
     drange = np.sqrt((hapo.max() - hapo.min())**2 + (decpo.max() - decpo.min())**2)
     matplotlib.rcParams.update({'font.size':12})
     plt.subplot(221)
@@ -938,13 +938,13 @@ def anta_mountcal(filename=None, param_string=None, star=False, stepsize=None, s
     
 def anta_broken_mountcal(filename=None, param_string=None, star=False, stepsize=None, sfac=0.0):
 
-    from util import common_val_idx
+    from .util import common_val_idx
 
     lat = 37.233170       # OVSA Latitude (degrees)
     nparm = 8
     # Open the file containing the raw pointing data
     if filename is None:
-        print 'Error: Must specify an input file name.'
+        print('Error: Must specify an input file name.')
         return
     if stepsize != None:
         nparm = 10
@@ -998,7 +998,7 @@ def anta_broken_mountcal(filename=None, param_string=None, star=False, stepsize=
 
     for k,line in enumerate(lines):
         nam = line[:8]
-        info = map(float,line.strip().split()[3:7])
+        info = list(map(float,line.strip().split()[3:7]))
         ha,dec,dra,ddec = info
         ha = ha#*180/np.pi
         dec = dec#*180/np.pi
@@ -1069,7 +1069,7 @@ def anta_broken_mountcal(filename=None, param_string=None, star=False, stepsize=
             npt += 1
 
     if npt == 0:
-        print 'EQ_MOUNTCAL: File read error.'
+        print('EQ_MOUNTCAL: File read error.')
         return
 
     # Solve equation for pointing parameters
@@ -1108,11 +1108,11 @@ def anta_broken_mountcal(filename=None, param_string=None, star=False, stepsize=
     diff = np.array(apo) - np.array(fit)
 
     # Print results
-    print ' '
-    print '\     HA    DEC      MEASURED   FITTED  DIFFERENCE (deg)'
-    print ' '
+    print(' ')
+    print('\     HA    DEC      MEASURED   FITTED  DIFFERENCE (deg)')
+    print(' ')
     for i in range(npt):
-        print "\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aha[i],adec[i],ahodo[i],apo[i],fit[i],diff[i])
+        print("\ {:6.1f}{:6.1f}   {:s}= {:7.3f}  {:7.3f}  {:7.3f}".format(aha[i],adec[i],ahodo[i],apo[i],fit[i],diff[i]))
 
     # Calculate an appropriate residual
     rmsum = diff.std()
@@ -1125,11 +1125,11 @@ def anta_broken_mountcal(filename=None, param_string=None, star=False, stepsize=
     if star: p = -p
 
     # Print residual and solution
-    print ' '
-    print '\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum)
-    print '\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE'
+    print(' ')
+    print('\ RMS Residual={:5.3f}   RMS Original={:5.3f}'.format(rmsum,origsum))
+    print('\\',''.join('{:8.4f}'.format(k) for k in p), '<- UPDATE')
     
-    print ''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters'
+    print(''.join('{:7d}'.format(int(int(aligntab[k])+v*10000)) for k,v in enumerate(p)),' ALIGNPARM \ Updated pointing parameters')
 
 #    pha = Hour Angle list for plotting
 #    pdec = Declination list for plotting
@@ -1138,12 +1138,12 @@ def anta_broken_mountcal(filename=None, param_string=None, star=False, stepsize=
 #    hafit = Fit for HA for plotting
 #    decfit = Fit for Declination for plotting
     # Hour Angle -- get index for sort by ascending order
-    print 'start of plot'
+    print('start of plot')
     pha = np.array(phah)
     ind = pha.argsort()
     hapo = np.array(hapo)
     decpo = np.array(decpo)
-    print 'setting drange'
+    print('setting drange')
     drange = np.sqrt((hapo.max() - hapo.min())**2 + (decpo.max() - decpo.min())**2)
     matplotlib.rcParams.update({'font.size':12})
     plt.subplot(221)
@@ -1208,7 +1208,7 @@ def ptg_model(ha, dec, param_string='-1875 1442 1470 -162 862 -127 9878 468',alt
     '''
     lat = 37.233170
     dtor = np.pi/180.
-    p = np.array(map(float,param_string.strip().split()))/10000. # Read old alignment parameters into ALIGNTAB
+    p = np.array(list(map(float,param_string.strip().split())))/10000. # Read old alignment parameters into ALIGNTAB
 
     x = np.array([1.,
            -np.cos(lat*dtor)*np.sin(ha*dtor)/np.cos(dec*dtor),

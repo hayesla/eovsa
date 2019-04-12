@@ -32,11 +32,11 @@
 #    Fixed the bugs where the number of bands was hardcoded as 34. Now the number of
 #    bands is determined from the arrays returned from the SQL database.
 #
-import dbutil as db
-import read_idb as ri
-import cal_header as ch
-from util import Time, nearest_val_idx
-import stateframe as stf
+from . import dbutil as db
+from . import read_idb as ri
+from . import cal_header as ch
+from .util import Time, nearest_val_idx
+from . import stateframe as stf
 import numpy as np
 
 def get_fseqfile(t=None):
@@ -55,7 +55,7 @@ def get_fseqfile(t=None):
         if fseqfile == 'none':
             fseqfile = None
     else:
-        print 'Error: ',msg
+        print('Error: ',msg)
         fseqfile = None
     cursor.close()
     return fseqfile
@@ -70,21 +70,21 @@ def fseqfile2bandlist(fseqfile=None):
         Returns:
            bandlist    numpy 50-element integer array of band numbers, 1-nbands
     '''
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
     if fseqfile is None:
-        print 'Must specify a frequency sequence.'
+        print('Must specify a frequency sequence.')
         return None
     userpass = 'admin:observer@'
-    fseq_handle = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
+    fseq_handle = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
     lines = fseq_handle.readlines()
     fseq_handle.close()
     for line in lines:
         if line.find('LIST:SEQUENCE') != -1:
             line = line[14:]
-            bands = np.array(map(int,line.split(',')))
+            bands = np.array(list(map(int,line.split(','))))
         elif line.find('LIST:DWELL') != -1:
             line = line[11:]
-            dwellist = np.array(map(float,line.split(',')))
+            dwellist = np.array(list(map(float,line.split(','))))
     bandlist = []
     for band in bands:
         bandlist += [band]*int(np.round(dwellist[band-1]/0.02))
@@ -157,7 +157,7 @@ def get_fem_level(trange, dt=None):
         hlev = hlev.T
         vlev = vlev.T
     else:
-        print 'Error reading FEM levels:',msg
+        print('Error reading FEM levels:',msg)
         return {}
     # Get back end attenuator states
     xml, buf = ch.read_cal(2, t=trange[0])
@@ -187,7 +187,7 @@ def get_fem_level(trange, dt=None):
                 # Get fseqfile name at mean of timerange, from stateframe SQL database
                 fseqfile = get_fseqfile(Time(int(np.mean(trange.lv)),format='lv')) 
                 if fseqfile is None:
-                    print 'Error: No active fseq file.'
+                    print('Error: No active fseq file.')
                     dcm_off = None
                 else:
                     # Get fseqfile from ACC and return bandlist
@@ -207,10 +207,10 @@ def get_fem_level(trange, dt=None):
                         dcm_off.shape = (nbands,dt,new_nt)
                         dcm_off = np.mean(dcm_off,1)
             else:
-                print 'Error reading DCM attenuations:',msg
+                print('Error reading DCM attenuations:',msg)
                 dcm_off = None
     else:
-        print 'Error reading DPPon state:',msg
+        print('Error reading DPPon state:',msg)
         dcm_off = None
     cursor.close()
     return {'times':times,'hlev':hlev.astype(int),'vlev':vlev.astype(int),'dcmattn':dcmattn,'dcmoff':dcm_off}
@@ -297,7 +297,7 @@ def get_gain_state(trange, dt=None):
         v1 = v1.T
         v2 = v2.T
     else:
-        print 'Error reading FEM attenuations:',msg
+        print('Error reading FEM attenuations:',msg)
         return {}
     # Get back end attenuator states
     xml, buf = ch.read_cal(2, t=trange[0])
@@ -331,7 +331,7 @@ def get_gain_state(trange, dt=None):
                 # Get fseqfile name at mean of timerange, from stateframe SQL database
                 fseqfile = get_fseqfile(Time(int(np.mean(trange.lv)),format='lv')) 
                 if fseqfile is None:
-                    print 'Error: No active fseq file.'
+                    print('Error: No active fseq file.')
                     dcm_off = None
                 else:
                     # Get fseqfile from ACC and return bandlist
@@ -351,10 +351,10 @@ def get_gain_state(trange, dt=None):
                         dcm_off.shape = (nbands,dt,new_nt)
                         dcm_off = np.mean(dcm_off,1)
             else:
-                print 'Error reading DCM attenuations:',msg
+                print('Error reading DCM attenuations:',msg)
                 dcm_off = None
     else:
-        print 'Error reading DPPon state:',msg
+        print('Error reading DPPon state:',msg)
         dcm_off = None
     cursor.close()
     return {'times':times,'h1':h1,'v1':v1,'h2':h2,'v2':v2,'dcmattn':dcmattn,'dcmoff':dcm_off}
@@ -372,8 +372,8 @@ def apply_fem_level(data,gctime=None):
           cdata    A dictionary with the level-corrected data.  The keys
                      p, x, p2, and a are all updated.
     '''
-    from util import common_val_idx, nearest_val_idx
-    import attncal as ac
+    from .util import common_val_idx, nearest_val_idx
+    from . import attncal as ac
     import copy
 
     # Get timerange from data
@@ -446,7 +446,7 @@ def apply_gain_corr(data, tref=None):
           cdata    A dictionary with the gain-corrected data.  The keys
                      p, x, p2, and a are all updated.
     '''
-    from util import common_val_idx, nearest_val_idx
+    from .util import common_val_idx, nearest_val_idx
     import copy
     if tref is None:
         # No reference time specified, so get nearest earlier REFCAL
@@ -478,7 +478,7 @@ def apply_gain_corr(data, tref=None):
     if nbands != ref_gs['dcmattn'].shape[2]:
         # Reference gain state is incompatible with this one, so set to src gain state (no correction will be applied)
         ref_gs = src_gs
-        print 'GAINCAL2 Warning: Data and reference gain states are not compatible. No correction applied!'
+        print('GAINCAL2 Warning: Data and reference gain states are not compatible. No correction applied!')
     antgain = np.zeros((15,2,nbands,nt),np.float32)   # Antenna-based gains vs. band
     for i in range(15):
         for j in range(nbands):

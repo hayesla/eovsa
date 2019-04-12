@@ -52,7 +52,7 @@
 
 import subprocess, time, sys, glob
 import numpy as np
-from util import Time
+from .util import Time
 
 
 def common_val_idx(array1, array2):
@@ -137,11 +137,11 @@ def dump_tsys(trange):
     filelist = file_list(trange)
 
     if filelist == []:
-        print 'No files find between', trange[0].iso, 'and', trange[1].iso
+        print('No files find between', trange[0].iso, 'and', trange[1].iso)
         return
 
     for filename in filelist:
-        print 'Processing', filename
+        print('Processing', filename)
         vis = 'vis=' + filename
         log = 'log=/common/tmp/txt/xt' + filename.split('IDB')[-1] + '.txt'
         xaxis = 'xaxis=time'
@@ -164,7 +164,7 @@ def rd_miriad_tsys(trange, udb=False):
     # Find files corresponding to times
     filelist = file_list(trange, udb=udb)
     if filelist == []:
-        print 'No files find between', trange[0].iso, 'and', trange[1].iso
+        print('No files find between', trange[0].iso, 'and', trange[1].iso)
         return None
     # Open first file and check that it has correct form
     uv = aipy.miriad.UV(filelist[0])
@@ -194,7 +194,7 @@ def rd_miriad_tsys(trange, udb=False):
     else:
         uvok = False
     if not uvok:
-        print 'Miriad file has bad format'
+        print('Miriad file has bad format')
         return None
 
     utd = []
@@ -204,8 +204,8 @@ def rd_miriad_tsys(trange, udb=False):
     for filename in filelist:
         uv = aipy.miriad.UV(filename)
         if uv['source'] != src:
-            print 'Source name:', uv['source'], 'is different from initial source name:', src
-            print 'Will stop reading files.'
+            print('Source name:', uv['source'], 'is different from initial source name:', src)
+            print('Will stop reading files.')
             break
         # uv.select('antennae',0,1,include=True)
         # Read first record of data
@@ -243,8 +243,8 @@ def rd_miriad_tsys_16(trange, udb=False, auto=False, tref=None):
         
         2018-01-26  Changed to call gc.apply_fem_level() instead of gc.apply_gain_corr().
     '''
-    import gaincal2 as gc
-    import read_idb
+    from . import gaincal2 as gc
+    from . import read_idb
     out = read_idb.read_idb(trange)
     #cout = gc.apply_gain_corr(out, tref=tref)
     try:
@@ -268,7 +268,7 @@ def rd_miriad_tsamp(trange, udb=False):
     # Find files corresponding to times
     filelist = file_list(trange, udb=udb)
     if filelist == []:
-        print 'No files find between', trange[0].iso, 'and', trange[1].iso
+        print('No files find between', trange[0].iso, 'and', trange[1].iso)
         return None
     # Open first file and check that it has correct form
     uv = aipy.miriad.UV(filelist[0])
@@ -298,7 +298,7 @@ def rd_miriad_tsamp(trange, udb=False):
     else:
         uvok = False
     if not uvok:
-        print 'Miriad file has bad format'
+        print('Miriad file has bad format')
         return None
 
     utd = []
@@ -308,8 +308,8 @@ def rd_miriad_tsamp(trange, udb=False):
     for filename in filelist:
         uv = aipy.miriad.UV(filename)
         if uv['source'] != src:
-            print 'Source name:', uv['source'], 'is different from initial source name:', src
-            print 'Will stop reading files.'
+            print('Source name:', uv['source'], 'is different from initial source name:', src)
+            print('Will stop reading files.')
             break
         # uv.select('antennae',0,1,include=True)
         # Read first record of data
@@ -354,7 +354,7 @@ def rd_fdb(t):
         lines = f.readlines()
         f.close()
     except:
-        print 'Error: Could not open file', folder + fdbfile + '.'
+        print('Error: Could not open file', folder + fdbfile + '.')
         return {}
     names = lines[0].replace(':', '').split()
     contents = np.zeros((len(names), len(lines) / 2), 'S32')
@@ -365,7 +365,7 @@ def rd_fdb(t):
             # If the above assignment does not work, line is malformed, so just
             # leave as empty list
             pass
-    return dict(zip(names, contents))
+    return dict(list(zip(names, contents)))
 
 
 def rd_ufdb(t):
@@ -379,7 +379,7 @@ def rd_ufdb(t):
         lines = f.readlines()
         f.close()
     except:
-        print 'Error: Could not open file', folder + ufdbfile + '.'
+        print('Error: Could not open file', folder + ufdbfile + '.')
         return {}
     names = lines[0].replace(':', '').split()
     contents = np.zeros((len(names), len(lines) - 1), 'S32')
@@ -390,14 +390,14 @@ def rd_ufdb(t):
             # If the above assignment does not work, line is malformed, so just
             # leave as empty list
             pass
-    return dict(zip(names, contents))
+    return dict(list(zip(names, contents)))
 
 
 if __name__ == "__main__":
     def usage(instr):
-        print instr
-        print 'Usage:  dump_tsys <date1> <date2>'
-        print '   e.g. dump_tsys "2014-11-16 16:00:00" "2014-11-16 17:00:00"'
+        print(instr)
+        print('Usage:  dump_tsys <date1> <date2>')
+        print('   e.g. dump_tsys "2014-11-16 16:00:00" "2014-11-16 17:00:00"')
         exit()
 
 
@@ -407,12 +407,12 @@ if __name__ == "__main__":
     try:
         t1 = Time(sys.argv[1])
     except:
-        print sys.argv[1]
+        print(sys.argv[1])
         usage('First argument not recognized as a valid time string')
     try:
         t2 = Time(sys.argv[2])
     except:
-        print sys.argv[2]
+        print(sys.argv[2])
         usage('Second argument not recognized as a valid time string')
 
     dump_tsys(Time([t1.iso, t2.iso]))

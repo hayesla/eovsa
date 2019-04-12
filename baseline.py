@@ -4,8 +4,8 @@
 #   2015-07-26  DG
 #     First written
 #  
-import eovsa_array as ea
-import eovsa_lst as el
+from . import eovsa_array as ea
+from . import eovsa_lst as el
 import aipy
 import numpy as np
 

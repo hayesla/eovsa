@@ -13,10 +13,10 @@
 #    All of a sudden, closing a urlopen() file handle is hanging, so skip it.
 #
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
-from util import Time
-import sun_pos
+from .util import Time
+from . import sun_pos
 
 def rd_rstnflux(t=None,f=None,recur=False):
     ''' Reads the RSTN/Penticton quiet Sun solar flux density for the date specified
@@ -48,21 +48,21 @@ def rd_rstnflux(t=None,f=None,recur=False):
             recur = True  # Set this to prevent unneeded recursive call
         else:
             try:
-                f = urllib2.urlopen(noaa_url)
-                print 'Data will be retrieved from NOAA 45-day file.'
+                f = urllib.request.urlopen(noaa_url)
+                print('Data will be retrieved from NOAA 45-day file.')
                 lines = f.readlines()
                 if datstr[9] == '0': datstr = datstr[:9]+datstr[10:]
             except:
-                print 'NOAA 45-day file not reachable at',noaa_url
+                print('NOAA 45-day file not reachable at',noaa_url)
                 recur = True  # Set this to prevent unneeded recursive call
         if recur:
             try:
                 f = open(archfile,'r')
-                print 'Data will be retrieved from archive file',archfile,'.'
+                print('Data will be retrieved from archive file',archfile,'.')
                 lines = f.readlines()
                 f.close()
             except:
-                print 'Error: Archive file',archfile,'not found.'
+                print('Error: Archive file',archfile,'not found.')
                 return None, None
     else:
         lines = f.readlines()
@@ -83,16 +83,16 @@ def rd_rstnflux(t=None,f=None,recur=False):
             break
     if frq[0] == 0:
         if recur:
-            print 'Error: Date',datstr,'not found.'
+            print('Error: Date',datstr,'not found.')
             return None, None
         else:
-            print 'Warning: Date',datstr,'not found in 45-day file at',noaa_url
-            print 'Data will be retrieved from archive file.'
+            print('Warning: Date',datstr,'not found in 45-day file at',noaa_url)
+            print('Data will be retrieved from archive file.')
             try:
                 f = open(archfile,'r')
                 frq, flux = rd_rstnflux(t,f,recur=True)
             except:
-                print 'Error: File',archfile,'not found.'
+                print('Error: File',archfile,'not found.')
                 return None, None
     return frq, flux
     
@@ -183,7 +183,7 @@ def noaa2db(infile,outfile):
         lines = np.array(f.readlines())
         f.close()
     except:
-        print 'Cannot find or open file',infile
+        print('Cannot find or open file',infile)
         return
     fline = -1
     # Find the first line with a date
@@ -195,7 +195,7 @@ def noaa2db(infile,outfile):
         except:
             pass
     if fline == -1:
-        print 'No lines with dates found!'
+        print('No lines with dates found!')
         return
     idx = np.arange(len(lines)/11)*11 + fline
     mjds = []

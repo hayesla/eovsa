@@ -29,13 +29,13 @@
 #      turns out to be a relatively minor change.  Also add a checkbox to
 #      allow the user to mark missing antennas.
 
-from Tkinter import *
-from tkFileDialog import askopenfile
-from tkMessageBox import askyesno
+from tkinter import *
+from tkinter.filedialog import askopenfile
+from tkinter.messagebox import askyesno
 import os
 import numpy as np
-from util import Time, lobe, common_val_idx
-import read_idb as ri
+from .util import Time, lobe, common_val_idx
+from . import read_idb as ri
 import matplotlib.pylab as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, \
                                               NavigationToolbar2TkAgg
@@ -75,9 +75,9 @@ class App():
         self.dla14.pack(side=LEFT)
         dla14updown = Frame(line1)
         dla14updown.pack(side=LEFT)
-        self.dla14upbtn = Button(dla14updown, text=u'\u25B2', command=self.up14dla, borderwidth=0, pady=0)
+        self.dla14upbtn = Button(dla14updown, text='\u25B2', command=self.up14dla, borderwidth=0, pady=0)
         self.dla14upbtn.pack(padx=1,pady=0)
-        self.dla14dnbtn = Button(dla14updown, text=u'\u25BC', command=self.down14dla, borderwidth=0, pady=0)
+        self.dla14dnbtn = Button(dla14updown, text='\u25BC', command=self.down14dla, borderwidth=0, pady=0)
         self.dla14dnbtn.pack(padx=1,pady=0)
 
         line2 = Frame(fmain)
@@ -96,9 +96,9 @@ class App():
         #antbtns.pack()
         antupdown = Frame(leftant)
         antupdown.pack()
-        self.antupbtn = Button(antupdown, text=u'\u25B2', command=self.up, borderwidth=0, pady=0)
+        self.antupbtn = Button(antupdown, text='\u25B2', command=self.up, borderwidth=0, pady=0)
         self.antupbtn.pack(padx=1,pady=0)
-        self.antdnbtn = Button(antupdown, text=u'\u25BC', command=self.down, borderwidth=0, pady=0)
+        self.antdnbtn = Button(antupdown, text='\u25BC', command=self.down, borderwidth=0, pady=0)
         self.antdnbtn.pack(padx=1,pady=0)
 
         leftdla = Frame(fleft)
@@ -113,9 +113,9 @@ class App():
         #dlabtns = Frame(leftdla)
         dlaupdown = Frame(leftdla)
         dlaupdown.pack()
-        self.dlaupbtn = Button(dlaupdown, text=u'\u25B2', command=self.updla, borderwidth=0, pady=0)
+        self.dlaupbtn = Button(dlaupdown, text='\u25B2', command=self.updla, borderwidth=0, pady=0)
         self.dlaupbtn.pack(padx=1,pady=0)
-        self.dladnbtn = Button(dlaupdown, text=u'\u25BC', command=self.downdla, borderwidth=0, pady=0)
+        self.dladnbtn = Button(dlaupdown, text='\u25BC', command=self.downdla, borderwidth=0, pady=0)
         self.dladnbtn.pack(padx=1,pady=0)
 
         leftxydla = Frame(fleft)
@@ -130,9 +130,9 @@ class App():
         #dlabtns = Frame(leftdla)
         xydlaupdown = Frame(leftxydla)
         xydlaupdown.pack()
-        self.xydlaupbtn = Button(xydlaupdown, text=u'\u25B2', command=self.xyupdla, borderwidth=0, pady=0)
+        self.xydlaupbtn = Button(xydlaupdown, text='\u25B2', command=self.xyupdla, borderwidth=0, pady=0)
         self.xydlaupbtn.pack(padx=1,pady=0)
-        self.xydladnbtn = Button(xydlaupdown, text=u'\u25BC', command=self.xydowndla, borderwidth=0, pady=0)
+        self.xydladnbtn = Button(xydlaupdown, text='\u25BC', command=self.xydowndla, borderwidth=0, pady=0)
         self.xydladnbtn.pack(padx=1,pady=0)
 
         var = IntVar()
@@ -357,7 +357,7 @@ class App():
             # User cancelled, so do nothing.
             return
         data = np.load(f)
-        k = data.keys()
+        k = list(data.keys())
         out = data[k[0]].item()
         self.ph = np.angle(np.sum(out['x'][ri.bl2ord[0:13,13]],3))
         self.fghz = out['fghz']
@@ -373,7 +373,7 @@ class App():
                 question = "Warning: Data more than a day old. Are you sure you want to save delays to SQL and ACC?"
             else:
                 question = "Save delays to SQL and ACC?"
-            import cal_header as ch
+            from . import cal_header as ch
             # Calculate delays relative to Ant 1 and tack Ant1-14 delay at end
             delays = self.delays[0] - self.delays
             delays = np.append(delays,self.delays[0])
@@ -396,7 +396,7 @@ class App():
                 question = "Warning: Data more than a day old. Are you sure you want to save delays to SQL and ACC?"
             else:
                 question = "Save delays to SQL and ACC?"
-            import cal_header as ch
+            from . import cal_header as ch
             
             delays = self.delays[0] - self.delays
             delays = np.append(delays,self.delays[0])

@@ -30,13 +30,13 @@
 # Must be run from Dropbox/PythonCode/Current directory
 
 from numpy import array, zeros, ones, arange, where, argsort, sort, pi
-from util import *
+from .util import *
 import ephem
 import datetime as dt
 #from Coordinates import *
 #from Astrometry import *
-from eovsa_lst import *
-from eovsa_array import *
+from .eovsa_lst import *
+from .eovsa_array import *
 from ftplib import FTP
 
 def readbsc(filename=None):
@@ -48,7 +48,7 @@ def readbsc(filename=None):
     try:
         f = open(filename,'r')
     except:
-        print 'readbsc: Could not open file',filename
+        print('readbsc: Could not open file',filename)
         return None
 
     # Read two header lines (and ignore them)
@@ -114,15 +114,15 @@ def selectbsc(t, srcs, magrange):
 
     # This should be a list of remaining good stars
     ids = array(sel)[idx]
-    print len(ids),'stars selected for date/time starting at:',t.iso
-    print 'Number      RA         Dec      Magnitude'   
+    print(len(ids),'stars selected for date/time starting at:',t.iso)
+    print('Number      RA         Dec      Magnitude')   
     fmt = '{0:<4} {1:>12} {2:>12} {3:>6}'
     for i in ids:
         dec = srcs[i].a_dec
         decstr = str(srcs[i].a_dec).zfill(10)
         if dec < 0:
             decstr = '-'+str(srcs[i].a_dec)[1:].zfill(10)
-        print fmt.format(srcs[i].name[2:],str(srcs[i].a_ra),decstr,srcs[i].mag)
+        print(fmt.format(srcs[i].name[2:],str(srcs[i].a_ra),decstr,srcs[i].mag))
 
     return ids
     
@@ -134,11 +134,11 @@ def getbscnames(num=None, filename=None):
         try:
             f = open(filename,'r')
         except:
-            print 'getbscnames: Could not open file', filename
+            print('getbscnames: Could not open file', filename)
             return ''
         
     if num is None:
-        print 'getbscnames: Must specify an ordered list of star numbers'
+        print('getbscnames: Must specify an ordered list of star numbers')
         return ''
 
     line = '9999'
@@ -188,7 +188,7 @@ def startracktable(t, names, srcs, ids, npts=25, mount='azel'):
     try:
         f = open(filename,'w')
     except:
-        print 'startracktable: Could not open output file',filename
+        print('startracktable: Could not open output file',filename)
         return
 
     # Generate star table file name
@@ -228,8 +228,8 @@ def startracktable(t, names, srcs, ids, npts=25, mount='azel'):
     nchecked = 0
     ha_minutes = 0
     # Print to screen
-    print 'Num   Name        RA(J2000)   Dec(J2000)    RA(Date)     Dec(Date)    Az(deg)      El(deg)    Mag    Time'
-    print '==== ========== ============ ============ ============ ============ ============ =========== ===== ==========='
+    print('Num   Name        RA(J2000)   Dec(J2000)    RA(Date)     Dec(Date)    Az(deg)      El(deg)    Mag    Time')
+    print('==== ========== ============ ============ ============ ============ ============ =========== ===== ===========')
     # And write to outfile
     o.write('Num   Name        RA(J2000)   Dec(J2000)    RA(Date)     Dec(Date)    Az(deg)      El(deg)    Mag    Time   \n')
     o.write('==== ========== ============ ============ ============ ============ ============ =========== ===== ===========\n')
@@ -297,8 +297,8 @@ def startracktable(t, names, srcs, ids, npts=25, mount='azel'):
                     decstr = '-'+str(src.dec)[1:].zfill(10)
                 # Print to screen
                 fmt = '{0:<4} {1:<10} {2:>12} {3:>12} {4:>12} {5:>12} {6:>12} {7:>11} {8:5.2f} {9:>12}'
-                print fmt.format(src.name[2:], names[i], str(src.a_ra), adecstr, str(src.ra), decstr, \
-                                 str(src.az), str(src.alt), src.mag, newt.iso[:19])
+                print(fmt.format(src.name[2:], names[i], str(src.a_ra), adecstr, str(src.ra), decstr, \
+                                 str(src.az), str(src.alt), src.mag, newt.iso[:19]))
                 # And write to outfile
                 fmt += '\n'
                 o.write(fmt.format(src.name[2:], names[i], str(src.a_ra), adecstr, str(src.ra), decstr, \
@@ -392,17 +392,17 @@ def starobs2dxeldel(filename=None,hadec=False):
         fmt = '{0:<8} {1:5d} {2:7.3f} {3:7.3f} {4:7.3f} {5:7.3f} {6:6.3f} {7:6.3f} {8:8.3f} {9:7.3f} {10:6.3f} {11:6.3f}'
         if hadec:
             # If the hadec switch is set, write out HA and Dec coordinates (ha1 and dec1)
-            print fmt.format(name[0:8],timesec,srcnom.a_ra*180/pi, srcnom.a_dec*180/pi,
+            print(fmt.format(name[0:8],timesec,srcnom.a_ra*180/pi, srcnom.a_dec*180/pi,
                         srcobs.a_ra*180/pi, srcobs.a_dec*180/pi, dra, ddec,
-                        ha1*180/pi, dec1*180/pi, d_xel*180/pi, d_el*180/pi)
+                        ha1*180/pi, dec1*180/pi, d_xel*180/pi, d_el*180/pi))
             o.write(fmt.format(name[0:8],timesec,srcnom.a_ra*180/pi, srcnom.a_dec*180/pi,
                         srcobs.a_ra*180/pi, srcobs.a_dec*180/pi, dra, ddec,
                         ha1*180/pi, dec1*180/pi, d_xel*180/pi, d_el*180/pi)+'\n')
         else:
             # Otherwise, write out AZ and EL coordinates (az1 and el1)
-            print fmt.format(name[0:8],timesec,srcnom.a_ra*180/pi, srcnom.a_dec*180/pi,
+            print(fmt.format(name[0:8],timesec,srcnom.a_ra*180/pi, srcnom.a_dec*180/pi,
                         srcobs.a_ra*180/pi, srcobs.a_dec*180/pi, dra, ddec,
-                        az1*180/pi, el1*180/pi, d_xel*180/pi, d_el*180/pi)
+                        az1*180/pi, el1*180/pi, d_xel*180/pi, d_el*180/pi))
             o.write(fmt.format(name[0:8],timesec,srcnom.a_ra*180/pi, srcnom.a_dec*180/pi,
                         srcobs.a_ra*180/pi, srcobs.a_dec*180/pi, dra, ddec,
                         az1*180/pi, el1*180/pi, d_xel*180/pi, d_el*180/pi)+'\n')
@@ -431,7 +431,7 @@ def do_stars(yr, mo, da, hr, mn, npts=25, mount='azel'):
         acc.storlines('STOR startracktable.radec',f)
         f.close()
     except:
-        print 'Could not transfer startracktable.radec file.  ACC is down?'
+        print('Could not transfer startracktable.radec file.  ACC is down?')
 
 def analyze_stars(yr, mo, da, radius=3):
     import os, glob, time
@@ -476,7 +476,7 @@ def analyze_stars(yr, mo, da, radius=3):
             idx = where(f_time > times)[0][-1]
             skip = False
         except:
-            print f_time.iso,'is before first time in file...skipping'
+            print(f_time.iso,'is before first time in file...skipping')
             skip = True
         if not skip:
             # First check if this star is already done (indicated by existing wcs file)
@@ -484,7 +484,7 @@ def analyze_stars(yr, mo, da, radius=3):
             for wcsfile in wcslist:
                 if (wcsfile == 'wcs_'+file.split('.fts')[0]+'.fits'):
                     wcsfound = True
-                    print 'Star already done.'
+                    print('Star already done.')
                     idxlist.append(idx)
                     ftimes.append(f_timestr)
                     break
@@ -499,8 +499,8 @@ def analyze_stars(yr, mo, da, radius=3):
                 p = subprocess.Popen(command,stdout=subprocess.PIPE)
                 tstart = time.time()
                 lines = p.stdout.readlines()
-                print 'Result is',lines[-1].strip()
-                print 'Took',time.time() - tstart,'seconds.'
+                print('Result is',lines[-1].strip())
+                print('Took',time.time() - tstart,'seconds.')
                 if lines[-1][:12] == 'Wrote to wcs': 
                     idxlist.append(idx)
                     ftimes.append(f_timestr)

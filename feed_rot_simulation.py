@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pylab as plt
-from pcapture2 import bl_list
+from .pcapture2 import bl_list
 bl2ord = bl_list()
 
 def rot_sim(indict):
@@ -29,7 +29,7 @@ def rot_sim(indict):
     # keys are filled in with defaults:
     data = indict.get('data')    # No default
     if data is None:
-        print 'Must supply "data" key in input dictionary'
+        print('Must supply "data" key in input dictionary')
         return
     chi1 = indict.get('chi1',0)
     chi2 = indict.get('chi2',0)
@@ -49,13 +49,13 @@ def rot_sim(indict):
     try:
         dn, dnt = data.shape
         if dn != 4:
-            print 'Number of data elements for each time must be 4 [XX, XY, YX, YY].'
+            print('Number of data elements for each time must be 4 [XX, XY, YX, YY].')
             return
     except:
         if len(data) == 4:
             dnt = 1
         else:
-            print 'Number of data elements for each time must be 4 [XX, XY, YX, YY].'
+            print('Number of data elements for each time must be 4 [XX, XY, YX, YY].')
             return
     try:
         c1nt, = chi1.shape
@@ -79,21 +79,21 @@ def rot_sim(indict):
             chi2 = chi2*np.ones(nt)
         # Now see if they all have the same length
         if nt != len(data[0]) or nt != len(chi1) or nt != len(chi2):
-            print 'Number of times in data, chi1 and chi2 are not compatible.'
+            print('Number of times in data, chi1 and chi2 are not compatible.')
             return
     else:
         nt = 1
         
     if verbose:
-        print 'ntimes=',nt
-        print 'shapes of data, chi1, chi2:',data.shape,chi1.shape,chi2.shape
+        print('ntimes=',nt)
+        print('shapes of data, chi1, chi2:',data.shape,chi1.shape,chi2.shape)
         
     # At this point, we should have uniformity of times
     # Rotation matrix for first antenna
     R1 = np.array([[np.cos(chi1), np.sin(chi1)],[-np.sin(chi1), np.cos(chi1)]])
     if verbose:
-        print 'Rotation matrix R1 shape:',R1.shape,'for first time is'
-        print R1[:,:,0]
+        print('Rotation matrix R1 shape:',R1.shape,'for first time is')
+        print(R1[:,:,0])
     # Amplitude matrix for first antenna
     A = np.array([[1,d1],[-d1,a1]])
     # Resultant Jones matrix for first antenna
@@ -101,12 +101,12 @@ def rot_sim(indict):
     for i in range(nt):
         JA.append(np.dot(A, R1[:,:,i]))
     if verbose:
-        print 'First element of Jones matrix A:\n',JA[0]
+        print('First element of Jones matrix A:\n',JA[0])
     # Rotation matrix for second antenna
     R2 = np.array([[np.cos(chi2), np.sin(chi2)],[-np.sin(chi2), np.cos(chi2)]])
     if verbose:
-        print 'Rotation matrix R2 shape:',R2.shape,'for first time is'
-        print R2[:,:,0]
+        print('Rotation matrix R2 shape:',R2.shape,'for first time is')
+        print(R2[:,:,0])
     # Amplitude matrix for second antenna
     B = np.array([[1,d2],[-d2,a2]])
     # Resultant Jones matrix for second antenna
@@ -114,13 +114,13 @@ def rot_sim(indict):
     for i in range(nt):
         JB.append(np.dot(B, R2[:,:,i]))
     if verbose:
-        print 'First element of Jones matrix B:\n',JB[0]
+        print('First element of Jones matrix B:\n',JB[0])
     # Resultant Mueller matrix
     M = []
     for i in range(nt):
         M.append(np.kron(JA[i],np.conj(JB[i])))
         if verbose and i == 0:
-            print 'Mueller matrix at first time is:\n',M[0]
+            print('Mueller matrix at first time is:\n',M[0])
         if unrot:
             M[i] = np.linalg.inv(M[i])
     # Apply matrix to data

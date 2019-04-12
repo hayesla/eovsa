@@ -66,24 +66,24 @@
 #      Tried to make find_solpnt() output more uniform by returning array, not list
 #
 
-import stateframe, stateframedef, struct, os, urllib2, sys
+import stateframe, stateframedef, struct, os, urllib.request, urllib.error, urllib.parse, sys
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.optimize import leastsq
 
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-import util
+from . import util
 
 if sys.platform[:5] == 'linux':
-    from coord_conv import dradec2dazel
+    from .coord_conv import dradec2dazel
 
 def find_solpnt(t=None):
     ''' Makes an SQL query to find the SOLPNTCAL scans for the date given in
         the Time() object t.  An array of timestamps is returned, along with 
         the timestamp of the object provided.
     '''
-    import dbutil
+    from . import dbutil
     if t is None: 
         # Get today's date
         t = util.Time.now()
@@ -95,7 +95,7 @@ def find_solpnt(t=None):
     # Try to find a scan header with project SOLPNTCAL (only works after 2014 Nov. 30)
     verstr = dbutil.find_table_version(cursor,timestamp,True)
     if verstr is None:
-        print 'No scan_header table found for given time.'
+        print('No scan_header table found for given time.')
         return np.array([]), timestamp
     # First retrieve the Project from all scan headers for the day
     cursor.execute('select timestamp,Project from hV'+verstr+'_vD1 where timestamp between '+str(stimestamp)+' and '+str(etimestamp)+' order by timestamp')
@@ -106,7 +106,7 @@ def find_solpnt(t=None):
         # No SOLPNTCAL found, so return empty list (and timestamp)
         return np.array([]), timestamp
     else:
-        projdict = dict(zip(names,data))
+        projdict = dict(list(zip(names,data)))
         projdict['timestamp'] = projdict['timestamp'].astype('float')  # Convert timestamps from string to float
     good = np.where(projdict['Project'] == 'SOLPNTCAL')[0]
     if len(good) != 0:
@@ -126,22 +126,22 @@ def get_solpnt(t=None, find=True):
         find_solpnt() call (hence, the Time() object must be an actual 
         SOLPNTCAL time).
     '''
-    import dbutil
+    from . import dbutil
     if find:
         tstamps, timestamp = find_solpnt(t)
         # Find first SOLPNTCAL occurring after timestamp (time given by Time() object)
         if len(tstamps) != 0:
-            print 'SOLPNTCAL scans were found at ',        
+            print('SOLPNTCAL scans were found at ', end=' ')        
             for tstamp in tstamps:
                 #if type(tstamp) is np.ndarray:
                 #    # Annoyingly necessary when only one time in tstamps
                 #    tstamp = tstamp[0]
                 t1 = util.Time(tstamp,format='lv')
-                print t1.iso,';',
-            print ' '
+                print(t1.iso,';', end=' ')
+            print(' ')
             good, = np.where(tstamps >= timestamp)
             if len(good) == 0:
-                print 'Warning: No SOLPNTCAL scan found after provided SOLPNTCAL time.' 
+                print('Warning: No SOLPNTCAL scan found after provided SOLPNTCAL time.') 
                 return {}
             # This is the timestamp of the first SOLPNTCAL scan after given time
             if len(good) == 1:
@@ -149,7 +149,7 @@ def get_solpnt(t=None, find=True):
             else:
                 stimestamp = np.int(tstamps[good][0])
         else:
-            print 'Warning: No SOLPNTCAL scan found, so interpreting given time as SOLPNTCAL time.' 
+            print('Warning: No SOLPNTCAL scan found, so interpreting given time as SOLPNTCAL time.') 
             stimestamp = timestamp
     else:
         # If find = False, then the provided Time() object must be an actual SOLPNTCAL time.
@@ -160,7 +160,7 @@ def get_solpnt(t=None, find=True):
     # Now version independent!
     verstr = dbutil.find_table_version(cursor,stimestamp)
     if verstr is None:
-        print 'No stateframe table found for the given time.'
+        print('No stateframe table found for the given time.')
         return {}
     solpntdict = dbutil.get_dbrecs(cursor,version=int(verstr),dimension=15,timestamp=stimestamp,nrecs=300)
     # Need dimension-1 data to get antennas in subarray -- Note: sometimes the antenna list
@@ -209,11 +209,11 @@ def process_solpnt(soldata,trj=None,antlist=None):
         try:
             trjfile = open(trj,'r')
         except:
-            print 'Could not open TRJFILE',trj
+            print('Could not open TRJFILE',trj)
             return {}
     else:
         userpass = 'admin:observer@'
-        trjfile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+soldata['trjfile'])
+        trjfile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+soldata['trjfile'])
     trjlines = trjfile.readlines()
     trjfile.close()
     trjrao = []
@@ -223,7 +223,7 @@ def process_solpnt(soldata,trj=None,antlist=None):
         trjrao.append(int(rao))
         trjdeco.append(int(deco))
     if antlist is None:
-        antidx = range(len(soldata['antlist']))
+        antidx = list(range(len(soldata['antlist'])))
         antlist = soldata['antlist']
     # Mask array
     mask = np.zeros([300,len(antlist),len(trjlines)],dtype='bool')
@@ -313,10 +313,10 @@ def fitall(proc,plot=False,pp=None):
     xelov = np.zeros(nant,dtype='float')
     eloh =  np.zeros(nant,dtype='float')
     elov =  np.zeros(nant,dtype='float')
-    print 'SOLPNT solution for',t.iso
-    print 'Ant       XELO (deg)             ELO (deg)'
-    print '      HPol   VPol   Avg      HPol   VPol   Avg'
-    print '---- ------ ------ ------   ------ ------ ------'
+    print('SOLPNT solution for',t.iso)
+    print('Ant       XELO (deg)             ELO (deg)')
+    print('      HPol   VPol   Avg      HPol   VPol   Avg')
+    print('---- ------ ------ ------   ------ ------ ------')
     for i in range(nant):
         ant = proc['antlist'][i]
         [A, hrao, w, b], x, y = gausfit(proc['rao'],proc['hrao'][i,:])
@@ -346,9 +346,9 @@ def fitall(proc,plot=False,pp=None):
             hxelo, helo = hrao*np.pi/10000./180., hdeco*np.pi/10000./180.
             vxelo, velo = vrao*np.pi/10000./180., vdeco*np.pi/10000./180. 
         # Print table of XEL and EL offsets as degrees
-        print ' {:2d} {:6.3f} {:6.3f} {:6.3f}   {:6.3f} {:6.3f} {:6.3f}'.format(
+        print(' {:2d} {:6.3f} {:6.3f} {:6.3f}   {:6.3f} {:6.3f} {:6.3f}'.format(
                proc['antlist'][i]+1, hxelo*180./np.pi, vxelo*180./np.pi,(hxelo + vxelo)*180./np.pi/2.,
-                                     helo*180./np.pi,velo*180./np.pi,(helo+velo)*180./np.pi/2.)
+                                     helo*180./np.pi,velo*180./np.pi,(helo+velo)*180./np.pi/2.))
         if plot: 
             ax[i,0].text(0.65,0.65,'Hxel = {:6.3f}'.format(hxelo*180./np.pi),transform=ax[i,0].transAxes)
             ax[i,0].text(0.65,0.5,'Vxel = {:6.3f}'.format(vxelo*180./np.pi),transform=ax[i,0].transAxes)
@@ -379,7 +379,7 @@ def analyze_all(t,plot=False,pdffile=None):
     times, timestamp = find_solpnt(t)
     out = []
     pp = None
-    antlist = range(4)
+    antlist = list(range(4))
     if plot:
         if pdffile:
             pp = PdfPages(pdffile)
@@ -431,11 +431,11 @@ def dmp_tsys(t):
         on dpp or pipeline).  Returns the filenames of the files created.
     '''
     import socket, time
-    import dump_tsys as dtsys
+    from . import dump_tsys as dtsys
 
     hostname = socket.gethostname()
     if hostname != 'dpp' and hostname != 'pipeline':
-        print 'Error: Cannot run dump_tsys() on host:',hostname
+        print('Error: Cannot run dump_tsys() on host:',hostname)
         return
     tnow = util.Time.now()
     t1 = t.lv - 10.   # 10 s before given time
@@ -474,7 +474,7 @@ def rd_tsys(tsysfile,sfreqfile):
             try:
                 nfrq = int(sheader[-1].split('freq(')[1].split(')')[0])
             except:
-                print 'Could not successfully read sfreq file.'
+                print('Could not successfully read sfreq file.')
                 #return {}
         sfreq = np.zeros(nfrq,dtype='float')
         if (nfrq/4)*4 != nfrq:
@@ -496,20 +496,20 @@ def rd_tsys(tsysfile,sfreqfile):
         t = util.Time(dt,format='datetime')
         # Set base time in LabVIEW Timestamp format
         basetime = t.lv
-        print 'Base Time is:',t.iso,'Timestamp:',basetime
+        print('Base Time is:',t.iso,'Timestamp:',basetime)
         # Get number of columns from header line 4 (header[3])
         sline = header[3].split(',')
         nant = int(sline[0].split('(')[1])
         nfrq2 = int(sline[1].split(')')[0])
         if nfrq != nfrq2:
-            print tsysfile,'frequencies are not consistent with those in',sfreqfile
+            print(tsysfile,'frequencies are not consistent with those in',sfreqfile)
             return {}
         # Get number of times in file (just number of lines - 4 header lines, 
         # divided by the number of frequencies, times nant/4
         f.seek(0)
         nlinespertime = (nant-1)/4 + 1
         nt = (sum(1 for line in f)-4)/nfrq2/nlinespertime
-        print 'There are',nt,'times,',nfrq2,'frequencies, and',nant,'antennas in this file'
+        print('There are',nt,'times,',nfrq2,'frequencies, and',nant,'antennas in this file')
         # Get back to data start by rewind and skipping 4 header lines
         f.seek(0)
         for i in range(4): f.readline()
@@ -522,8 +522,8 @@ def rd_tsys(tsysfile,sfreqfile):
                 vals = line.strip().split()
             except:
                 if line.strip() != '':
-                    print 'Error interpreting line:'
-                    print 'Line is:',line.strip()+';'
+                    print('Error interpreting line:')
+                    print('Line is:',line.strip()+';')
                 break
             # This assumes Miriad dumps no more than 4 ants/line
             nvals = len(vals)
@@ -544,8 +544,8 @@ def rd_tsys(tsysfile,sfreqfile):
                     i += 1
             except:
                 if line.strip() != '':
-                    print 'Error interpreting line at time,freq:',j,i
-                    print 'Line is:',line.strip()+';'
+                    print('Error interpreting line at time,freq:',j,i)
+                    print('Line is:',line.strip()+';')
                 break
     otp = {'ut_mjd':util.Time(tstamp[:j+1],format='lv').mjd,'fghz':sfreq[:nf],'tsys':np.swapaxes(out[:j+1,:nf,:],0,2),'header':header}
     return otp
@@ -571,7 +571,7 @@ def process_tsys(otp, proc, pol=None):
     antlist = proc['antlist']
     # nf = len(np.where(otp['sfreq'] != 0)[0])  # Override nf with number of non-zero frequencies
     m = np.transpose(proc['mask'],(1,0,2))[0:nant,idx1,:]  # mask now same number of ants and times as tsys
-    print m.shape
+    print(m.shape)
     npt = len(m[0,0,:])
     if pol is None:
         tsys = otp['tsys']

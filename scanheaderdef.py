@@ -4,9 +4,9 @@ def get_start_byte(c):
     '''Find the start byte of the first endpoint in dict c
     '''
     if not (type(c) is dict):
-        print 'Argument must be a dictionary'
+        print('Argument must be a dictionary')
         return -1
-    keys = c.keys()
+    keys = list(c.keys())
     for key in keys:
         if type(c[key]) is dict:
             sbyte = get_start_byte(c[key])
@@ -34,7 +34,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
 
     mylist = []
     if type(c) is dict:
-        keys = c.keys()
+        keys = list(c.keys())
         for key in keys:
             #print '+'+inkey+'_'+key
             newlist = walk_keys(c[key],key,indim,pre+key[0:4]+'_',nbytes)
@@ -70,9 +70,9 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         dtype,nbyt = dtype_dict[c[0][-1]]
                     # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                     if nbytes == 0:
-                        mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey]))]
+                        mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey])))]
                     else:
-                        mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey]))]
+                        mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey])))]
                 else:
                     # This is a 2D array. Unfortunately, it is here
                     # that there are two special-case exceptions to
@@ -85,7 +85,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                         for i in range(d1):
                             dtype,nbyt = dtype_dict[c[0][-1]]
-                            mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbytes*i,nbyt,c[0],p+inkey[i]]))]
+                            mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbytes*i,nbyt,c[0],p+inkey[i]])))]
                     elif inkey == 'Delay':
                         d2 = c[2][0]  # first dimension
                         d1 = c[2][1]  # second dimension
@@ -94,7 +94,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                         for i in range(d1):
                             dtype,nbyt = dtype_dict[c[0][-1]]
-                            mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*2,c[0][-1],p+inkey+str(i)]))]
+                            mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*2,c[0][-1],p+inkey+str(i)])))]
             else:
                 # This is a single endpoint
                 if c[0][-1] == 's':
@@ -104,9 +104,9 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                     dtype,nbyt = dtype_dict[c[0][-1]]
                 # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                 if nbytes == 0:
-                    mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey]))]
+                    mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey])))]
                 else:
-                    mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey]))]
+                    mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey])))]
     return mylist
     
 def rd_sfdef(sh=None):
@@ -244,7 +244,7 @@ def outlist2table(outlist,version):
             # the ordered table.
             idx = 1
             dim = item['dimension']
-        print '{:8} {:8} {:8} {:8} {:8} {:3} {:8} {:8} {:8}    {:}'.format(i+1,0,ver,item['dimension'],item['datatype'],item['fieldbytes'],item['dimoffset'],item['startbyte']+1,idx,item['fieldname'])
+        print('{:8} {:8} {:8} {:8} {:8} {:3} {:8} {:8} {:8}    {:}'.format(i+1,0,ver,item['dimension'],item['datatype'],item['fieldbytes'],item['dimoffset'],item['startbyte']+1,idx,item['fieldname']))
         idx += 1
         
 def transmogrify(indata,brange):
@@ -261,7 +261,7 @@ def transmogrify(indata,brange):
 
     return outdata
 
-import read_xml2 as rxml
+from . import read_xml2 as rxml
 import sys
 
 def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
@@ -283,13 +283,13 @@ def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
         try:
             f = open(sflog,'rb')
         except:
-            print 'Could not open file',sflog,'-- Exiting.'
+            print('Could not open file',sflog,'-- Exiting.')
             return
     
         # Get binary size and check version number
         data = f.read(100)
         if stateframe.extract(data,['d',8]) != version:
-            print 'Stateframe log file version does not match XML version. -- Exiting'
+            print('Stateframe log file version does not match XML version. -- Exiting')
             return
         recsize = stateframe.extract(data,sf['Binsize'])
         f.close()
@@ -314,7 +314,7 @@ def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
         try:
             sys.stdout = open(outtabfile,'w')
         except:
-            print 'Could not redirect STDOUT to',outtabfile,' -- Will print to screen'
+            print('Could not redirect STDOUT to',outtabfile,' -- Will print to screen')
             sys.stdout = stdout
 
     outlist2table(outlist,version)
@@ -324,7 +324,7 @@ def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
         try:
             g = open(outbinfile,'wb')
         except:
-            print 'Could not open file',outbinfile,'for writing. -- Exiting.'
+            print('Could not open file',outbinfile,'for writing. -- Exiting.')
             return
         if sflog:
             # Read from log file

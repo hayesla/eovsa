@@ -38,8 +38,8 @@
 #     some code that had to be uncommented, which is now done.
 #
 
-import pcapture2 as p
-import urllib2
+from . import pcapture2 as p
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
 
 def DCM_cal(filename=None,fseqfile='gainseq.fsq',dcmattn=None,missing='ant15',update=False):
@@ -48,15 +48,15 @@ def DCM_cal(filename=None,fseqfile='gainseq.fsq',dcmattn=None,missing='ant15',up
         return 'Must specify ADC packet capture filename, e.g. "/dppdata1/PRT/PRT<yyyymmddhhmmss>adc.dat"'
 
     userpass = 'admin:observer@'
-    fseq_handle = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
+    fseq_handle = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
     lines = fseq_handle.readlines()
     fseq_handle.close()
     for line in lines:
         if line.find('LIST:SEQUENCE') != -1:
             line = line[14:]
-            bandlist = np.array(map(int,line.split(',')))
+            bandlist = np.array(list(map(int,line.split(','))))
     if len(np.unique(bandlist)) != 34:
-        print 'Frequency sequence must contain all bands [1-34]'
+        print('Frequency sequence must contain all bands [1-34]')
         return None
     # Read packet capture file
     adc = p.rd_jspec(filename)
@@ -69,8 +69,8 @@ def DCM_cal(filename=None,fseqfile='gainseq.fsq',dcmattn=None,missing='ant15',up
             new_pwr[i] = np.median(pwr[idx],0)
     new_pwr.shape = (34,32)
     # Read table from the database.
-    import cal_header
-    import stateframe
+    from . import cal_header
+    from . import stateframe
     xml, buf = cal_header.read_cal(2)
     cur_table = stateframe.extract(buf,xml['Attenuation'])
     
@@ -107,15 +107,15 @@ def DCM_calnew(filename=None,fseqfile='solarnew.fsq',dcmattn=None,missing='ant15
         return 'Must specify ADC packet capture filename, e.g. "/dppdata1/PRT/PRT<yyyymmddhhmmss>adc.dat"'
 
     userpass = 'admin:observer@'
-    fseq_handle = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
+    fseq_handle = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fseqfile,timeout=0.5)
     lines = fseq_handle.readlines()
     fseq_handle.close()
     for line in lines:
         if line.find('LIST:SEQUENCE') != -1:
             line = line[14:]
-            bandlist = np.array(map(int,line.split(',')))
+            bandlist = np.array(list(map(int,line.split(','))))
     if len(np.unique(bandlist)) != 50:
-        print 'Frequency sequence must contain all bands [1-34]'
+        print('Frequency sequence must contain all bands [1-34]')
         return None
     # Read packet capture file
     adc = p.rd_jspec(filename)
@@ -128,8 +128,8 @@ def DCM_calnew(filename=None,fseqfile='solarnew.fsq',dcmattn=None,missing='ant15
             new_pwr[i] = np.median(pwr[idx],0)
     new_pwr.shape = (52,32)
     # Read table from the database.
-    import cal_header
-    import stateframe
+    from . import cal_header
+    from . import stateframe
     xml, buf = cal_header.read_cal(2)
     cur_table = stateframe.extract(buf,xml['Attenuation'])
     
@@ -171,7 +171,7 @@ def getphasecor(data, ant_str='ant1-14', polist=[0,1], crange=[0,4095], pplot=Fa
         return np.convolve(interval, window, 'same')
 
     antlist = p.ant_str2list(ant_str)
-    print antlist+1
+    print(antlist+1)
     ndon = False
     if len(data[:,0,0,0]) == 16:
         ndon = True
@@ -182,7 +182,7 @@ def getphasecor(data, ant_str='ant1-14', polist=[0,1], crange=[0,4095], pplot=Fa
     bl2ord = p.bl_list()
     if not ndon: 
         data = data[bl2ord[0,1:]]   # Consider only baselines with antenna 1
-    print data.shape
+    print(data.shape)
     pcor = np.linspace(0, np.pi, 4096) 
     istep = np.arange(-50,50)   # Range of steps to search
     chan = np.arange(4096)
@@ -251,7 +251,7 @@ def xydla(filename,ant_str='ant1-14',apply=False):
                       to update X vs. Y delays
     '''
     import matplotlib.pylab as plt
-    from util import lobe
+    from .util import lobe
     f, ax = plt.subplots(4,4)
     ants = p.ant_str2list(ant_str)
     ax.shape = (16)
@@ -276,7 +276,7 @@ def xydla(filename,ant_str='ant1-14',apply=False):
             res = [0.,0.]
         xy.append(res[0])
     if apply:
-        import cal_header as ch
+        from . import cal_header as ch
         ch.dla_update2sql(np.zeros(14,np.float),np.array(xy))
         ch.dla_censql2table()
     return np.array(xy)

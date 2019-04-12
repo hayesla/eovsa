@@ -96,9 +96,9 @@ def gen_fem_sf(sf_dict, mk_xml=False):
         shutil.copyfile(xmlFile, backup_file)
 
         # Print size of buf
-        print 'fem size =', len(buf), 'fmt size =', struct.calcsize(fmt)
-        print 'These should agree.'
-        print 'Modify acc.ini to reflect this if this is a change in size'
+        print('fem size =', len(buf), 'fmt size =', struct.calcsize(fmt))
+        print('These should agree.')
+        print('Modify acc.ini to reflect this if this is a change in size')
 
     return fmt, buf, xmlFile
 
@@ -587,7 +587,7 @@ def __servo(dict, xml, mk_xml):
     # ----------------------------------------------------------------------
 
     # Call __servo_axis on each axis to generate clusters.
-    for key, value in AXIS_DEF.items():
+    for key, value in list(AXIS_DEF.items()):
         item = dict.get('AXIS' + str(key), {})
         append_fmt, append_buf = __servo_axis(item, value, xml, mk_xml)
         fmt += append_fmt

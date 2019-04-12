@@ -1,5 +1,5 @@
-from util import Time
-import dbutil as db
+from .util import Time
+from . import dbutil as db
 import numpy as np
 
 hcurve = []

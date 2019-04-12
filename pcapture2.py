@@ -76,8 +76,8 @@
 
 import numpy as np
 import pdb
-import Queue
-q = Queue.Queue()
+import queue
+q = queue.Queue()
 
 def ant_str2list(ant_str):
     ant_list = []
@@ -89,9 +89,9 @@ def ant_str2list(ant_str):
                 if antrange != '':
                     ant_list.append(int(antrange[0])-1)
             elif len(antrange) == 2:
-                ant_list += range(int(antrange[0])-1,int(antrange[1]))
+                ant_list += list(range(int(antrange[0])-1,int(antrange[1])))
     except:
-        print 'Error: cannot interpret ant_str',ant_str
+        print('Error: cannot interpret ant_str',ant_str)
         return None
     return np.array(ant_list)
 
@@ -184,13 +184,13 @@ def list_header(filename,ptype='P',boardID=None,verbose=False):
     out = pcap.readpkts()
     npkt = len(out)
     for j in range(npkt):
-        if verbose: print 'working on packet',j,'\r',
+        if verbose: print('working on packet',j,'\r', end=' ')
         buf = out[j][1]
         if len(buf) == 898:
             # This is a P packet
             if ptype == 'P':
                 header = struct.unpack(hdr,buf[-856:88-856])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 l = h['HeaderLength']
                 if l == 88:
                     if boardID != None and h['BoardID'] != boardID:
@@ -217,7 +217,7 @@ def list_header(filename,ptype='P',boardID=None,verbose=False):
             # This is an X packet
             if ptype == 'X':
                 header = struct.unpack(hdr,buf[42:88+42])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 l = h['HeaderLength']
                 if l == 88:
                     if boardID != None and h['BoardID'] != boardID:
@@ -267,7 +267,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False):
     def pspectra(power):
         p = np.array(power)
         # idx is array([0,1, 16,17, 32,33, 48,49, 64,65, 80,81, 96,97, 112,113])
-        idx = np.array(zip(np.arange(0,128,16),np.arange(0,128,16)+1)).flatten()
+        idx = np.array(list(zip(np.arange(0,128,16),np.arange(0,128,16)+1))).flatten()
         # Distribute P, P2 into their spectra
         p1x = p[idx]/(2.**14)
         p1y = p[idx+2]/(2.**14)
@@ -307,7 +307,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False):
             # Get length of X packets and value of first accumulation number
             xlen = len(b)
             header = struct.unpack(hdr,b[42:130])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             xaccum = h['AccumNum']
             pktnum = h['PacketNum']
             t0 = a  # Initial X packet timestamp
@@ -334,19 +334,19 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False):
         # The format is all baselines, all poln products, for one channel
         outarr = np.zeros([nsec,50,4096,nx],'complex')
     else:
-        print 'Invalid ptype: must be "P" or "X"'
+        print('Invalid ptype: must be "P" or "X"')
         f.close()
         return False
     
     isec = 0
     a = -1
     for j in range(npkt):
-        if verbose: print 'working on packet',j,'\r',
+        if verbose: print('working on packet',j,'\r', end=' ')
         t, buf = out[j]
         if ptype is 'P' and len(buf) == 898:
             # This is a P packet
             header = struct.unpack(hdr,buf[42:130])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             n = h['PacketNum']
             if  h['BoardID'] == boardID:
                 if n == 0:
@@ -387,7 +387,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False):
         elif ptype is 'X' and len(buf) > 898:
             # This is an X packet from the production correlator
             header = struct.unpack(hdr,buf[42:130])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             n = h['PacketNum']
             # Override AccumNum with value based on packet timestamp, since
             # AccumNum is currently messed up.
@@ -407,7 +407,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False):
         else:
             # Some unknown packet?
             pass
-    if verbose: print '\n'
+    if verbose: print('\n')
     sout = outarr.shape
     outarr.shape = (sout[0]*sout[1],sout[2],sout[3])
     return outarr
@@ -441,7 +441,7 @@ def rd_jspec(filename):
     def pspectra(power):
         p = np.array(power)
         # idx is array([0,1, 16,17, 32,33, 48,49, 64,65, 80,81, 96,97, 112,113])
-        idx = np.array(zip(np.arange(0,128,16),np.arange(1,128,16))).flatten()
+        idx = np.array(list(zip(np.arange(0,128,16),np.arange(1,128,16)))).flatten()
         # Distribute P, P2 into their spectra
         p1x = p[idx]/(2.**14)
         p1y = p[idx+2]/(2.**14)
@@ -476,7 +476,7 @@ def rd_jspec(filename):
         for i in range(npkt):
             buf = f.read(reclen*4+88)
             header = struct.unpack(hdr,buf[:88])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             if h['DataType'] == 0:
                 # This is a P packet
                 n = h['PacketNum']
@@ -552,7 +552,7 @@ def summary_plot(out,ant_str='ant1-13',ptype='phase'):
     ant_list = ant_str2list(ant_str)
     nant = len(ant_list)
     if ptype != 'amp' and ptype != 'phase':
-        print "Invalid plot type.  Must be 'amp' or 'phase'."
+        print("Invalid plot type.  Must be 'amp' or 'phase'.")
         return
     f, ax = plt.subplots(nant,nant)
     f.subplots_adjust(hspace=0,wspace=0)
@@ -614,15 +614,15 @@ def capture(filename='dump',nsec=1,ptype='P',snaplen=5000,overwrite=True):
         nt2, nf, nif = out2.shape #captured package dimensions for interface eth2
         nt3, nf, nif = out3.shape #captured package dimensions for interface eth3
         if nt2 == nt3:
-            print 'packets from eth2 and eth3 have the same size '+str(nt2)+', happily proceeding...'
+            print('packets from eth2 and eth3 have the same size '+str(nt2)+', happily proceeding...')
         if nt2 < nt3:
-            print 'packets from eth2 have less time points '+str(nt2)+', resizing to that from eth3 '+str(nt3)+'...' 
+            print('packets from eth2 have less time points '+str(nt2)+', resizing to that from eth3 '+str(nt3)+'...') 
             out1.resize((nt3,nf,nif),refcheck=False)
             out2.resize((nt3,nf,nif),refcheck=False)
             out5.resize((nt3,nf,nif),refcheck=False)
             out6.resize((nt3,nf,nif),refcheck=False)
         if nt2 > nt3:
-            print 'packets from eth3 have less time points '+str(nt3)+', resizing to that from eth2 '+str(nt2)+'...'
+            print('packets from eth3 have less time points '+str(nt3)+', resizing to that from eth2 '+str(nt2)+'...')
             out3.resize((nt2,nf,nif),refcheck=False)
             out4.resize((nt2,nf,nif),refcheck=False)
             out7.resize((nt2,nf,nif),refcheck=False)
@@ -642,12 +642,12 @@ def capture(filename='dump',nsec=1,ptype='P',snaplen=5000,overwrite=True):
         nt2, nf, nch = out2.shape
         nt3, nf, nch = out3.shape
         if nt2 == nt3:
-            print 'packets from eth2 and eth3 have the same size '+str(nt2)+', happily proceeding...'
+            print('packets from eth2 and eth3 have the same size '+str(nt2)+', happily proceeding...')
         if nt2 < nt3:
-            print 'packets from eth2 have less time points '+str(nt2)+', resizing to that from eth3 '+str(nt3)+'...' 
+            print('packets from eth2 have less time points '+str(nt2)+', resizing to that from eth3 '+str(nt3)+'...') 
             out2.resize((nt3,nf,nch),refcheck=False)
         if nt2 > nt3:
-            print 'packets from eth3 have less time points '+str(nt3)+', resizing to that from eth2 '+str(nt2)+'...'
+            print('packets from eth3 have less time points '+str(nt3)+', resizing to that from eth2 '+str(nt2)+'...')
             out3.resize((nt2,nf,nch),refcheck=False)
         out = out2+out3
         out = np.rollaxis(out,2,0)
@@ -679,11 +679,11 @@ def get_spec(capfile=None, mode='jcap'):
     ac=[]
     xc=[]
     if not isinstance(capfile,list):
-        print 'capfile is required to be a list of file names'
+        print('capfile is required to be a list of file names')
         return
     nfile=len(capfile)
     if nfile < 1:
-        print 'capfile has 0 element'
+        print('capfile has 0 element')
         return
     for n in range(nfile):
         if mode=='cap':
@@ -723,7 +723,7 @@ def bl_mapper(nant=16, refant=1, show=False, exclude_auto=True):
             bl_idx.append(i)
             bl_list.append(str(blpr[0])+' & '+str(blpr[1]))
             if show:
-                print blpr
+                print(blpr)
     return {'idx':bl_idx, 'name':bl_list}
 
 def plot_auto_corr(ac=None, nant=16, nx=2, chran='0-4095'):
@@ -731,16 +731,16 @@ def plot_auto_corr(ac=None, nant=16, nx=2, chran='0-4095'):
     '''
     import matplotlib.pyplot as plt
     nfile=len(ac) 
-    if isinstance(chran, basestring):
+    if isinstance(chran, str):
         (ch1,ch2) = (int(s) for s in chran.split('-'))
         if ch1 > ch2 or ch1 < 0 or ch2 > 4095:
-            print 'start channel no must be less than end channel #'
-            print 'start and end channel must be >= 0 and <= 4096'
-            print 'use the default range 0-4095 instead'
+            print('start channel no must be less than end channel #')
+            print('start and end channel must be >= 0 and <= 4096')
+            print('use the default range 0-4095 instead')
             ch1 = 0
             ch2 = 4095
     else:
-        print 'chran has to be a string'
+        print('chran has to be a string')
         return
     for n in range(nfile):
         ac_=ac[n]
@@ -766,20 +766,20 @@ def plot_x_corr(xc=None, plot_type='pha', nbl=15, nx=2, refant=1, chran='2048-40
                          tidx         time index for the time plot, default to 25
     '''
     import matplotlib.pyplot as plt
-    if isinstance(chran, basestring):
+    if isinstance(chran, str):
         (ch1,ch2) = (int(s) for s in chran.split('-'))
         if ch1 > ch2 or ch1 < 0 or ch2 > 4095:
-            print 'start channel no must be less than end channel #'
-            print 'start and end channel must be >= 0 and <= 4096'
-            print 'use the default range 2048-4095 instead'
+            print('start channel no must be less than end channel #')
+            print('start and end channel must be >= 0 and <= 4096')
+            print('use the default range 2048-4095 instead')
             ch1 = 2048
             ch2 = 4095
     else:
-        print 'chran has to be a string'
+        print('chran has to be a string')
         return
     if not xc:
-        print 'please provide a cross-power spectrum file'
-        print "by (po,ac,xc)=get_spec(capfile,'jcap')"
+        print('please provide a cross-power spectrum file')
+        print("by (po,ac,xc)=get_spec(capfile,'jcap')")
     nfile=len(xc) 
     bl=bl_mapper(refant=refant)
     bli=bl['idx']
@@ -827,7 +827,7 @@ def plot_x_corr(xc=None, plot_type='pha', nbl=15, nx=2, refant=1, chran='2048-40
 def capture_fig(useroach=[1,2],print_attn=False):
 
     import matplotlib.pyplot as plt
-    from util import Time
+    from .util import Time
     
     # Select which pair of ROACH boards is used for plot
 
@@ -1035,13 +1035,13 @@ if __name__ == "__main__":
                 attn[bad] = 0
             attn.shape = (30,34)
 
-            print '       Ant1  Ant2  Ant3  Ant4  Ant5  Ant6  Ant7  Ant8  Ant9 Ant10 Ant11 Ant12 Ant13 Ant14 Ant15'
-            print '       X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y'
-            print '      ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----'
+            print('       Ant1  Ant2  Ant3  Ant4  Ant5  Ant6  Ant7  Ant8  Ant9 Ant10 Ant11 Ant12 Ant13 Ant14 Ant15')
+            print('       X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y')
+            print('      ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----')
             for i in range(34):
-                print '{:2} :  {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2}'.format(i+1,*attn[:,i])
+                print('{:2} :  {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2}'.format(i+1,*attn[:,i]))
         else:
-            print 'Command line argument',sys.argv[1],'not understood.  Exiting.'
+            print('Command line argument',sys.argv[1],'not understood.  Exiting.')
     else:
         t1,out1,ovfl1 = capture_fig(useroach=[1,2,5])
         t2,out2,ovfl2 = capture_fig(useroach=[3,4,6])

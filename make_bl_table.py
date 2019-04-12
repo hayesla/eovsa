@@ -1,7 +1,7 @@
-import read_idb as ri
-from util import Time
+from . import read_idb as ri
+from .util import Time
 import numpy as np
-from adc_cal2 import ant_str2list
+from .adc_cal2 import ant_str2list
 
 def make_bl_table(trange,antstr='ant1-13'):
     files = ri.get_trange_files(trange)
@@ -12,7 +12,7 @@ def make_bl_table(trange,antstr='ant1-13'):
     fxy = open(trange[0].iso[:10].replace('-','')+'_baseline_xy.txt','w')
     fyx = open(trange[0].iso[:10].replace('-','')+'_baseline_yx.txt','w')
     for i,file in enumerate(files):
-        print 'Reading',file,'('+str(i+1)+' of '+str(len(files))+')'
+        print('Reading',file,'('+str(i+1)+' of '+str(len(files))+')')
         out = ri.read_idb([file],navg=60)
         data = out['x'][bl2ord[antidx,13],:,:,1:]
         phase = np.angle(np.mean(data,3))*180./np.pi
@@ -43,9 +43,9 @@ def make_bl_table(trange,antstr='ant1-13'):
     
 def src2dict(out):
     import aipy
-    import eovsa_array
-    import eovsa_cat
-    import eovsa_lst
+    from . import eovsa_array
+    from . import eovsa_cat
+    from . import eovsa_lst
     import copy
 
     bl2ord = ri.p.bl_list()
@@ -72,7 +72,7 @@ def bz(fname1,fname2):
         reduce the data to only baselines with ant14.  The filenames of 
         the two pickled files is provided.
     '''
-    import cPickle as pickle
+    import pickle as pickle
     f = open(fname1,'rb')
     out1 = pickle.load(f)
     f.close()

@@ -6,7 +6,7 @@
 #  2017-06-28 SJ
 #    Wrapped phacal_diff() to assess the quality of each PHASECAL during a given day or a time range.
 
-from util import Time
+from .util import Time
 import numpy as np
 import matplotlib.pyplot as plt
 from glob import glob
@@ -14,8 +14,8 @@ import matplotlib.dates as mdates
 import os
 # import pcapture2 as p
 import pdb
-import refcal_anal as ra
-import cal_header as ch
+from . import refcal_anal as ra
+from . import cal_header as ch
 from IPython import embed
 
 
@@ -56,34 +56,34 @@ def phacal_anal(refcal, minsnr=0.7, strictness=0.5, doplot_refcal=False, verbose
     nscanidx = len(scanidx)
     scanidx_sql = []
     ct_accept = 0
-    print('{} PHASECAL scans found...'.format(nscanidx))
+    print(('{} PHASECAL scans found...'.format(nscanidx)))
 
     # embed()
     for idx, ll in enumerate(scanidx):
-        print 'processing PHASECAL {}/{} ...'.format(idx + 1, nscanidx)
+        print('processing PHASECAL {}/{} ...'.format(idx + 1, nscanidx))
         phacal = ra.phase_diff(ra.refcal_anal(out, scanidx=[ll], minsnr=minsnr, doplot=doplot_refcal), refcal=refcal,
                                strictness=0.5)
         prompt = ''
         while not (prompt.lower() in ['y', 'n']):
-            prompt = raw_input('Plot image? [y/n]')
+            prompt = input('Plot image? [y/n]')
         if prompt.lower() == 'y':
             ra.graph_pdiff(phacal, refcal, strictness=strictness, plot_rms=True)
         prompt = ''
         # embed()
         while not (prompt.lower() in ['y', 'n']):
-            prompt = raw_input('Do you want to accept this phacal results? [y/n]')
+            prompt = input('Do you want to accept this phacal results? [y/n]')
         if prompt.lower() == 'n':
-            print 'PHASECAL {}/{} abort ...'.format(idx + 1, nscanidx)
+            print('PHASECAL {}/{} abort ...'.format(idx + 1, nscanidx))
             scanidx_sql.append({'id': ll, 'status': 'rejected'})
         elif prompt.lower() == 'y':
-            print 'PHASECAL {}/{} sending to SQL datebase'.format(idx + 1, nscanidx)
+            print('PHASECAL {}/{} sending to SQL datebase'.format(idx + 1, nscanidx))
             scanidx_sql.append({'id': ll, 'status': 'accepted'})
             ct_accept += 1
             ch.phacal2sql(phacal)
         plt.close('all')
-    print '{} out of {} PHASECAL results were sent to SQL database.'.format(ct_accept, nscanidx)
-    print 'PHASECAL: time' + 37 * ' ' + 'source' + 6 * ' ' + 'status'
+    print('{} out of {} PHASECAL results were sent to SQL database.'.format(ct_accept, nscanidx))
+    print('PHASECAL: time' + 37 * ' ' + 'source' + 6 * ' ' + 'status')
     for idx, ll in enumerate(scanidx_sql):
-        print '{0:8s}: {1}~{2}  {3:10s}  {4}'.format(str(ll['id']), out['tstlist'][ll['id']].isot[:-4],
+        print('{0:8s}: {1}~{2}  {3:10s}  {4}'.format(str(ll['id']), out['tstlist'][ll['id']].isot[:-4],
                                                      out['tedlist'][ll['id']].isot[:-4], out['srclist'][ll['id']],
-                                                     ll['status'])
+                                                     ll['status']))

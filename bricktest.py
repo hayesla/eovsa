@@ -34,9 +34,9 @@ def send_str(msg):
     try:
         #Set the whole string
         n = s.send(buf)
-        print 'Number of bytes sent',n
+        print('Number of bytes sent',n)
     except:
-        print 'Error sending buffer'
+        print('Error sending buffer')
     try:
         s.settimeout(1.0)
         # receive data from client (data, addr)
@@ -44,10 +44,10 @@ def send_str(msg):
 #        reply = d[0]
 #        addr = d[1]
          
-        print 'Server reply : ' + d
+        print('Server reply : ' + d)
      
     except:
-        print 'Error receiving response'
+        print('Error receiving response')
 
     time.sleep(0.01)        
     s.close()
@@ -66,9 +66,9 @@ def get_response(msg):
     try:
         #Set the whole string
         n = s.send(buf)
-        print 'Number of bytes sent',n
+        print('Number of bytes sent',n)
     except:
-        print 'Error sending buffer'
+        print('Error sending buffer')
     try:
         s.settimeout(1.0)
         # receive data from client (data, addr)
@@ -76,10 +76,10 @@ def get_response(msg):
 #        reply = d[0]
 #        addr = d[1]
          
-        print 'Server reply : ' + d[:-2]
+        print('Server reply : ' + d[:-2])
      
     except:
-        print 'Error receiving response'
+        print('Error receiving response')
         d = 'Error'
 
     time.sleep(0.01)        
@@ -99,8 +99,8 @@ def brick_flush():
     # receive data from client (data, addr)
     try:
         d = s.recv(1)
-        print 'Flush returned:',d
+        print('Flush returned:',d)
     except:
-        print 'Error (timeout?)'
+        print('Error (timeout?)')
     s.close()
 

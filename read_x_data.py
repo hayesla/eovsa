@@ -48,13 +48,13 @@ def get_X_data(files):
             IDBdata, freq = readXdata(file)
             IDBdatalist.append(IDBdata)
         except:
-            print 'The problematic file is: ' + file
+            print('The problematic file is: ' + file)
     IDBdata = concatenate(IDBdatalist,2)
     return IDBdata
 
 import copy
-import spectrogram_fit as sp
-from util import Time
+from . import spectrogram_fit as sp
+from .util import Time
 
 trange = Time(['2015-06-22 17:35:00','2015-06-22 18:35:00'])
 s = sp.Spectrogram(trange)

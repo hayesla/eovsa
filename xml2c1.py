@@ -8,7 +8,7 @@ from lxml import etree
 import numpy as np
 import copy
 import struct
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import time
 
 global indent
@@ -39,13 +39,13 @@ def c_handle_cluster(child):
             slist = slist+[testname]
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None
     if c[0].tag == "NumElts":
         n = int(c[0].text)
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None
     # Loop through all items in the cluster
     for i in range(n):
@@ -127,7 +127,7 @@ def c_handle_array(child):
         name = c[0].text  # Name of Array
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None, None, None
     # Handle up to four levels of dimension
     dims = []
@@ -135,7 +135,7 @@ def c_handle_array(child):
         dims.append(int(c[0].text))
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None, None, None
     if c[0].tag == "Dimsize":
         dims.append(int(c[0].text))
@@ -179,7 +179,7 @@ def c_handle_item(c):
     if c[0].tag == "Name":
         name = c[0].text
     else:
-        print 'Illegal format for item',c
+        print('Illegal format for item',c)
         return None, None
     return name, datatype
 
@@ -190,7 +190,7 @@ def c_xml_read_stateframe(filename=None):
     and memory mapping it to the structure.
     '''
     if filename is None:
-        f = urllib2.urlopen('ftp://admin:observer@acc.solar.pvt/ni-rt/startup/stateframe.xml')
+        f = urllib.request.urlopen('ftp://admin:observer@acc.solar.pvt/ni-rt/startup/stateframe.xml')
     else: 
         f = open(filename)
     tree = etree.parse(f)
@@ -202,7 +202,7 @@ def c_xml_read_stateframe(filename=None):
 
     #grab version here too
     if filename is None:
-        f = urllib2.urlopen('ftp://admin:observer@acc.solar.pvt/ni-rt/startup/stateframe.xml')
+        f = urllib.request.urlopen('ftp://admin:observer@acc.solar.pvt/ni-rt/startup/stateframe.xml')
     else: 
         f = open(filename)
     
@@ -232,7 +232,7 @@ def c_xml_read_scanheader(filename=None):
     and memory mapping it to the structure.
     '''
     if filename is None:
-        f = urllib2.urlopen('ftp://admin:observer@acc.solar.pvt/parm/scan_header.xml')
+        f = urllib.request.urlopen('ftp://admin:observer@acc.solar.pvt/parm/scan_header.xml')
     else: 
         f = open(filename)
     tree = etree.parse(f)
@@ -244,7 +244,7 @@ def c_xml_read_scanheader(filename=None):
 
     #grab version here too
     if filename is None:
-        f = urllib2.urlopen('ftp://admin:observer@acc.solar.pvt/parm/scan_header.xml')
+        f = urllib.request.urlopen('ftp://admin:observer@acc.solar.pvt/parm/scan_header.xml')
     else: 
         f = open(filename)
     
@@ -274,7 +274,7 @@ def c_struct_unnest(arrx1):
 
     # create a 2-d list with each element
     nlines = len(arrx1)
-    arrx0 = range(nlines)
+    arrx0 = list(range(nlines))
     for j in range(nlines):
         arrx0[j] = str.split(arrx1[j], ' ')
     
@@ -282,8 +282,8 @@ def c_struct_unnest(arrx1):
     # count to get indentation
     # for each line, find the first value and 
     # create a copy of arrx0 without the spaces in front
-    level = range(nlines)
-    first_x = range(nlines)
+    level = list(range(nlines))
+    first_x = list(range(nlines))
     for j in range(nlines):
         a = 0
         while arrx0[j][a] == '':
@@ -300,11 +300,11 @@ def c_struct_unnest(arrx1):
     xxx = xxx[1:]
         
     nstruct = len(xxx)
-    xxx1 = range(nstruct)
+    xxx1 = list(range(nstruct))
     for j in range(nstruct):
         xxx1[j] = nlines-1
 
-    nest_level = range(nstruct)
+    nest_level = list(range(nstruct))
     for j in range(nstruct):
         j1 = xxx[j]
         nest_level[j] = level[j1]
@@ -316,7 +316,7 @@ def c_struct_unnest(arrx1):
     # Here create a list which for each line has either zero,
     # or for the positions xxx of the structure starts,
     # the value of the appropriate xxx1, the structure end
-    stest = range(nlines)
+    stest = list(range(nlines))
     for j in range(nlines):
         stest[j] = 0
 
@@ -329,7 +329,7 @@ def c_struct_unnest(arrx1):
     nl = sorted(nest_level)
     max_nl = nl[len(nl)-1]+1 #Another random plus 1?
     # Need to reverse a list
-    pppp = range(max_nl)
+    pppp = list(range(max_nl))
     qqqq = pppp[::-1]
     otp_string = [-1]
     for j in qqqq:
@@ -432,7 +432,7 @@ def c2f90_struct(lines):
 
     nlines = len(lines)
     # first strip all semicolons
-    arrx1 = range(nlines)
+    arrx1 = list(range(nlines))
     for j in range(nlines):
         abc = lines[j]
         fff = len(abc)
@@ -442,7 +442,7 @@ def c2f90_struct(lines):
             arrx1[j] = abc
 
     # create a 2-d list with each element
-    arrx2 = range(nlines)
+    arrx2 = list(range(nlines))
     for j in range(nlines):
         arrx2[j] = str.split(arrx1[j])
 
@@ -581,7 +581,7 @@ def c_append_stateframecomm(lines):
     '''Appends the definition of the stateframe global external structure for the stateframe'''
 
     nlines = len(lines)
-    lines_out = range(nlines)
+    lines_out = list(range(nlines))
     for j in range(nlines):
         lines_out[j] = lines[j]
 
@@ -595,7 +595,7 @@ def c2f90_append_stateframecomm(lines):
     '''Appends the definition of the stateframe f90 common block'''
 
     nlines = len(lines)
-    lines_out = range(nlines)
+    lines_out = list(range(nlines))
     for j in range(nlines):
         lines_out[j] = lines[j]
 
@@ -609,8 +609,8 @@ def c_add_packed_attribute(lines):
     ext_string = "struct __attribute__ ((__packed__))"
     nlines = len(lines)
     # create a 2-d list for each element
-    arrx2 = range(nlines)
-    arrx1 = range(nlines)
+    arrx2 = list(range(nlines))
+    arrx1 = list(range(nlines))
     for j in range(nlines):
         arrx1[j] = lines[j]
         arrx1[j]=arrx1[j].replace('struct x', 'struct y', 1)
@@ -630,7 +630,7 @@ def c_struct_varnames(lines, var0):
 
     # first strip semicolons
     nlines = len(lines)
-    arrx1 = range(nlines)
+    arrx1 = list(range(nlines))
     for j in range(nlines):
         abc = lines[j]
         fff = len(abc)
@@ -640,8 +640,8 @@ def c_struct_varnames(lines, var0):
             arrx1[j] = abc
 
     # create 2-d lists with each element
-    arrx0 = range(nlines)
-    arrx2 = range(nlines)
+    arrx0 = list(range(nlines))
+    arrx2 = list(range(nlines))
     for j in range(nlines):
         arrx0[j] = str.split(arrx1[j], ' ')
         arrx2[j] = str.split(arrx1[j])
@@ -650,8 +650,8 @@ def c_struct_varnames(lines, var0):
     # count to get indentation
     # for each line, find the first value and 
     # create a copy of arrx0 without the spaces in front
-    level = range(nlines)
-    first_x = range(nlines)
+    level = list(range(nlines))
+    first_x = list(range(nlines))
     for j in range(nlines):
         a = 0
         while arrx0[j][a] == '':
@@ -668,12 +668,12 @@ def c_struct_varnames(lines, var0):
     xxx = xxx[1:]
         
     nstruct = len(xxx)
-    xxx1 = range(nstruct)
+    xxx1 = list(range(nstruct))
     for j in range(nstruct):
         xxx1[j] = nlines-1
 
-    nest_level = range(nstruct)
-    strname = range(nstruct)
+    nest_level = list(range(nstruct))
+    strname = list(range(nstruct))
     # Now get the name of the structures
     for j in range(nstruct):
         j1 = xxx[j]
@@ -689,7 +689,7 @@ def c_struct_varnames(lines, var0):
     # Here create a list which for each line has either zero,
     # or for the positions xxx of the structure starts,
     # the value of the appropriate xxx1, the structure end
-    stest = range(nlines)
+    stest = list(range(nlines))
     for j in range(nlines):
         stest[j] = 0
 
@@ -700,9 +700,9 @@ def c_struct_varnames(lines, var0):
 
     # step through the structures, and just write the variable names
     maxnl = max(nest_level)
-    arrx10 = range(nlines)
+    arrx10 = list(range(nlines))
     for j in range(nlines):
-        arrx10[j] = range(maxnl+1)
+        arrx10[j] = list(range(maxnl+1))
         for k in range(maxnl+1):
             arrx10[j][k] = ''
 
@@ -713,7 +713,7 @@ def c_struct_varnames(lines, var0):
             arrx10[xxx[j]+i][nest_level[j]] = strname[j]
 
     # contract the arrx10 array
-    sn1plus = range(nlines)
+    sn1plus = list(range(nlines))
     for j in range(nlines):
         sn1plus[j] = ''
         if level[j] > 0:
@@ -757,7 +757,7 @@ def c_vareqvar(a, b):
             y1 = y1+[y0]
 
         # find dimensions
-        djj = range(c)
+        djj = list(range(c))
         for j in range(c):
             djj[j] = a[x1[j]+1:y1[j]]
 
@@ -790,8 +790,8 @@ def c_vareqvar(a, b):
 def c_var_write(a, typex, funit):
     '''given a variable name and type, genereate a c fprintf statement for output, input funit is the file descriptor '''
 
-    print typex
-    print typex == 'double'
+    print(typex)
+    print(typex == 'double')
 
     #Need a format code
     if typex == 'int':
@@ -834,7 +834,7 @@ def c_var_write(a, typex, funit):
             y1 = y1+[y0]
 
         # find dimensions
-        djj = range(c)
+        djj = list(range(c))
         for j in range(c):
             djj[j] = a[x1[j]+1:y1[j]]
 
@@ -885,7 +885,7 @@ def c2f90_var_write(a, typex, funit):
             y1 = y1+[y0]
 
         # find dimensions
-        djj = range(c)
+        djj = list(range(c))
         for j in range(c):
             djj[j] = a[x1[j]+1:y1[j]]
 
@@ -1018,7 +1018,7 @@ def c_append_scanheadercomm(lines):
     the padded scan header structure definition in C'''
 
     nlines = len(lines)
-    lines_out = range(nlines)
+    lines_out = list(range(nlines))
     for j in range(nlines):
         lines_out[j] = lines[j]
 
@@ -1034,7 +1034,7 @@ def c2f90_append_scanheadercomm(lines):
 
 
     nlines = len(lines)
-    lines_out = range(nlines)
+    lines_out = list(range(nlines))
     for j in range(nlines):
         lines_out[j] = lines[j]
 

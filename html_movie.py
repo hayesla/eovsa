@@ -4,7 +4,7 @@ def html_movie(t,flare=False, imgprefix='', synoptic=False):
         call this with a Time() object containing the desired date.
     '''
     import glob
-    from util import Time
+    from .util import Time
     datstr = t.iso[:10]
     tstr = t.iso[11:16]
     if flare:
@@ -44,4 +44,4 @@ def html_movie(t,flare=False, imgprefix='', synoptic=False):
     for i in range(skiplines[-1]+1,nlines):
         f.write(lines[i])
     f.close()
-    print('html saved to {}'.format(htmlname))
+    print(('html saved to {}'.format(htmlname)))

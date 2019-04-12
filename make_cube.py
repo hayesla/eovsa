@@ -21,10 +21,10 @@ if __name__ == "__main__":
             innames = glob.glob(sys.argv[1])
             outname = sys.argv[2]
         except:
-            print 'Cannot interpret',sys.argv[1],'as a valid string.'
+            print('Cannot interpret',sys.argv[1],'as a valid string.')
             exit()
     else:
-        print 'Incorrect number of arguments.  Need match string and outfile name'
+        print('Incorrect number of arguments.  Need match string and outfile name')
         exit()
     make_cube(innames,outname)
     

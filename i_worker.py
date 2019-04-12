@@ -44,7 +44,7 @@ class IWorker(object):
     """
     # endregion
     def __print(self, statement):
-        print statement
+        print(statement)
 
     # region Method Description
     """

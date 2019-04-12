@@ -13,9 +13,9 @@
 #    make_sched() to use a wider window.
 
 import os
-from util import Time
-import eovsa_cat
-from eovsa_visibility import *
+from .util import Time
+from . import eovsa_cat
+from .eovsa_visibility import *
 import numpy as np
 from astropy.time import TimeDelta
 
@@ -104,7 +104,7 @@ def whenup(date=None,verbose=False):
                     i2 = np.where(np.abs(alt[j] - 10.0) < iwindow)[0][2]
                 break
             except:
-                print 'Window',iwindow,'did not work.  Trying again'
+                print('Window',iwindow,'did not work.  Trying again')
         if alt[j,i1] < alt[j,i1+1]:
             irise_az = i1
             iset_az = i2
@@ -139,7 +139,7 @@ def whenup(date=None,verbose=False):
             lines.append('{0} {1} {2} {3} {4} {5} {6}'.format(srclist[j], trise_az.iso[11:16], tset_az.iso[11:16], trise_eq.iso[11:16], tset_eq.iso[11:16], ' --- ',' --- '))
     if verbose:
         for line in lines:
-            print line
+            print(line)
     return {'source':srclist,'taz':taz, 'teq':teq, 'tgap':tgap, 'lines':lines}
 
 def sunup(daterange):
@@ -199,7 +199,7 @@ def sunup(daterange):
                         i2 = 1439  # Transition is at end
                 break
             except:
-                print 'Window',iwindow,'did not work.  Trying again'
+                print('Window',iwindow,'did not work.  Trying again')
         if alt[i1] < alt[i1+1]:
             irise_az = i1
             iset_az = i2
@@ -336,16 +336,16 @@ def make_sched(sun=None, t=None, ax=None, verbose=False):
     lines.append('{:} {:}'.format(Time(imjd + rc1start + 24./1440.,format='mjd').iso[:19],'HISELECT'))
     lines.append('{:} {:} {:} {:}'.format(Time(imjd + rc1start + 25./1440.,format='mjd').iso[:19],'PHASECAL',calnames[refcal1],'pcal_hi-all.fsq'))
     if verbose:
-        print Time(imjd + rc1start,format='mjd').iso[:19],'ACQUIRE',calnames[refcal1]
-        print Time(imjd + rc1start + 1./1440.,format='mjd').iso[:19],'LOSELECT'
-        print Time(imjd + rc1start + 4./1440.,format='mjd').iso[:19],'PHASECAL_LO',calnames[refcal1],'pcal_lo.fsq'
-        print Time(imjd + rc1start + 24./1440.,format='mjd').iso[:19],'HISELECT'
-        print Time(imjd + rc1start + 25./1440.,format='mjd').iso[:19],'PHASECAL',calnames[refcal1],'pcal_hi-all.fsq'
+        print(Time(imjd + rc1start,format='mjd').iso[:19],'ACQUIRE',calnames[refcal1])
+        print(Time(imjd + rc1start + 1./1440.,format='mjd').iso[:19],'LOSELECT')
+        print(Time(imjd + rc1start + 4./1440.,format='mjd').iso[:19],'PHASECAL_LO',calnames[refcal1],'pcal_lo.fsq')
+        print(Time(imjd + rc1start + 24./1440.,format='mjd').iso[:19],'HISELECT')
+        print(Time(imjd + rc1start + 25./1440.,format='mjd').iso[:19],'PHASECAL',calnames[refcal1],'pcal_hi-all.fsq')
     if rc1end != sunrise:
         lines.append('{:} {:}'.format(Time(imjd + rc1start + 85./1440.,format='mjd').iso[:19],'STOW'))
-        if verbose: print Time(imjd + rc1start + 85./1440.,format='mjd').iso[:19],'STOW'
+        if verbose: print(Time(imjd + rc1start + 85./1440.,format='mjd').iso[:19],'STOW')
     lines.append('{:} {:}'.format(Time(imjd + sunrise,format='mjd').iso[:19],'SUN'))
-    if verbose: print Time(imjd + sunrise,format='mjd').iso[:19],'SUN'
+    if verbose: print(Time(imjd + sunrise,format='mjd').iso[:19],'SUN')
     if ax:
         ax.plot([rc1start,rc1start+refdur/1440.],[imjd,imjd],color='C0',alpha=0.25)
     #   Phasecals
@@ -380,19 +380,19 @@ def make_sched(sun=None, t=None, ax=None, verbose=False):
         lines.append('{:} {:} {:} {:}'.format(Time(imjd + pc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal2],'pcal_hi-all.fsq'))
         lines.append('{:} {:}'.format(Time(imjd + pc2start + 35./1440.,format='mjd').iso[:19],'SUN'))
         if verbose:
-            print Time(imjd + pc1start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal1]
-            print Time(imjd + pc1start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal1],'pcal_hi-all.fsq'
-            print Time(imjd + pc1start + 30./1440.,format='mjd').iso[:19],'SKYCALTEST',calnames[pcal1]
-            print Time(imjd + pc1start + 35./1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + (18.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj'
-            print Time(imjd + (18.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + (20.*60. + 00.)/1440.,format='mjd').iso[:19],'GAINCALTEST'          
-            print Time(imjd + (20.*60. + 03.)/1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + (21.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj'
-            print Time(imjd + (21.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + pc2start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal2]
-            print Time(imjd + pc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal2],'pcal_hi-all.fsq'
-            print Time(imjd + pc2start + 35./1440.,format='mjd').iso[:19],'SUN'
+            print(Time(imjd + pc1start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal1])
+            print(Time(imjd + pc1start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal1],'pcal_hi-all.fsq')
+            print(Time(imjd + pc1start + 30./1440.,format='mjd').iso[:19],'SKYCALTEST',calnames[pcal1])
+            print(Time(imjd + pc1start + 35./1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + (18.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj')
+            print(Time(imjd + (18.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + (20.*60. + 00.)/1440.,format='mjd').iso[:19],'GAINCALTEST')          
+            print(Time(imjd + (20.*60. + 03.)/1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + (21.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj')
+            print(Time(imjd + (21.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + pc2start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal2])
+            print(Time(imjd + pc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal2],'pcal_hi-all.fsq')
+            print(Time(imjd + pc2start + 35./1440.,format='mjd').iso[:19],'SUN')
         if ax:
             ax.plot([pc1start,pc1start+caldur/1440.],[imjd,imjd],color='C0',alpha=0.25)
             ax.plot([pc2start,pc2start+caldur/1440.],[imjd,imjd],color='C0',alpha=0.25)
@@ -433,22 +433,22 @@ def make_sched(sun=None, t=None, ax=None, verbose=False):
         lines.append('{:} {:} {:} {:}'.format(Time(imjd + pc3start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal3],'pcal_hi-all.fsq'))
         lines.append('{:} {:}'.format(Time(imjd + pc3start + 35./1440.,format='mjd').iso[:19],'SUN'))
         if verbose:
-            print Time(imjd + pc1start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal1]
-            print Time(imjd + pc1start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal1],'pcal_hi-all.fsq'
-            print Time(imjd + pc1start + 30./1440.,format='mjd').iso[:19],'SKYCALTEST',calnames[pcal1]
-            print Time(imjd + pc1start + 35./1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + (17.*60. + 00.)/1440.,format='mjd').iso[:19],'GAINCALTEST'          
-            print Time(imjd + (17.*60. + 03.)/1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + (18.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj'
-            print Time(imjd + (18.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + pc2start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal2]
-            print Time(imjd + pc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal2],'pcal_hi-all.fsq'
-            print Time(imjd + pc2start + 35./1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + (21.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj'
-            print Time(imjd + (21.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN'
-            print Time(imjd + pc3start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal3]
-            print Time(imjd + pc3start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal3],'pcal_hi-all.fsq'
-            print Time(imjd + pc3start + 35./1440.,format='mjd').iso[:19],'SUN'
+            print(Time(imjd + pc1start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal1])
+            print(Time(imjd + pc1start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal1],'pcal_hi-all.fsq')
+            print(Time(imjd + pc1start + 30./1440.,format='mjd').iso[:19],'SKYCALTEST',calnames[pcal1])
+            print(Time(imjd + pc1start + 35./1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + (17.*60. + 00.)/1440.,format='mjd').iso[:19],'GAINCALTEST')          
+            print(Time(imjd + (17.*60. + 03.)/1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + (18.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj')
+            print(Time(imjd + (18.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + pc2start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal2])
+            print(Time(imjd + pc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal2],'pcal_hi-all.fsq')
+            print(Time(imjd + pc2start + 35./1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + (21.*60. + 30.)/1440.,format='mjd').iso[:19],'SOLPNTCAL solar.fsq solpnt.trj')
+            print(Time(imjd + (21.*60. + 35.)/1440.,format='mjd').iso[:19],'SUN')
+            print(Time(imjd + pc3start,format='mjd').iso[:19],'ACQUIRE',calnames[pcal3])
+            print(Time(imjd + pc3start + 4./1440.,format='mjd').iso[:19],'PHASECAL',calnames[pcal3],'pcal_hi-all.fsq')
+            print(Time(imjd + pc3start + 35./1440.,format='mjd').iso[:19],'SUN')
         if ax:
             ax.plot([pc1start,pc1start+caldur/1440.],[imjd,imjd],color='C0',alpha=0.25)
             ax.plot([pc2start,pc2start+caldur/1440.],[imjd,imjd],color='C0',alpha=0.25)
@@ -463,7 +463,7 @@ def make_sched(sun=None, t=None, ax=None, verbose=False):
 #        rc2end = rc2start + refdur/1440.
     if refrise > sunset:
         lines.append('{:} {:}'.format(Time(imjd + sunset,format='mjd').iso[:19],'STOW'))
-        if verbose: print Time(imjd + sunset,format='mjd').iso[:19],'STOW'
+        if verbose: print(Time(imjd + sunset,format='mjd').iso[:19],'STOW')
     lines.append('{:} {:} {:}'.format(Time(imjd + rc2start,format='mjd').iso[:19],'ACQUIRE',calnames[refcal2]))
     lines.append('{:} {:}'.format(Time(imjd + rc2start + 1./1440.,format='mjd').iso[:19],'LOSELECT'))
     lines.append('{:} {:} {:} {:}'.format(Time(imjd + rc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL_LO',calnames[refcal2],'pcal_lo.fsq'))
@@ -471,12 +471,12 @@ def make_sched(sun=None, t=None, ax=None, verbose=False):
     lines.append('{:} {:} {:} {:}'.format(Time(imjd + rc2start + 25./1440.,format='mjd').iso[:19],'PHASECAL',calnames[refcal2],'pcal_hi-all.fsq'))
     lines.append('{:} {:}'.format(Time(imjd + rc2start + 85./1440.,format='mjd').iso[:19],'STOW'))
     if verbose:
-        print Time(imjd + rc2start,format='mjd').iso[:19],'ACQUIRE',calnames[refcal2]
-        print Time(imjd + rc2start + 1./1440.,format='mjd').iso[:19],'LOSELECT'
-        print Time(imjd + rc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL_LO',calnames[refcal2],'pcal_lo.fsq'
-        print Time(imjd + rc2start + 24./1440.,format='mjd').iso[:19],'HISELECT'
-        print Time(imjd + rc2start + 25./1440.,format='mjd').iso[:19],'PHASECAL',calnames[refcal2],'pcal_hi-all.fsq'
-        print Time(imjd + rc2start + 85./1440.,format='mjd').iso[:19],'STOW'
+        print(Time(imjd + rc2start,format='mjd').iso[:19],'ACQUIRE',calnames[refcal2])
+        print(Time(imjd + rc2start + 1./1440.,format='mjd').iso[:19],'LOSELECT')
+        print(Time(imjd + rc2start + 4./1440.,format='mjd').iso[:19],'PHASECAL_LO',calnames[refcal2],'pcal_lo.fsq')
+        print(Time(imjd + rc2start + 24./1440.,format='mjd').iso[:19],'HISELECT')
+        print(Time(imjd + rc2start + 25./1440.,format='mjd').iso[:19],'PHASECAL',calnames[refcal2],'pcal_hi-all.fsq')
+        print(Time(imjd + rc2start + 85./1440.,format='mjd').iso[:19],'STOW')
     if ax:
         ax.plot([rc2start,rc2start+refdur/1440.],[imjd,imjd],color='C0',alpha=0.25)
     return lines

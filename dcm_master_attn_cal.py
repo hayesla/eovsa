@@ -1,7 +1,7 @@
-import pcapture2 as p
-import dbutil as db
-import cal_header as ch
-import stateframe as stf
+from . import pcapture2 as p
+from . import dbutil as db
+from . import cal_header as ch
+from . import stateframe as stf
 import numpy as np
 
 def DCM_master_attn_cal(update=False):
@@ -24,7 +24,7 @@ def DCM_master_attn_cal(update=False):
     headers = p.list_header('/home/user/Python/dcm2.pcap')
     for line in headers:
         try:
-            j, id, p1,p2,p3,p4 = np.array(map(int,line.split()))[[0,3,6,7,8,9]]
+            j, id, p1,p2,p3,p4 = np.array(list(map(int,line.split())))[[0,3,6,7,8,9]]
             pwr[j,id] = (p1, p2, p3, p4)
         except:
             # This is to skip the non-data header lines in the list
@@ -32,7 +32,7 @@ def DCM_master_attn_cal(update=False):
     headers = p.list_header('/home/user/Python/dcm3.pcap')
     for line in headers:
         try:
-            j, id, p1,p2,p3,p4 = np.array(map(int,line.split()))[[0,3,6,7,8,9]]
+            j, id, p1,p2,p3,p4 = np.array(list(map(int,line.split())))[[0,3,6,7,8,9]]
             pwr[j,id] = (p1, p2, p3, p4)
         except:
             # This is to skip the non-data header lines in the list
@@ -70,21 +70,21 @@ def DCM_master_attn_cal(update=False):
     if update:
         msg = ch.dcm_master_table2sql(DCMlines)
         if msg:
-            print 'Success'
+            print('Success')
         else:
-            print 'Error writing table to SQL database!'
+            print('Error writing table to SQL database!')
     return DCMlines
     
 if __name__ == "__main__":
 
     import sys
-    print len(sys.argv)
+    print(len(sys.argv))
     if len(sys.argv) == 2:
         if sys.argv[1] == 'update':
             lines = DCM_master_attn_cal(True)
             for line in lines:
-                print line
+                print(line)
     else:
             lines = DCM_master_attn_cal()
             for line in lines:
-                print line
+                print(line)

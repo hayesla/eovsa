@@ -4,10 +4,10 @@ from mirexec import *
 import os,sys,shutil
 
 if len(sys.argv) < 2:
-    print 'Usage: ./gen_full_disk.py stem unna, e.g.'
-    print './gen_full_disk.py 2.000GHZ_2.40_B4_RCP un'
-    print 'for MODEL_2.000GHZ_2.40_B4_RCP uniform weighting'
-    print 'Default is natural (robust = 0.5'
+    print('Usage: ./gen_full_disk.py stem unna, e.g.')
+    print('./gen_full_disk.py 2.000GHZ_2.40_B4_RCP un')
+    print('for MODEL_2.000GHZ_2.40_B4_RCP uniform weighting')
+    print('Default is natural (robust = 0.5')
     exit()
 
 stem = sys.argv[1]
@@ -78,7 +78,7 @@ proc = subprocess.Popen(['gethd','in=sub.cm/bpa'],stdout=subprocess.PIPE)
 bpa = float(proc.stdout.read())
 # convol does not seem to be trustworthy - calculate factor myself
 sfac = 1.333*bmaj*bmin/2.4/2.4
-print "Convolution rescaling is ",sfac
+print("Convolution rescaling is ",sfac)
 
 shutil.rmtree('sun.clean',ignore_errors=True)
 TaskMaths(exp='(sub.clean+'+disk+')', out='sun.clean').run()
@@ -96,7 +96,7 @@ TaskCgDisp(device='1/xs', in_='sun.cm').run()
 # calculate cutoff for 50 K and this beam size
 # turns out we want about 1000 as cutoff: 200K apparently
 cutoff = 4*0.8993*bmaj*bmin
-print "Cutoff is ",cutoff
+print("Cutoff is ",cutoff)
 shutil.rmtree('tmp.clean',ignore_errors=True)
 # use earlier disk-subtracted maps, we don't care
 TaskClean(map='sub.map', beam='sub.beam', niters=5000, gain=.05, phat=0.3, 

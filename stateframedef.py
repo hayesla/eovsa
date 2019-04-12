@@ -25,7 +25,7 @@
 #
 
 import stateframe, struct, numpy, pyodbc, datetime
-import read_xml2 as rxml
+from . import read_xml2 as rxml
 import sys, os, time, glob
 
 #=============== get_start_byte ===============
@@ -33,9 +33,9 @@ def get_start_byte(c):
     '''Find the start byte of the first endpoint in dict c
     '''
     if not (type(c) is dict):
-        print 'Argument must be a dictionary'
+        print('Argument must be a dictionary')
         return -1
-    keys = c.keys()
+    keys = list(c.keys())
     for key in keys:
         if type(c[key]) is dict:
             sbyte = get_start_byte(c[key])
@@ -64,7 +64,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
 
     mylist = []
     if type(c) is dict:
-        keys = c.keys()
+        keys = list(c.keys())
         for key in keys:
             #print '+'+inkey+'_'+key
             newlist = walk_keys(c[key],key,indim,pre+key[0:4]+'_',nbytes)
@@ -100,9 +100,9 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         dtype,nbyt = dtype_dict[c[0][-1]]
                     # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                     if nbytes == 0:
-                        mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey]))]
+                        mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey])))]
                     else:
-                        mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey]))]
+                        mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey])))]
                 else:
                     # This is a 2D array. Unfortunately, it is here
                     # that there are several special-case exceptions to
@@ -115,7 +115,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                         for i in range(d1):
                             dtype,nbyt = dtype_dict[c[0][-1]]
-                            mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbytes*i,nbyt,c[0],p+inkey[i]]))]
+                            mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbytes*i,nbyt,c[0],p+inkey[i]])))]
                     elif inkey == 'Delay':
                         d2 = c[2][0]  # first dimension
                         d1 = c[2][1]  # second dimension
@@ -124,7 +124,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                         for i in range(d1):
                             dtype,nbyt = dtype_dict[c[0][-1]]
-                            mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*2,c[0][-1],p+inkey+str(i)]))]
+                            mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*2,c[0][-1],p+inkey+str(i)])))]
                     elif inkey == 'Antpos':
                         d1 = c[2][0]  # first dimension
                         d2 = c[2][1]  # second dimension
@@ -134,7 +134,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                         for i in range(d1):
                             dtype,nbyt = dtype_dict[c[0][-1]]
-                            mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*d1,c[0][-1],p+inkey+ants[i]]))]
+                            mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*d1,c[0][-1],p+inkey+ants[i]])))]
                     elif inkey == 'Ephem' or inkey == 'SatEphem':
                         d1 = c[2][0]  # first dimension
                         d2 = c[2][1]  # second dimension
@@ -144,7 +144,7 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                         # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                         for i in range(d1):
                             dtype,nbyt = dtype_dict[c[0][-1]]
-                            mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*d1,c[0][-1],p+inkey+num[i]]))]
+                            mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1]+nbyt*i,nbyt*d1,c[0][-1],p+inkey+num[i]])))]
             else:
                 # This is a single endpoint
                 if c[0][-1] == 's':
@@ -154,9 +154,9 @@ def walk_keys(c,inkey,indim=1,pre='',nbytes=0):
                     dtype,nbyt = dtype_dict[c[0][-1]]
                 # ['dimension','datatype','fieldbytes','startbyte','dimoffset','pytype','fieldname']
                 if nbytes == 0:
-                    mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey]))]
+                    mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbyt,c[0],p+inkey])))]
                 else:
-                    mylist += [dict(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey]))]
+                    mylist += [dict(list(zip(dict_keys,[indim,dtype,nbyt,c[1],nbytes,c[0],p+inkey])))]
     return mylist
     
 #=============== sfdef ===============
@@ -379,13 +379,13 @@ def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
         try:
             f = open(sflog,'rb')
         except:
-            print 'Could not open file',sflog,'-- Exiting.'
+            print('Could not open file',sflog,'-- Exiting.')
             return
     
         # Get binary size and check version number
         data = f.read(100)
         if stateframe.extract(data,['d',8]) != version:
-            print 'Stateframe log file version does not match XML version. -- Exiting'
+            print('Stateframe log file version does not match XML version. -- Exiting')
             return
         recsize = stateframe.extract(data,sf['Binsize'])
         f.close()
@@ -410,7 +410,7 @@ def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
         try:
             sys.stdout = open(outtabfile,'w')
         except:
-            print 'Could not redirect STDOUT to',outtabfile,' -- Will print to screen'
+            print('Could not redirect STDOUT to',outtabfile,' -- Will print to screen')
             sys.stdout = stdout
 
     outlist2table(outlist,version)
@@ -420,7 +420,7 @@ def old_version_test(sflog=None,sfxml=None,outbinfile=None,outtabfile=None):
         try:
             g = open(outbinfile,'wb')
         except:
-            print 'Could not open file',outbinfile,'for writing. -- Exiting.'
+            print('Could not open file',outbinfile,'for writing. -- Exiting.')
             return
         if sflog:
             # Read from log file
@@ -457,7 +457,7 @@ def load_deftable(xml_file=None,sdict=None,version=None):
         if this definition is already in there, and bails with a warning if so
     '''
     if xml_file and (not os.path.isfile(xml_file)):
-        print 'Error: Named xml file',xml_file,'not found.'
+        print('Error: Named xml file',xml_file,'not found.')
         return False
     elif xml_file:
         try:
@@ -485,7 +485,7 @@ def load_deftable(xml_file=None,sdict=None,version=None):
             # Case of a scanheader
             tblname = 'ScanHeaderDef'
         # Check if this version is already entered
-        print "select * from " + tblname + " where Version=" + str(int(version))
+        print("select * from " + tblname + " where Version=" + str(int(version)))
         cursor.execute("select * from " + tblname + " where Version=" + str(int(version)))
         rows = cursor.fetchall()
         if len(rows) == 0:
@@ -496,13 +496,13 @@ def load_deftable(xml_file=None,sdict=None,version=None):
             cursor.execute("update "+tblname+" set status=1 where Version='" + str(int(version)) + "'")
             cnxn.commit()
         else:
-            print 'Warning: The definition for version',version,'already exists in',tblname
+            print('Warning: The definition for version',version,'already exists in',tblname)
         cursor.close()
         del cursor
         cnxn.close()
         return True
     else:
-        print 'Error: Bad sdict=',sdict,'or version=',version
+        print('Error: Bad sdict=',sdict,'or version=',version)
         return False
     
 def drop_deftable(version):
@@ -511,44 +511,44 @@ def drop_deftable(version):
         
         Requests confirmation from the keyboard.
     '''
-    import dbutil as db
+    from . import dbutil as db
     cursor = db.get_cursor()
     # Get all table and view names from this version
     query = 'select * from information_schema.tables where table_name like "fV'+str(int(version))+'%"'
     result, msg = db.do_query(cursor, query)
     if msg == 'Success':
         names = result['TABLE_NAME']
-        print 'You are about to permanently delete the following tables:'
+        print('You are about to permanently delete the following tables:')
         for name in names:
-            print '    ',name
-        ans = raw_input('Are you sure? [y/n]: ').upper()
+            print('    ',name)
+        ans = input('Are you sure? [y/n]: ').upper()
         if ans != 'Y':
-            print 'Action canceled by user'
+            print('Action canceled by user')
             return False
         # Delete the version from the stateframedef table
         query = 'delete from StateFrameDef where Version='+str(int(version))
         r, msg = db.do_query(cursor, query)
         if msg != 'Success':
-            print 'Error, could not delete from stateframedef for version:',version
-            print msg
+            print('Error, could not delete from stateframedef for version:',version)
+            print(msg)
             return False
         # Loop over table and view names, dropping each in turn
         for name in names:
             query = 'drop table '+name
             r, msg = db.do_query(cursor, query)
             if msg != 'Success':
-                print 'Error dropping table',name
-                print msg
+                print('Error dropping table',name)
+                print(msg)
         # Drop Bin Reader procedure
         query = 'drop proc ov_fBinReader_V'+str(int(version))
         r, msg = db.do_query(cursor, query)
         if msg != 'Success':
-            print 'Error, could not delete Bin Reader procedure for version:',version
-            print msg
+            print('Error, could not delete Bin Reader procedure for version:',version)
+            print(msg)
             return False
     else:
         return False
-    print 'Successfully dropped all existing tables and table definition for version', version
+    print('Successfully dropped all existing tables and table definition for version', version)
     return True
         
 #=============== reload_deftables ===============
@@ -557,7 +557,7 @@ def reload_deftables(tbldir='/data/eovsa/stateframe_logs'):
         NB: This only works on helios!
     '''
     if tbldir is None:
-        print 'Error: no directory for xml tables was provided.'
+        print('Error: no directory for xml tables was provided.')
 #    files = glob.glob(os.path.join(tbldir,'*00.xml')
     logfiles = glob.glob(os.path.join(tbldir,'*0.log'))
     # Update tables only for log file versions that exist
@@ -578,13 +578,13 @@ def log2sql(log_file=None):
         a subsequent call on the same log file should find the place where it left off to
         resume the transfer.
     '''
-    from util import Time
+    from .util import Time
     
     if log_file is None:
-        print 'Error: a stateframe log filename must be provided.'
+        print('Error: a stateframe log filename must be provided.')
         return False
     if not os.path.isfile(log_file):
-        print 'Error: Named stateframe log file',log_file,'not found.'
+        print('Error: Named stateframe log file',log_file,'not found.')
         return False
     # Log file basename is expected to be in format 'sf_yyyymmdd_vxx.0.log', 
     # where xx is the version number
@@ -598,7 +598,7 @@ def log2sql(log_file=None):
             sftimestamp = int(t.lv + 0.5)  # Start timestamp, as nearest integer
             sfver = int(logname[2].split('.')[0][1:])
         except:
-            print 'Error: File ',basename,'does not have expected basename format sf_yyyymmdd_vxx.0.log'
+            print('Error: File ',basename,'does not have expected basename format sf_yyyymmdd_vxx.0.log')
             return False
     else:
         return False
@@ -618,10 +618,10 @@ def log2sql(log_file=None):
             try:
                 sftimestamp2 = int(rows[0].Timestamp + 1)
             except:
-                print 'Error: Unexpected data returned from database.  Returned value:',rows[0]
+                print('Error: Unexpected data returned from database.  Returned value:',rows[0])
                 return False
         elif len(rows) > 1:
-            print 'Error: Unexpected data returned from database.'
+            print('Error: Unexpected data returned from database.')
             return False
         else:
             # No data returned from call, which means we should start with current value of sftimestamp
@@ -635,7 +635,7 @@ def log2sql(log_file=None):
         version = struct.unpack_from('d', buf, 8)[0]
         f.close()
         if int(version) != sfver:
-            print 'Error: Version in file name is',sfver,'but version in file itself is',int(version)
+            print('Error: Version in file name is',sfver,'but version in file itself is',int(version))
             return False
             
         # We need the "brange" variable, which is used by transmogrify() to reformat the binary data.
@@ -643,7 +643,7 @@ def log2sql(log_file=None):
         # The correct XML file for this version must exist in the same directory as the log file
         xml_file = os.path.dirname(log_file)+'/'+'stateframe_v'+str(sfver)+'.00.xml'
         if not os.path.isfile(xml_file):
-            print 'Error: Stateframe xml file',xml_file,'not found.'
+            print('Error: Stateframe xml file',xml_file,'not found.')
             return False        
         sf, version = rxml.xml_ptrs(xml_file)
         brange, outlist = sfdef(sf)
@@ -657,13 +657,13 @@ def log2sql(log_file=None):
                     bufout = transmogrify(bufin, brange)
                     try:
                         cursor.execute('insert into fBin (Bin) values (?)',pyodbc.Binary(bufout))
-                        print 'Record '+str(lineno)+' successfully written\r',
+                        print('Record '+str(lineno)+' successfully written\r', end=' ')
                         cnxn.commit()
                     except:
                         # An exception could be an error, or just that the entry was already inserted
                         pass
                 bufin = f.read(recsize)
-    print '\n'
+    print('\n')
     return True
 
 #=============== acc2sql ===============
@@ -688,13 +688,13 @@ def acc2sql():
                 bufout = transmogrify(data, brange)
                 try:
                     cursor.execute('insert into fBin (Bin) values (?)',pyodbc.Binary(bufout))
-                    print 'Record '+str(lineno)+' successfully written\r',
+                    print('Record '+str(lineno)+' successfully written\r', end=' ')
                     cnxn.commit()
                 except:
                     # An exception could be an error, or just that the entry was already inserted
                     pass
             else:
-                print 'Error: Incompatible version in stateframe.'
+                print('Error: Incompatible version in stateframe.')
                 break
             time.sleep(1)
 

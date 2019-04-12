@@ -100,16 +100,16 @@
 
 import aipy
 import os
-from util import Time, nearest_val_idx, bl2ord, ant_str2list
+from .util import Time, nearest_val_idx, bl2ord, ant_str2list
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 #import spectrogram_fit as sp
 #import pcapture2 as p
-import eovsa_lst as el
+from . import eovsa_lst as el
 import copy
-import chan_util_bc as cu
+from . import chan_util_bc as cu
 
 #bl2ord = p.bl_list()
 
@@ -140,7 +140,7 @@ def read_udb(filename):
     # Use antennalist if available
     ants = uv['antlist']
     while ants[-1] == '\x00': ants = ants[:-1]
-    antlist = map(int, ants.split())
+    antlist = list(map(int, ants.split()))
 
     src = uv['source']
     while src[-1] == '\x00': src = src[:-1]
@@ -175,7 +175,7 @@ def read_udb(filename):
             # This is an auto-correlation
             outa[i0,k,:,l] = data
             if k < 2 and np.sum(data != np.real(data)) > 0:
-                print preamble,uv['pol'], 'has imaginary data!'
+                print(preamble,uv['pol'], 'has imaginary data!')
         else:
             outx[bl2ord[i,j],k,:,l] = data
             if k == 3: uvwarray[bl2ord[i,j],l] = uvw
@@ -267,7 +267,7 @@ def readXdata(filename, filter=False, tp_only=False, src=None):
     if 'antlist' in uv.vartable:
         ants = uv['antlist']
         while ants[-1] == '\x00': ants = ants[:-1]
-        antlist = map(int, ants.split())
+        antlist = list(map(int, ants.split()))
     else:
         antlist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
@@ -347,7 +347,7 @@ def readXdata(filename, filter=False, tp_only=False, src=None):
                     # This is an auto-correlation
                     outa[i0,k,:,l] = data
                     if k < 2 and np.sum(data != np.real(data)) > 0:
-                        print preamble,uv['pol'], 'has imaginary data!'
+                        print(preamble,uv['pol'], 'has imaginary data!')
                 else:
                     outx[bl2ord[i,j],k,:,l] = data
                     if k == 3: uvwarray[bl2ord[i,j],l] = uvw
@@ -423,7 +423,7 @@ def readXdatmp(filename):
     # Use antennalist if available
     if 'antlist' in uv.vartable:
         ants = uv['antlist']
-        antlist = map(int, ants.split())
+        antlist = list(map(int, ants.split()))
     else:
         antlist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     kp = 0
@@ -484,7 +484,7 @@ def summary_plot(out,ant_str='ant1-13',ptype='phase',pol='XX-YY'):
     ant_list = ant_str2list(ant_str)
     nant = len(ant_list)
     if ptype != 'amp' and ptype != 'phase':
-        print "Invalid plot type.  Must be 'amp' or 'phase'."
+        print("Invalid plot type.  Must be 'amp' or 'phase'.")
         return
     poloff = 0
     if pol != 'XX-YY':
@@ -519,7 +519,7 @@ def summary_plot_pcal(out,ant_str='ant1-14',ptype='phase',pol='XX-YY'):
     ant_list = ant_str2list(ant_str)
     nant = len(ant_list)
     if ptype != 'amp' and ptype != 'phase':
-        print "Invalid plot type.  Must be 'amp' or 'phase'."
+        print("Invalid plot type.  Must be 'amp' or 'phase'.")
         return
     poloff = 0
     if pol != 'XX-YY':
@@ -561,13 +561,13 @@ def get_goes_data(t=None,sat_num=None):
     from sunpy.util.config import get_and_create_download_dir
     import shutil
     from astropy.io import fits
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
     if t is None:
         t = Time(Time.now().mjd - 1,format='mjd')
     yr = t.iso[:4]
     datstr = t.iso[:10].replace('-','')
     if sat_num is None:
-        f = urllib2.urlopen('https://umbra.nascom.nasa.gov/goes/fits/'+yr)
+        f = urllib.request.urlopen('https://umbra.nascom.nasa.gov/goes/fits/'+yr)
         lines = f.readlines()
         sat_num = []
         for line in lines:
@@ -580,7 +580,7 @@ def get_goes_data(t=None,sat_num=None):
     for sat in sat_num:
         filename = 'go'+sat+datstr+'.fits'
         url = 'https://umbra.nascom.nasa.gov/goes/fits/'+yr+'/'+filename
-        f = urllib2.urlopen(url)
+        f = urllib.request.urlopen(url)
         with open(get_and_create_download_dir()+'/'+filename,'wb') as g:
             shutil.copyfileobj(f,g)
         filenames.append(get_and_create_download_dir()+'/'+filename)
@@ -593,21 +593,21 @@ def get_goes_data(t=None,sat_num=None):
         merit = len(good)
         date_elements = gfits[0].header['DATE-OBS'].split('/')
         if merit > pmerit:
-            print 'File:',file,'is best'
+            print('File:',file,'is best')
             pmerit = merit
             goes_data = data
             goes_t = Time(date_elements[2]+'-'+date_elements[1]+'-'+date_elements[0]).plot_date + tsecs/86400.
     try:
         return goes_t, goes_data
     except:
-        print 'No good GOES data for',datstr
+        print('No good GOES data for',datstr)
         return None, None
         
 def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=False):
     # Plots (and returns) UDB data for an entire day
     from sunpy import lightcurve
     from sunpy.time import TimeRange
-    from flare_monitor import flare_monitor
+    from .flare_monitor import flare_monitor
     if t is None:
         t = Time.now()
     # Cannot get a GOES plot unless doplot is True
@@ -628,11 +628,11 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=Fals
     try:
         files = files[i:]
     except:
-        print 'No files found in /data1/eovsa/fits/UDB/ for',date
+        print('No files found in /data1/eovsa/fits/UDB/ for',date)
         return {}
     out = read_idb(files,src='Sun')
     if gain_corr:
-        import gaincal2 as gc
+        from . import gaincal2 as gc
         out = gc.apply_gain_corr(out)
     trange = Time(out['time'][[0,-1]], format = 'jd')
     fghz = out['fghz']
@@ -721,10 +721,10 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=Fals
 
         ut, fl, projdict = flare_monitor(t)
         if fl == []:
-            print 'Error retrieving data for',t.iso[:10],'from SQL database.'
+            print('Error retrieving data for',t.iso[:10],'from SQL database.')
             return
         if projdict == {}:
-            print 'No annotation can be added to plot for',t.iso[:10]
+            print('No annotation can be added to plot for',t.iso[:10])
         else:
             defcolor = '#ff7f0e'
             nscans = len(projdict['Timestamp'])
@@ -854,7 +854,7 @@ def read_idb(trange,navg=None,quackint=0.,filter=True,srcchk=True,src=None,tp_on
         try:
             out = readXdata(file,tp_only=tp_only,src=src)
             if type(out) is str:
-                print 'Source name:',out,'does not match requested name:',src+'.  Will skip',file
+                print('Source name:',out,'does not match requested name:',src+'.  Will skip',file)
             else:
                 if srcchk and src is None:
                     # This is the first file, and we care about the source, so set source name
@@ -913,7 +913,7 @@ def read_idb(trange,navg=None,quackint=0.,filter=True,srcchk=True,src=None,tp_on
 
                 datalist.append(out)
         except:
-            print 'The problematic file is:',file
+            print('The problematic file is:',file)
             
     if len(datalist) == 0:
         return {}
@@ -938,7 +938,7 @@ def read_idb(trange,navg=None,quackint=0.,filter=True,srcchk=True,src=None,tp_on
             outp.append(out['p'])
         else:
             match.append(False)
-            print 'Scan/file',i+1,'skipped. Array shape',shape2,'does not match shape',shape1,'of first scan/file'
+            print('Scan/file',i+1,'skipped. Array shape',shape2,'does not match shape',shape1,'of first scan/file')
     out['p'] = np.concatenate(outp,3)
     if filter:
         # Eliminate frequencies where there is no nonzero value
@@ -1011,15 +1011,15 @@ def read_npz(files):
         f = open(file,'rb')
         data = np.load(f)
         if file == files[0]:
-            out = data[data.keys()[0]].item()
-        outp.append(data[data.keys()[0]].item()['p'])
-        outa.append(data[data.keys()[0]].item()['a'])
-        outx.append(data[data.keys()[0]].item()['x'])
-        outp2.append(data[data.keys()[0]].item()['p2'])
-        outm.append(data[data.keys()[0]].item()['m'])
-        uvw.append(data[data.keys()[0]].item()['uvw'])
-        time.append(data[data.keys()[0]].item()['time'])
-        ha.append(data[data.keys()[0]].item()['ha'])
+            out = data[list(data.keys())[0]].item()
+        outp.append(data[list(data.keys())[0]].item()['p'])
+        outa.append(data[list(data.keys())[0]].item()['a'])
+        outx.append(data[list(data.keys())[0]].item()['x'])
+        outp2.append(data[list(data.keys())[0]].item()['p2'])
+        outm.append(data[list(data.keys())[0]].item()['m'])
+        uvw.append(data[list(data.keys())[0]].item()['uvw'])
+        time.append(data[list(data.keys())[0]].item()['time'])
+        ha.append(data[list(data.keys())[0]].item()['ha'])
         f.close()
     out['p'] = np.concatenate(outp,3)
     out['a'] = np.concatenate(outa,3)
@@ -1073,8 +1073,8 @@ def get_trange_files(trange):
             folder = '/data1/IDB'
             os.listdir(folder)
         except:
-            print 'Something wrong with the definition of EOVSA data directory.'
-            print 'Best to define a EOVSADB variable in .cshrc (c-shell) or .bashrc (bash)'
+            print('Something wrong with the definition of EOVSA data directory.')
+            print('Best to define a EOVSADB variable in .cshrc (c-shell) or .bashrc (bash)')
             return
 
     files = glob.glob(folder+'/IDB'+fstr.replace('-','').split()[0]+'*')
@@ -1185,8 +1185,8 @@ def unrot(data,params=[1.,0.,0.],reverse=False):
         where a is gain factor Y/X, d is cross-talk as fraction of X,
         and chi0 is feed rotation in degrees.
     '''
-    import feed_rot_simulation as frs
-    import dbutil as db
+    from . import feed_rot_simulation as frs
+    from . import dbutil as db
     nant = 14
     trange = Time([data['time'][0],data['time'][-1]],format='jd')
     times, chi = db.get_chi(trange)
@@ -1232,7 +1232,7 @@ def unrot_miriad(filename,timeit=False,post=''):
     try:
         uvi = aipy.miriad.UV(filename)
     except:
-        print 'Error opening Miriad file',filename
+        print('Error opening Miriad file',filename)
         return
     # Create new file in current directory (this will have to be changed to
     # something more rational after testing...)
@@ -1241,12 +1241,12 @@ def unrot_miriad(filename,timeit=False,post=''):
         uvo = aipy.miriad.UV(outfile, status='new',corrmode='j')
         uvo.init_from_uv(uvi)
     except:
-        print 'Could not open new Miriad file in current directory',outfile
+        print('Could not open new Miriad file in current directory',outfile)
         return
     # Do some sanity checks on this Miriad file
     npol = uvi['npol']
     if npol != 4:
-        print 'Expecting four polarizations in this Miriad file, but got',npol
+        print('Expecting four polarizations in this Miriad file, but got',npol)
         return
     # Do test read of file to find out how many good frequencies:
     preamble, data = uvi.read()
@@ -1257,7 +1257,7 @@ def unrot_miriad(filename,timeit=False,post=''):
     nbla = nbl + nant
     # Read the stateframe database and get the parallactic angle array
     # Clean up by removing any near-zero values
-    import dbutil as db
+    from . import dbutil as db
     # Convert filename string to Julian Date
     jd = fname2mjd(filename) + 2400000.5
     # Set a timerange based on filename, ending 10 minutes after file start
@@ -1334,7 +1334,7 @@ def unrot_miriad(filename,timeit=False,post=''):
                      M[bl2ord[i,j],:,:,k,n] = np.kron(JA[:,:,n],np.conj(JB))
 
     if timeit:
-        print 'Matrix complete after',time.time() - ts,'s'
+        print('Matrix complete after',time.time() - ts,'s')
     # Read a block of data for the current time, which consists of NBLA data samples
     # for each of 4 polarizations
     tprev = 0  # Indicates a time change, so that time lookup only happens then
@@ -1420,7 +1420,7 @@ def unrot_miriad(filename,timeit=False,post=''):
         elif uvi['pol'] == -8:
             YX.append(pd)
         else:
-            print 'Error-unrecognized polarization.'
+            print('Error-unrecognized polarization.')
             return
     # Don't forget to write out the last time sample
     # Find time index in M nearest to this time
@@ -1464,16 +1464,16 @@ def unrot_miriad(filename,timeit=False,post=''):
         cnt_out += 1
         uvo.write(YX[ibl][0],YX[ibl][1])
     if timeit:
-        print 'Done after',time.time() - ts,'s'
+        print('Done after',time.time() - ts,'s')
     return
   
 def print_calc(M,data,t):
     res = np.dot(M,data)
     dat = data
-    print Time(t,format='jd').iso[:19], '[',('{:6.3f} '*4).format(*M[0]),'] [ {:6.3f} ]   [ {:6.3f} ]'.format(dat[0],res[0])
-    print '                    [',('{:6.3f} '*4).format(*M[1]),'] [ {:6.3f} ] = [ {:6.3f} ]'.format(dat[1],res[1])
-    print '                    [',('{:6.3f} '*4).format(*M[2]),'] [ {:6.3f} ]   [ {:6.3f} ]'.format(dat[2],res[2])
-    print '                    [',('{:6.3f} '*4).format(*M[3]),'] [ {:6.3f} ]   [ {:6.3f} ]'.format(dat[3],res[3])
+    print(Time(t,format='jd').iso[:19], '[',('{:6.3f} '*4).format(*M[0]),'] [ {:6.3f} ]   [ {:6.3f} ]'.format(dat[0],res[0]))
+    print('                    [',('{:6.3f} '*4).format(*M[1]),'] [ {:6.3f} ] = [ {:6.3f} ]'.format(dat[1],res[1]))
+    print('                    [',('{:6.3f} '*4).format(*M[2]),'] [ {:6.3f} ]   [ {:6.3f} ]'.format(dat[2],res[2]))
+    print('                    [',('{:6.3f} '*4).format(*M[3]),'] [ {:6.3f} ]   [ {:6.3f} ]'.format(dat[3],res[3]))
 
 def funrot_miriad(filename,timeit=False,post=''):
     ''' Given a Miriad UV filename, read the parallactic angle information 
@@ -1489,7 +1489,7 @@ def funrot_miriad(filename,timeit=False,post=''):
     try:
         uvi = aipy.miriad.UV(filename)
     except:
-        print 'Error opening Miriad file',filename
+        print('Error opening Miriad file',filename)
         return
     # Create new file in current directory (this will have to be changed to
     # something more rational after testing...)
@@ -1498,12 +1498,12 @@ def funrot_miriad(filename,timeit=False,post=''):
         uvo = aipy.miriad.UV(outfile, status='new',corrmode='j')
         uvo.init_from_uv(uvi)
     except:
-        print 'Could not open new Miriad file in current directory',outfile
+        print('Could not open new Miriad file in current directory',outfile)
         return
     # Do some sanity checks on this Miriad file
     npol = uvi['npol']
     if npol != 4:
-        print 'Expecting four polarizations in this Miriad file, but got',npol
+        print('Expecting four polarizations in this Miriad file, but got',npol)
         return
     # Do test read of file to find out how many good frequencies:
     preamble, data = uvi.read()
@@ -1514,7 +1514,7 @@ def funrot_miriad(filename,timeit=False,post=''):
     nbla = nbl + nant
     # Read the stateframe database and get the parallactic angle array
     # Clean up by removing any near-zero values
-    import dbutil as db
+    from . import dbutil as db
     # Convert filename string to Julian Date
     jd = fname2mjd(filename) + 2400000.5
     # Set a timerange based on filename, ending 10 minutes after file start
@@ -1588,7 +1588,7 @@ def funrot_miriad(filename,timeit=False,post=''):
                     iM[bl2ord[i,j],:,:,n] = np.array([[1,0],[0,1]])
 
     if timeit:
-        print 'Matrix complete after',time.time() - ts,'s'
+        print('Matrix complete after',time.time() - ts,'s')
     # Read a block of data for the current time, which consists of NBLA data samples
     # for each of 4 polarizations
     tprev = 0  # Indicates a time change, so that time lookup only happens then
@@ -1674,7 +1674,7 @@ def funrot_miriad(filename,timeit=False,post=''):
         elif uvi['pol'] == -8:
             YX.append(pd)
         else:
-            print 'Error-unrecognized polarization.'
+            print('Error-unrecognized polarization.')
             return
     # Don't forget to write out the last time sample
     # Find time index in M nearest to this time
@@ -1716,7 +1716,7 @@ def funrot_miriad(filename,timeit=False,post=''):
         cnt_out += 1
         uvo.write(YX[ibl][0],YX[ibl][1])
     if timeit:
-        print 'Done after',time.time() - ts,'s'
+        print('Done after',time.time() - ts,'s')
     return
 
 def applycal_miriad(filename,tcal=None,timeit=False):
@@ -1725,7 +1725,7 @@ def applycal_miriad(filename,tcal=None,timeit=False):
         and the gain state for the period of the file, and apply the gain
         differences on each baseline, and write out a new file.
     '''
-    import gaincal2 as gc
+    from . import gaincal2 as gc
     one_minute = 60./86400.  # 1 minute, expressed in days
     if timeit:
         import time
@@ -1746,7 +1746,7 @@ def applycal_miriad(filename,tcal=None,timeit=False):
     try:
         uvi = aipy.miriad.UV(filename)
     except:
-        print 'Error opening Miriad file',filename
+        print('Error opening Miriad file',filename)
         return
     # Create giant array of gains, translated to baselines and frequencies
     nt = len(sc_gs['times'])
@@ -1775,12 +1775,12 @@ def applycal_miriad(filename,tcal=None,timeit=False):
         uvo = aipy.miriad.UV(outfile, status='new',corrmode='j')
         uvo.init_from_uv(uvi)
     except:
-        print 'Could not open new Miriad file in current directory',outfile
+        print('Could not open new Miriad file in current directory',outfile)
         return
     # Do some sanity checks on this Miriad file
     npol = uvi['npol']
     if npol != 4:
-        print 'Expecting four polarizations in this Miriad file, but got',npol
+        print('Expecting four polarizations in this Miriad file, but got',npol)
         return
     # Do test read of file to find out how many good frequencies:
     preamble, data = uvi.read()
@@ -1791,7 +1791,7 @@ def applycal_miriad(filename,tcal=None,timeit=False):
     nbla = nbl + nant
 
     if timeit:
-        print 'Gain states have been calculated.',time.time() - ts,'s'
+        print('Gain states have been calculated.',time.time() - ts,'s')
     # Read a block of data for the current time, which consists of NBLA data samples
     # for each of 4 polarizations
     tprev = 0  # Indicates a time change, so that time lookup only happens then
@@ -1872,7 +1872,7 @@ def applycal_miriad(filename,tcal=None,timeit=False):
         elif uvi['pol'] == -8:
             YX.append(pd)
         else:
-            print 'Error-unrecognized polarization.'
+            print('Error-unrecognized polarization.')
             return
     # Don't forget to write out the last time sample
     # Find time index in gain array nearest to this time
@@ -1911,5 +1911,5 @@ def applycal_miriad(filename,tcal=None,timeit=False):
         cnt_out += 1
         uvo.write(YX[ibl][0],YX[ibl][1])
     if timeit:
-        print 'Done after',time.time() - ts,'s'
+        print('Done after',time.time() - ts,'s')
     return

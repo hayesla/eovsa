@@ -14,11 +14,11 @@
 #     pcapture.capture() routine.
 #
 
-import pcapture as p
+from . import pcapture as p
 import numpy as np
 import matplotlib.pylab as plt
-import urllib2
-from util import Time
+import urllib.request, urllib.error, urllib.parse
+from .util import Time
 
 def delay_centers(overwrite=True):
     ''' Grabs raw packets while array is on the Galaxy 3C satellite,
@@ -34,7 +34,7 @@ def delay_centers(overwrite=True):
     userpass = 'admin:observer@'
     try:
         # Read delay center file from ACC
-        dlafile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/delay_centers.txt',timeout=1)
+        dlafile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/delay_centers.txt',timeout=1)
         lines = dlafile.readlines()
         delay_centers = []
         dceny = []
@@ -44,7 +44,7 @@ def delay_centers(overwrite=True):
                 delay_centers.append(float(line.strip().split()[1]))
                 dceny.append(float(line.strip().split()[2]))
     except:
-        print Time().iso,'ACC connection for delay centers timed out.'
+        print(Time().iso,'ACC connection for delay centers timed out.')
         return [None]*5
         
     # Capture 1 second of raw packets
@@ -86,7 +86,7 @@ def delay_centers(overwrite=True):
             tau = int(pm[0]*0.8/(2*np.pi)+0.5)   # delay in clock steps
             tau_ns = pm[0]/(2*np.pi)             # delay in nsec
             plt.text(f[nf/2],y[nf/2],str(tau))
-            print bl[i]+pol[j],'=',tau,'(in ns:',tau_ns,'), chi_sq =',chi_sq
+            print(bl[i]+pol[j],'=',tau,'(in ns:',tau_ns,'), chi_sq =',chi_sq)
             taus.append(tau_ns)
             if j == 0:
                 c[i,j] = delay_centers[ant2-1] - delay_centers[ant1-1] - tau_ns
@@ -110,14 +110,14 @@ def delay_centers(overwrite=True):
     
     for line in lines:
         if line[0] == '#':
-            print line
+            print(line)
         else:
             ant = int(line[:6])
             if ant < 5:
-                print '{:4d} {:12.3f} {:12.3f} {:12.3f} {:12.3f}'.format(ant,delay_centers[ant-1],dceny[ant-1],newdlax1[ant-1],newdlay1[ant-1])
+                print('{:4d} {:12.3f} {:12.3f} {:12.3f} {:12.3f}'.format(ant,delay_centers[ant-1],dceny[ant-1],newdlax1[ant-1],newdlay1[ant-1]))
             elif ant < 9:
-                print '{:4d} {:12.3f} {:12.3f} {:12.3f} {:12.3f}'.format(ant,delay_centers[ant-1],dceny[ant-1],newdlax2[ant-5],newdlay2[ant-5])
+                print('{:4d} {:12.3f} {:12.3f} {:12.3f} {:12.3f}'.format(ant,delay_centers[ant-1],dceny[ant-1],newdlax2[ant-5],newdlay2[ant-5]))
             else:
-                print line[:-2]
+                print(line[:-2])
     
     return taus,c,M,x1,x2

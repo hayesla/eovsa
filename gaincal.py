@@ -43,14 +43,14 @@
 #  predicated on the assumption that the "0" attenuator is actually 0, or 
 #  extremely close to it*
 
-import spectrogram_fit as sp
-from util import Time
-import util
+from . import spectrogram_fit as sp
+from .util import Time
+from . import util
 import numpy as np
 import matplotlib.pylab as plt
 import subprocess
-import dbutil
-import stateframedef
+from . import dbutil
+from . import stateframedef
 import astropy.table as tbl 
 from matplotlib.font_manager import FontProperties
     
@@ -66,7 +66,7 @@ def show_dB_ratio(trange, test='FEATTNTEST'):
             cycles = 1
             attenuator = 0
         else:
-            print 'Please input valid attenuation test'
+            print('Please input valid attenuation test')
     s = sp.Spectrogram(trange)
     s.docal = False
     s.dosub = False
@@ -322,7 +322,7 @@ def get_state_idx(trange, cycles=4, attenuator=1):
             for j in range(6):
                 states[i, j] = res['Timestamp'][i::15][states[i, j]]
     else:
-        print 'failure'
+        print('failure')
         return None
     time_array = (s.time.lv+0.001).astype('int')
     time_list = list(time_array)
@@ -339,7 +339,7 @@ def get_state_idx(trange, cycles=4, attenuator=1):
         if i1.shape == i2.shape:
             common_ant_list = i2
         else: 
-            print 'There is a problem with antenna '+str(i)+' at attenuation '+attns[j]
+            print('There is a problem with antenna '+str(i)+' at attenuation '+attns[j])
         common_list.append(common_ant_list)
     
     final_indices = []
@@ -458,7 +458,7 @@ def find_gaincal(t=None, scan_length=6, findwhat='FEATTNTEST'):
         # Try to find a scan header with project SOLPNTCAL (only works after 2014 Nov. 30)
         verstr = dbutil.find_table_version(cursor,timestamp,True)
         if verstr is None:
-            print 'No scan_header table found for given time.'
+            print('No scan_header table found for given time.')
             return [], timestamp
         # First retrieve the Project from all scan headers for the day
         cursor.execute('select timestamp,Project from hV'+verstr+'_vD1 where timestamp between '+str(stimestamp)+' and '+str(etimestamp)+' order by timestamp')
@@ -469,7 +469,7 @@ def find_gaincal(t=None, scan_length=6, findwhat='FEATTNTEST'):
             # No FEATTNTEST found, so return empty list (and timestamp)
             return [], timestamp
         else:
-            projdict = dict(zip(names,data))
+            projdict = dict(list(zip(names,data)))
             projdict['timestamp'] = projdict['timestamp'].astype('float')  # Convert timestamps from string to float
         good = np.where(projdict['Project'] == findwhat)[0]
         if len(good) != 0:
@@ -590,7 +590,7 @@ def make_attntable(trange, type='attenuation', test='FEATTNTEST'):
         cols.insert(0, rowlabels)
         cols = np.array(np.transpose(cols))
         t = tbl.Table(cols, names=['Ant, Pol' , '1 dB', '2 dB', '4 dB', '8 dB', '16 dB'])
-        print t
+        print(t)
     else:
         if type == 'delta':
             columnlabels = ['freq']
@@ -607,9 +607,9 @@ def make_attntable(trange, type='attenuation', test='FEATTNTEST'):
             #cols.insert(0, rowlabels)
             cols = np.array(cols) 
             t = tbl.Table(cols, names = columnlabels)  
-            print t
+            print(t)
         else:
-            print 'Please select either attenuation or delta for the table'
+            print('Please select either attenuation or delta for the table')
             t = None
     return t
 
@@ -848,7 +848,7 @@ def get_reverseattn(trange_gaincal, trange_other=None, first_attn_base=5, second
                         if 0 <= testlevel <= 31:
                             pass
                         else:
-                            print 'Problem with the attenuation of antenna ' + str(ant) + xory[pol] + ' at frequency channel ' + str(freq) + ' and time index '  + str(indx) + '. The attenuation is showing: ' + str(testlevel)       
+                            print('Problem with the attenuation of antenna ' + str(ant) + xory[pol] + ' at frequency channel ' + str(freq) + ' and time index '  + str(indx) + '. The attenuation is showing: ' + str(testlevel))       
                             testlevel = 0       
 		        indices_postcorrected.append(10**((all_attns_avg[testlevel, ant, pol, freq]-all_attns_avg[second_attn_base, ant, pol, freq])/10)*tsys_noise_corrected[ant, pol, freq, indx])
                     indices_postcorrected1 = []
@@ -857,7 +857,7 @@ def get_reverseattn(trange_gaincal, trange_other=None, first_attn_base=5, second
                         if 0 <= testlevel <= 31:
                             pass
                         else:
-                            print 'Problem with the attenuation of antenna ' + str(ant) + xory[pol] + ' at frequency channel ' + str(freq) + ' and time index '  + str(indx) + '. The attenuation is showing: ' + str(testlevel)       
+                            print('Problem with the attenuation of antenna ' + str(ant) + xory[pol] + ' at frequency channel ' + str(freq) + ' and time index '  + str(indx) + '. The attenuation is showing: ' + str(testlevel))       
                             testlevel = 0      
 		        indices_postcorrected1.append(10**((all_attns_avg1[testlevel, ant, pol, freq]-all_attns_avg1[first_attn_base, ant, pol, freq])/10)*indices_postcorrected[indx])                            
 		    freq_postcorrected.append(indices_postcorrected1)
@@ -882,12 +882,12 @@ def show_reverseattn(trange_gaincal, trange_other=None, first_attn_base=5, secon
         tsys_attn_noise_corrected, tsys_noise_corrected, tsys = get_reverseattn(trange_gaincal, trange_other, first_attn_base, second_attn_base, corrected_attns)
         plotting_ = True
         while plotting_ == True:
-            print ' '
-            antenna = input('Which antenna would you like to see? You can choose from 1 to 8 : ')
-            print ' '
-            polarization = input('Which polarization would you like to see? Enter 0 for x, and 1 for y: ') 
-            print ' '
-            channel = input('Which channel would you like to see? You can choose from channel 0 to ' +str(tsys_attn_noise_corrected.shape[2]) + ' : ')
+            print(' ')
+            antenna = eval(input('Which antenna would you like to see? You can choose from 1 to 8 : '))
+            print(' ')
+            polarization = eval(input('Which polarization would you like to see? Enter 0 for x, and 1 for y: ')) 
+            print(' ')
+            channel = eval(input('Which channel would you like to see? You can choose from channel 0 to ' +str(tsys_attn_noise_corrected.shape[2]) + ' : '))
 
             antenna = int(antenna)-1
             polarization = int(polarization)
@@ -903,13 +903,13 @@ def show_reverseattn(trange_gaincal, trange_other=None, first_attn_base=5, secon
             plt.legend(prop = fontP)
             plt.show()
 
-            print ' '
-            yesorno = input('Would you like to see another plot? Please answer 0 for yes or 1 for no. ')
+            print(' ')
+            yesorno = eval(input('Would you like to see another plot? Please answer 0 for yes or 1 for no. '))
             if yesorno == 0:
                 pass
             else:
-                print ' '
-                print 'See you next time!'
+                print(' ')
+                print('See you next time!')
                 plotting_ = False
                 return tsys_attn_noise_corrected, tsys_noise_corrected, tsys
 

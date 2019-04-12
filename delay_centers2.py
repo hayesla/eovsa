@@ -31,12 +31,12 @@
 #     file now only has the new values, so needs no editing to use.
 #
 
-import pcapture2 as p
+from . import pcapture2 as p
 import numpy as np
 import matplotlib.pylab as plt
-import urllib2, time
-from util import Time
-import get_sat_info as gs
+import urllib.request, urllib.error, urllib.parse, time
+from .util import Time
+from . import get_sat_info as gs
 
 def ant_str2list(ant_str):
     ant_list = []
@@ -48,9 +48,9 @@ def ant_str2list(ant_str):
                 if antrange != '':
                     ant_list.append(int(antrange[0])-1)
             elif len(antrange) == 2:
-                ant_list += range(int(antrange[0])-1,int(antrange[1]))
+                ant_list += list(range(int(antrange[0])-1,int(antrange[1])))
     except:
-        print 'Error: cannot interpret ant_str',ant_str
+        print('Error: cannot interpret ant_str',ant_str)
         return None
     return np.array(ant_list)
 
@@ -127,7 +127,7 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
     userpass = 'admin:observer@'
     try:
         # Read delay center file from ACC
-        dlafile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/delay_centers.txt',timeout=1)
+        dlafile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/delay_centers.txt',timeout=1)
         lines = dlafile.readlines()
         dcenx = []
         dceny = []
@@ -138,10 +138,10 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
                 dcenx.append(float(line.strip().split()[1]))
                 dceny.append(float(line.strip().split()[2]))
     except:
-        print Time().iso,'ACC connection for delay centers timed out.'
+        print(Time().iso,'ACC connection for delay centers timed out.')
         return [None]*3
         
-    print 'Successfully read delay_centers.txt from ACC.'
+    print('Successfully read delay_centers.txt from ACC.')
     # Get satellite frequencies and polarizations (this is to use channel centers for fitting,
     # but is not yet completed)
     sat, = gs.get_sat_info(names=[satname])
@@ -150,7 +150,7 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
     elif band ==6:
         freq = np.linspace(0,4095,4096)*0.4/4096 + 3.65
     else:
-        print 'Band MUST be either 23 (12-12.5 GHz) or 6 (3.5-4 GHz)'
+        print('Band MUST be either 23 (12-12.5 GHz) or 6 (3.5-4 GHz)')
         return None, None, None
     freqmhz = (freq*10000. + 0.5).astype('int')/10.
     pol = sat['pollist']
@@ -193,7 +193,7 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
     # Eliminate data on channels less than minimum, and perform sum over times
     out['x'] = out['x'][:,:,idxmin:,:].sum(3)
     out['a'] = out['a'][:,:,idxmin:,:].sum(3)
-    print 'Successfully read file',filename
+    print('Successfully read file',filename)
     # Get conversion from antenna pair (bl) to "data source" index
     bl2ord = p.bl_list()
     # Declare storage for delays in ns
@@ -258,11 +258,11 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
                 ax[i,j].set_xlim(freq[0],freq[-1])
                 ax[i,j].set_ylim(-np.pi,np.pi)
 
-    print 'Successfully calculated delays from data.'
+    print('Successfully calculated delays from data.')
     # Obtain solution, only for those baselines with sigma < 1.0
     xdla,xr,_,_ = np.linalg.lstsq(Mx[:iblx],cx[:iblx])   # For X channel
     ydla,yr,_,_ = np.linalg.lstsq(My[:ibly],cy[:ibly])   # For Y channel
-    print 'Successfully analyzed delays for mutual consistency.'
+    print('Successfully analyzed delays for mutual consistency.')
     # Calculate new delays for ants based on Ant 1 as reference
     newdlax = xdla - xdla[0] + dcenx[0]
     newdlay = ydla - ydla[0] + dceny[0] - tau_a
@@ -270,7 +270,7 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
     f = open('/tmp/delay_centers_tmp.txt','w')
     for line in lines:
         if line[0] == '#':
-            print line,
+            print(line, end=' ')
             f.write(line)
         else:
             ant = int(line[:6])
@@ -278,18 +278,18 @@ def delay_centers(filename,satname,ants='ant1-13',band=23,doplot=False):
             if len(idx) == 0:
                 # No update for this antenna
                 fmt = '{:4d}*{:12.3f} {:12.3f} {:12.3f} {:12.3f}'
-                print fmt.format(ant,dcenx[ant-1],dceny[ant-1],dcenx[ant-1],dceny[ant-1])
+                print(fmt.format(ant,dcenx[ant-1],dceny[ant-1],dcenx[ant-1],dceny[ant-1]))
                 fmt = '{:4d} {:12.3f} {:12.3f}\n'
                 f.write(fmt.format(ant,dcenx[ant-1],dceny[ant-1]))
             else:
                 idx = idx[0]
                 fmt = '{:4d} {:12.3f} {:12.3f} {:12.3f} {:12.3f}'
-                print fmt.format(ant,dcenx[ant-1],dceny[ant-1],newdlax[idx],newdlay[idx])
+                print(fmt.format(ant,dcenx[ant-1],dceny[ant-1],newdlax[idx],newdlay[idx]))
                 fmt = '{:4d} {:12.3f} {:12.3f}\n'
                 f.write(fmt.format(ant,newdlax[idx],newdlay[idx]))
     f.close()
     fmt = '{:6.2f} '*nants
-    for i in range(nants): print fmt.format(*tau_ns[i])
+    for i in range(nants): print(fmt.format(*tau_ns[i]))
     return tau_ns, xr, yr
 
 def dla_solve(nant=13):
@@ -628,7 +628,7 @@ def xy2rl(filename, satname):
 
         pfitr = np.polyfit(freq[ridx],np.unwrap(np.angle(xy[ridx])),1)
         phi = np.polyval(pfitr,freq)
-        print 'Ant',k+1,'xy slope:',pfitr[0],'Delay:',pfitr[0]/(2*np.pi),'ns'
+        print('Ant',k+1,'xy slope:',pfitr[0],'Delay:',pfitr[0]/(2*np.pi),'ns')
         xyp = xy*(np.cos(phi+np.pi/2)-1j*np.sin(phi+np.pi/2))
         yxp = yx*(np.cos(phi+np.pi/2)+1j*np.sin(phi+np.pi/2))
 

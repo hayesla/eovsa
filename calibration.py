@@ -112,11 +112,11 @@ if __name__ == "__main__":
     matplotlib.use('Agg')
 
 import numpy as np
-import solpnt
-from util import Time, nearest_val_idx, lobe, ant_str2list
+from . import solpnt
+from .util import Time, nearest_val_idx, lobe, ant_str2list
 import struct, time, glob, sys, socket, os
-from disk_conv import *
-import dump_tsys
+from .disk_conv import *
+from . import dump_tsys
 
 def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=True, outfile=None):
     ''' Runs calpntanal() for all scans within the given time range.
@@ -127,7 +127,7 @@ def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=T
         Returns a list of dictionaries containing 
            Source name, Time, HA, Dec, RA offset and Dec offset
     '''
-    import read_idb
+    from . import read_idb
 
     fdb = dump_tsys.rd_fdb(trange[0])
     #calpnt2m = False   # Flag to indicate whether we are doing CALPNT2M analysis
@@ -135,13 +135,13 @@ def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=T
         # Search for CALPNT2M
         scanidx, = np.where(fdb['PROJECTID'] == 'CALPNT2M')
         if scanidx.size == 0:
-            print 'No CALPNT2M project IDs found for date'+t.iso[:10]
+            print('No CALPNT2M project IDs found for date'+t.iso[:10])
             return {}
     else:
         # Search for CALPNTCAL
         scanidx, = np.where(fdb['PROJECTID'] == 'CALPNTCAL')
         if scanidx.size == 0:
-            print 'No CALPNTCAL project IDs found for date'+t.iso[:10]
+            print('No CALPNTCAL project IDs found for date'+t.iso[:10])
             return {}
     scans,sidx = np.unique(fdb['SCANID'][scanidx],return_index=True)
     tlist = Time(fdb['ST_TS'][scanidx[sidx]].astype(float).astype(int),format='lv')
@@ -192,7 +192,7 @@ def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=T
                     out.append({})
             src = out[-1]
             if src == {}:
-                print 'Scan starting at',t.iso,'failed.'
+                print('Scan starting at',t.iso,'failed.')
             else:
                 if calpnt2m:
                     if k == 0:
@@ -200,7 +200,7 @@ def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=T
                         heading = ' Source     Date     Time       HA     Dec   '
                         for iant in idx:
                             heading += '     Ant {:2d}     '.format(iant+1)
-                        print heading
+                        print(heading)
                         # Write heading to file only if the file has not been opened/created yet.
                         if not os.path.isfile(outfile):
                             f = open(outfile,'w')
@@ -217,7 +217,7 @@ def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=T
                     if k == 0:
                         # Print heading to screen and to file
                         heading = ' Source     Date     Time       HA     Dec        Ant 14'
-                        print heading
+                        print(heading)
                         # Write heading to file only if the file has not been opened/created yet.
                         if not os.path.isfile(outfile):
                             f = open(outfile,'w')
@@ -227,7 +227,7 @@ def calpnt_multi(trange, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=T
                                                                                 src['time'].iso[:19],
                                                                                 src['ha'],src['dec'],
                                                                                 src['rao'],src['deco'])
-                print line
+                print(line)
                 f = open(outfile,'a')   # This should create the file if it does not exist, or append otherwise.
                 f.write(line+'\n')
                 f.close()
@@ -253,8 +253,8 @@ def calpntanal(t, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=True, ax
     '''
     import matplotlib.pyplot as plt
     from matplotlib.transforms import Bbox
-    import read_idb
-    import dbutil as db
+    from . import read_idb
+    from . import dbutil as db
     bl2ord = read_idb.bl2ord
     tdate = t.iso.replace('-','')[:8]
     if fdir is None:
@@ -268,7 +268,7 @@ def calpntanal(t, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=True, ax
         # Search for CALPNT2M
         scanidx, = np.where(fdb['PROJECTID'] == 'CALPNT2M')
         if scanidx.size == 0:
-            print 'No CALPNT2M project IDs found for date'+t.iso[:10]
+            print('No CALPNT2M project IDs found for date'+t.iso[:10])
             return {}
         else:
             # Found CALPNT2M, so set offset coordinates to match calpnt2m.trj
@@ -279,7 +279,7 @@ def calpntanal(t, fdir=None, ant_str='ant1-13', calpnt2m=False, do_plot=True, ax
         # Search for CALPNTCAL
         scanidx, = np.where(fdb['PROJECTID'] == 'CALPNTCAL')
         if scanidx.size == 0:
-            print 'No CALPNTCAL project IDs found for date'+t.iso[:10]
+            print('No CALPNTCAL project IDs found for date'+t.iso[:10])
             return {}
         else:
             # Found CALPNTCAL, so set offset coordinates to match calpnt.trj
@@ -447,7 +447,7 @@ def solpntanal(t, udb=False, auto=False, find=True):
     proc = solpnt.process_solpnt(pnt)
     trange = Time([pnt['Timestamp'],pnt['Timestamp']+300.],format='lv')
     if trange[0].mjd < 57450:
-        if auto: print "Warning: 'auto' keyword does nothing for older data.  Keyword ignored."
+        if auto: print("Warning: 'auto' keyword does nothing for older data.  Keyword ignored.")
         otp = dump_tsys.rd_miriad_tsys(trange,udb=udb)
     else:
         otp = dump_tsys.rd_miriad_tsys_16(trange, udb=udb, auto=auto, tref=trange[0])
@@ -483,8 +483,8 @@ def solpntanal(t, udb=False, auto=False, find=True):
     return x,y, qual
         
 def skycal_anal(trange):
-    from gaincal2 import get_fem_level
-    import read_idb as ri
+    from .gaincal2 import get_fem_level
+    from . import read_idb as ri
     lev = get_fem_level(trange,300)
     levs = np.zeros((13,2), dtype=int)
     levs[:,0] = lev['hlev'][:13,0]
@@ -515,13 +515,13 @@ def sp_get_calfac(x,y, do_plot=True):
         
         TODO: These need to be scaled for gain state
     '''
-    import rstn
+    from . import rstn
     import matplotlib.pyplot as plt
 
     t = Time(x['ut_mjd'][0],format='mjd')
     frq, flux = rstn.rd_rstnflux(t)
     if frq is None:
-        print 'Cannot continue.'
+        print('Cannot continue.')
         return None
     nfrq, npnt, nant = x['rao'].shape
     fmhz = x['fghz']*1000.
@@ -646,7 +646,7 @@ def sp_read_calfac(t):
             calfac = np.array(struct.unpack_from(str(nsiz)+'f',data,nfi*4)).reshape(int(npol),int(nf),int(nant))
             offsun = np.array(struct.unpack_from(str(nsiz)+'f',data,(nfi+nsiz)*4)).reshape(int(npol),int(nf),int(nant))
             return fghz, calfac, offsun
-    print 'Calibration file not found for date',t.iso
+    print('Calibration file not found for date',t.iso)
     return None, None, None
 
 def sp_apply_cal2(out, calfac, offsun, auto=False):
@@ -920,7 +920,7 @@ def send_cmds(cmds,acc):
             time.sleep(0.01)
             s.close()
         except:
-            print 'Error: Could not send command',cmd,' to ACC.'
+            print('Error: Could not send command',cmd,' to ACC.')
     return
     
 def offsets2ants(t,xoff,yoff,ant_str=None):
@@ -933,17 +933,17 @@ def offsets2ants(t,xoff,yoff,ant_str=None):
 
     oldant = [8,9,10,12]
     if ant_str is None:
-        print 'No antenna list specified, so there is nothing to do!'
+        print('No antenna list specified, so there is nothing to do!')
         return
 
     try:
         timestamp = int(Time(t,format='mjd').lv)
     except:
-        print 'Error interpreting time as Time() object'
+        print('Error interpreting time as Time() object')
         return
-    from util import ant_str2list
-    import dbutil as db
-    import stateframe as stf
+    from .util import ant_str2list
+    from . import dbutil as db
+    from . import stateframe as stf
     accini = stf.rd_ACCfile()
     acc = {'host': accini['host'], 'scdport':accini['scdport']}
     antlist = ant_str2list(ant_str)
@@ -964,13 +964,13 @@ def offsets2ants(t,xoff,yoff,ant_str=None):
         p7_inc = int(yoff[i]*10000)
         p1_new = p1_cur[i] + p1_inc
         p7_new = p7_cur[i] + p7_inc
-        print 'Updating P1 for Ant',i+1,'P1_old =',p1_cur[i],'P1_inc =',p1_inc,'P1_new =',p1_new
+        print('Updating P1 for Ant',i+1,'P1_old =',p1_cur[i],'P1_inc =',p1_inc,'P1_new =',p1_new)
         cmd1 = 'pointingcoefficient1 '+str(p1_new)+' ant'+str(i+1)
-        print 'Updating P7 for Ant',i+1,'P7_old =',p7_cur[i],'P7_inc =',p7_inc,'P7_new =',p7_new
+        print('Updating P7 for Ant',i+1,'P7_old =',p7_cur[i],'P7_inc =',p7_inc,'P7_new =',p7_new)
         cmd7 = 'pointingcoefficient7 '+str(p7_new)+' ant'+str(i+1)
-        print 'Commands to be sent:'
-        print cmd1
-        print cmd7
+        print('Commands to be sent:')
+        print(cmd1)
+        print(cmd7)
         send_cmds([cmd1],acc)
         send_cmds([cmd7],acc)
         
@@ -980,7 +980,7 @@ def solpnt2sql(t,tsql=None,prompt=True):
         to write the record can be given as Time() object in tsql, or writes to
         "standard" location of 20 UT on date of observation, if omitted (preferred!).
     '''
-    import cal_header as ch
+    from . import cal_header as ch
     x1, y1, qual1 = solpntanal(t)
     calfac1, offsun1 = sp_get_calfac(x1, y1)
     x2, y2, qual2 = solpntanal(t,auto=True)
@@ -991,14 +991,14 @@ def solpnt2sql(t,tsql=None,prompt=True):
         # Default to writing SQL record at 20 UT on date of observation 
         tsql = Time(int(x1['ut_mjd'][0]) + 20/24.,format='mjd')
     if prompt:
-        ok = raw_input('Okay to write result to SQL database? [Y/N]: ')
+        ok = input('Okay to write result to SQL database? [Y/N]: ')
     else:
         ok = 'Y'
     if ok.upper() == 'Y':
         ch.tpcal2sql(tpcal_dict,t=tsql)
-        print 'Result was written to the SQL database'
+        print('Result was written to the SQL database')
     else:
-        print 'Result was NOT written to the SQL database'
+        print('Result was NOT written to the SQL database')
 
 def check_qual(x, qual):
     status = np.zeros(qual.shape,'S4')
@@ -1006,11 +1006,11 @@ def check_qual(x, qual):
     status[np.where(qual==False)] = '*Bad'
     nparms,nf,nant = x['raparms'].shape
     t = Time(x['ut_mjd'][0],format='mjd')
-    print t.iso[:19],': Quality of TP Calibration'
-    print '    Ant      X-Feed        Y-Feed'
-    print '            RA    DEC     RA    DEC'
+    print(t.iso[:19],': Quality of TP Calibration')
+    print('    Ant      X-Feed        Y-Feed')
+    print('            RA    DEC     RA    DEC')
     for i in range(nant):
-        print '    ',i+1,' ',status[:,i]
+        print('    ',i+1,' ',status[:,i])
     percent_good = len(np.where(qual)[0])*100/(4*nant)
     return percent_good
 
@@ -1018,7 +1018,7 @@ def best_solpnt2sql(t):
     ''' For post-date analysis, to examine the (typically) two SOLPNTCAL scans
         on a date given by Time() object t and send the best one to the SQL database.
     '''
-    import cal_header as ch
+    from . import cal_header as ch
     ts, timestamp = solpnt.find_solpnt(t)
     pct_list = []   # List of percent-good quality (best will be used)
     tp_list = []    # List of results of solpntanal() for total power
@@ -1047,9 +1047,9 @@ def best_solpnt2sql(t):
         # Default to writing SQL record at 20 UT on date of observation 
         tsql = Time(int(x1['ut_mjd'][0]) + 20/24.,format='mjd')
         ch.tpcal2sql(tpcal_dict,t=tsql)
-        print 'Result for',t_list[best_idx].iso[:16],'UT, with',str(best_pct)+'% quality, was written to the SQL database'
+        print('Result for',t_list[best_idx].iso[:16],'UT, with',str(best_pct)+'% quality, was written to the SQL database')
     else:
-        print 'No good scans for',t.iso[:10]+'. Update manually with a result from another date.'
+        print('No good scans for',t.iso[:10]+'. Update manually with a result from another date.')
    
 if __name__ == "__main__":
     ''' Run automatically via cron job, or at command line.
@@ -1070,7 +1070,7 @@ if __name__ == "__main__":
         try:
             t = Time(sys.argv[1])
         except:
-            print 'Cannot interpret',sys.argv[1],'as a valid date/time string.'
+            print('Cannot interpret',sys.argv[1],'as a valid date/time string.')
             exit()
 
     timestamp = t.lv  # Current timestamp
@@ -1078,7 +1078,7 @@ if __name__ == "__main__":
     # Find first SOLPNTCAL occurring after timestamp (time given by Time() object)
     if len(times) == 0:
         # No SOLPNTCAL scans (yet)
-        print t.iso[:19]+': No SOLPNTCAL scans for today'
+        print(t.iso[:19]+': No SOLPNTCAL scans for today')
         exit()
     #elif type(times[0]) is np.ndarray:
     #    # Annoyingly necessary when only one time in tstamps
@@ -1086,11 +1086,11 @@ if __name__ == "__main__":
     igt5 = np.where((timestamp - times) > 300)[0]
     if len(igt5) == 0:
         # SOLPNTCAL scan in progress
-        print t.iso[:19]+': SOLPNTCAL scan still in progress'
+        print(t.iso[:19]+': SOLPNTCAL scan still in progress')
         exit()
     if (timestamp - times[igt5[-1]]) > 600:
         # Latest SOLPNTCAL scan is too old, so nothing to do
-        print t.iso[:19]+': Last SOLPNTCAL scan too old. Age:',int(timestamp - times[igt5[-1]])/60,'minutes'
+        print(t.iso[:19]+': Last SOLPNTCAL scan too old. Age:',int(timestamp - times[igt5[-1]])/60,'minutes')
         exit()
     # Looks like this is the right "age" and ready to be analyzed
     # Wait 30 s to ensure scan is done.
@@ -1102,7 +1102,7 @@ if __name__ == "__main__":
         x, y, qual = solpntanal(t,udb=False)
         xout,yout,dxout,dyout = sp_offsets(x,y,save_plot=True)
     else:
-        print 'CALIBRATION Error: This routine only runs on dpp or pipeline.'
+        print('CALIBRATION Error: This routine only runs on dpp or pipeline.')
         exit()
     percent_good = check_qual(x, qual)
     if percent_good > 50:
@@ -1114,12 +1114,12 @@ if __name__ == "__main__":
             calfac, offsun = sp_get_calfac(x,y)
             # If another file for today's date already exists, this will overwrite it
             sp_write_calfac(x,y,calfac,offsun)
-            print 'Calibration file successfully written'
+            print('Calibration file successfully written')
             if t.iso[:10] == Time.now().iso[:10]:
                # The calibration file is for today, so rewrite as tomorrow's file also
                x['ut_mjd'][0] = x['ut_mjd'][0]+1.   # Add one day to first timestamp
                sp_write_calfac(x,y,calfac,offsun)
-               print "Also wrote tomorrow's file"
+               print("Also wrote tomorrow's file")
     else:
-        print 'Calibration file not written--too many bad values.'
+        print('Calibration file not written--too many bad values.')
     exit()  

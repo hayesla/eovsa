@@ -7,15 +7,15 @@
 #                modified udbfile_create() to incorporate FEM attenuation corrections 
 import os
 import numpy as np
-from util import Time
+from .util import Time
 import dump_tsys_ext
-import dbutil as db
-from util import Time
-import read_idb as ri
+from . import dbutil as db
+from .util import Time
+from . import read_idb as ri
 import pdb
 
 def fem_attn_anal(idb_calib='/dppdata1/IDB/IDB20160731231934/',doplot=False, wrt2sql=False):
-    import cal_header as ch
+    from . import cal_header as ch
     '''Calculate additional corrections to the FEM attenuators at each bit change (0, 1, 2, 4, 8, 16)dB;
        Values are based on the measurement IDB20160731231934, the sequence is specified in 
        helios:Dropbox/PythonCode/Current/FEATTNTEST2.ctl:
@@ -90,8 +90,8 @@ def fem_attn_update(fem_attn, t=None, rdfromsql=True):
     '''Given a record of the frontend attenuation levels from the stateframe, recalculate the corrected attenuations levels.
        fem_attn_in: recorded attn levels in a 10-min duration
        fem_attn_bitv: complex corrections to be applied to the data. Read from the stateframe or provided as a (16, 2, 2, 5) array'''
-    import cal_header as ch
-    import stateframe as stf
+    from . import cal_header as ch
+    from . import stateframe as stf
     if rdfromsql:
         xml, buf = ch.read_cal(7,t)
         fem_attn_bitv=np.nan_to_num(stf.extract(buf, xml['FEM_Attn_Real'])) + np.nan_to_num(stf.extract(buf, xml['FEM_Attn_Imag'])) * 1j
@@ -117,14 +117,14 @@ def udbfile_create(filelist, ufilename, verbose=False):
 
     import aipy
     if len(filelist) == 0:
-        print 'udbfile_create: No files input'
+        print('udbfile_create: No files input')
         return []
     #endif
 
     # Be sure that files exist, and has all of the appropriate elements
     filelist_test, ok_filelist, bad_filelist = dump_tsys_ext.valid_miriad_dataset(filelist)
     if len(ok_filelist) == 0:
-        print 'udbfile_create: No valid files input'
+        print('udbfile_create: No valid files input')
         return []
     #endif
 
@@ -240,9 +240,9 @@ def udbfile_create(filelist, ufilename, verbose=False):
         fem_gain=10.**(-fem_attn_out/10.)
         timejd=Time(fem_attn['timestamp'].astype('int'),format='lv').jd
         if uv['source'] != src or uv['scanid'] != scanid:
-            print 'Source name:',uv['source'],'is different from initial source name:',src
-            print 'Or scanid:',uv['scanid'],'is different from initial source name:',scanid
-            print 'Will stop processing files.'
+            print('Source name:',uv['source'],'is different from initial source name:',src)
+            print('Or scanid:',uv['scanid'],'is different from initial source name:',scanid)
+            print('Will stop processing files.')
             break
         #endif
 
@@ -271,7 +271,7 @@ def udbfile_create(filelist, ufilename, verbose=False):
             # Look for time change, correct for power and power square
             if preamble[1] != ut or init == False:
                 if verbose:
-                    print 'processed ',utcount,' times\r',
+                    print('processed ',utcount,' times\r', end=' ')
                 ut = preamble[1]
                 init = True
 #power, power^2, and m

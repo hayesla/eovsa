@@ -39,7 +39,7 @@ class Time(astroTime):
              precision=None, in_subfmt=None, out_subfmt=None,
              location=None, copy=False):
         # Extend formats list to include TimeLV (LabVIEW format)
-        self.FORMATS[u'lv'] = TimeLV
+        self.FORMATS['lv'] = TimeLV
         astroTime.__init__(self, val, val2, format=format, scale=scale,
              precision=precision, in_subfmt=in_subfmt, out_subfmt=out_subfmt,
              location=location, copy=copy)

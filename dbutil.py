@@ -32,9 +32,9 @@
 #      returns data for both start and end second.
 #
 
-import stateframedef
-import util
-from util import Time
+from . import stateframedef
+from . import util
+from .util import Time
 
 def get_cursor():
     ''' Connect to the SQL database and return a cursor for access to it
@@ -85,7 +85,7 @@ def get_dbrecs(cursor=None,version=None,dimension=None,timestamp=None,nrecs=None
                 ts = timestamp[0].lv
                 nrecs = int(round(timestamp[1].lv - timestamp[0].lv)) + 1
             else:
-                print 'Too many times in Time() object.'
+                print('Too many times in Time() object.')
                 return {}
         except:
             # This is a single Time object
@@ -93,21 +93,21 @@ def get_dbrecs(cursor=None,version=None,dimension=None,timestamp=None,nrecs=None
     else:
         ts = timestamp
     if type(cursor) != stateframedef.pyodbc.Cursor:
-        print 'No database open'
+        print('No database open')
         return {}
     if ts is None:
-        print 'A timestamp must be given.'
+        print('A timestamp must be given.')
         return {}
     if version is None:
         version = int(find_table_version(cursor,ts))
     if type(version) != int:
-        print 'Version must be int type.'
+        print('Version must be int type.')
         return {}
     if type(dimension) != int:
-        print 'Dimension must be int type.'
+        print('Dimension must be int type.')
         return {}
     if type(nrecs) != int:
-        print 'NRecs must be int type.'
+        print('NRecs must be int type.')
         return {}
     nvals = dimension*nrecs
     # Generate table name
@@ -117,8 +117,8 @@ def get_dbrecs(cursor=None,version=None,dimension=None,timestamp=None,nrecs=None
     try:
         cursor.execute(query)
     except:
-        print 'Query',query.upper(),'returned an error.'
-        print stateframedef.sys.exc_info()[0]
+        print('Query',query.upper(),'returned an error.')
+        print(stateframedef.sys.exc_info()[0])
     # Extract the data
     data = stateframedef.numpy.transpose(stateframedef.numpy.array(cursor.fetchall(),'object'))
     # Override nrecs with the number of records actually read (could be less than requested)
@@ -132,7 +132,7 @@ def get_dbrecs(cursor=None,version=None,dimension=None,timestamp=None,nrecs=None
     else:
         data.shape = (len(names),nrecs)
     # Create the dictionary
-    outdict = dict(zip(names,data))
+    outdict = dict(list(zip(names,data)))
     return outdict
     
 def do_query(cursor,query):
@@ -148,7 +148,7 @@ def do_query(cursor,query):
         cursor.execute(query)
         data = stateframedef.numpy.transpose(stateframedef.numpy.array(cursor.fetchall(),dtype='object'))
         names = stateframedef.numpy.array(cursor.description)[:,0]
-        result = dict(zip(names,data))
+        result = dict(list(zip(names,data)))
         msg = 'Success'
     except:
         result = {}
@@ -219,7 +219,7 @@ def get_motor_currents(trange):
         el.shape = (nt,15)
         return times,az,el
     else:
-        print msg
+        print(msg)
         return None,None,None
 
 def get_reboot(trange,previous=False):

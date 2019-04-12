@@ -33,9 +33,9 @@
 #
 
 import numpy as np
-import solpnt
+from . import solpnt
 import struct, time, glob, sys, socket
-from disk_conv import *
+from .disk_conv import *
 
 
 def read_calfac(t):
@@ -56,19 +56,19 @@ def read_calfac(t):
             calfac = np.array(struct.unpack_from(str(nsiz)+'f',data,nfi*4)).reshape(int(npol),int(nf),int(nant))
             offsun = np.array(struct.unpack_from(str(nsiz)+'f',data,(nfi+nsiz)*4)).reshape(int(npol),int(nf),int(nant))
             return fghz, calfac, offsun
-    print 'Calibration file not found for date',t.iso
+    print('Calibration file not found for date',t.iso)
     return None, None, None
 
 def read_dbcalfac(t):
     ''' Read the contents of a SOLPNT calibration file from the SQL database, and return
         fghz, calfac, offsun arrays
     '''
-    import stateframe
-    import cal_header as ch
+    from . import stateframe
+    from . import cal_header as ch
     try:
         tp, buf = ch.read_cal(1,t)
     except:
-        print 'READ_DBCALFAC: Error reading calibration factors'
+        print('READ_DBCALFAC: Error reading calibration factors')
         return None, None, None
     fghz = stateframe.extract(buf,tp['FGHz'])
     poln = stateframe.extract(buf,tp['Poln'])
@@ -156,10 +156,10 @@ def rd_tsys_multi(trange):
         path = '/common/tmp/txt'
         
     def fname2mjd(filename):
-        from util import Time
+        from .util import Time
         fstem = filename.split(os.sep)[-1]
         fstr = fstem[2:6]+'-'+fstem[6:8]+'-'+fstem[8:10]+' '+fstem[10:12]+':'+fstem[12:14]+':'+fstem[14:16]
-        print fstr
+        print(fstr)
         return Time(fstr).mjd
 
     datstr = trange[0].iso.replace('-','')[:8]+'*.txt'
@@ -201,7 +201,7 @@ def tsys_show_dynspec(out,idx=None,ampscl=None,domedian=True,frq='linear'):
     from matplotlib.dates import AutoDateLocator, DateFormatter
     from matplotlib import colors
     from matplotlib.pyplot import locator_params
-    from util import Time
+    from .util import Time
 
     nant, npol, nf, nt = out['tsys'].shape
     if idx is None:

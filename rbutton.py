@@ -24,15 +24,15 @@ class Radiodemo(QWidget):
 	
       if b.text() == "Button1":
          if b.isChecked() == True:
-            print b.text()+" is selected"
+            print(b.text()+" is selected")
          else:
-            print b.text()+" is deselected"
+            print(b.text()+" is deselected")
 				
       if b.text() == "Button2":
          if b.isChecked() == True:
-            print b.text()+" is selected"
+            print(b.text()+" is selected")
          else:
-            print b.text()+" is deselected"
+            print(b.text()+" is deselected")
 				
 def main():
 

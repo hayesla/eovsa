@@ -42,19 +42,19 @@ from matplotlib.ticker import MaxNLocator
 import sys
 from time import sleep
 if sys.version_info[0] < 3:
-    import Tkinter as Tk
+    import tkinter as Tk
 else:
     import tkinter as Tk
-import ttk
-from tkMessageBox import askyesno, showerror
-from util import Time, nearest_val_idx, lobe, lin_phase_fit
-import cal_header as ch
-from stateframe import extract
-import refcal_anal as ra   #I'll try to eliminate this later...only needed for phase_diff()
+import tkinter.ttk
+from tkinter.messagebox import askyesno, showerror
+from .util import Time, nearest_val_idx, lobe, lin_phase_fit
+from . import cal_header as ch
+from .stateframe import extract
+from . import refcal_anal as ra   #I'll try to eliminate this later...only needed for phase_diff()
 
-import tkSimpleDialog
+import tkinter.simpledialog
 
-class MyDialog(tkSimpleDialog.Dialog):
+class MyDialog(tkinter.simpledialog.Dialog):
 
     def body(self, master):
 
@@ -86,7 +86,7 @@ class App():
         tabsframe = Tk.Frame()
         tabsframe.pack(expand=1,fill=Tk.BOTH)
         # Add some tabs for different calibration types
-        self.nb = ttk.Notebook(tabsframe)
+        self.nb = tkinter.ttk.Notebook(tabsframe)
         self.nb.pack(fill='both', expand='yes')
         fphacal = Tk.Frame()
         self.nb.add(fphacal, text='Phase Calibration')
@@ -185,7 +185,7 @@ class App():
         self.save2sql.pack(side=Tk.TOP, expand=0)
         
         #   Antenna Notebook
-        self.nb_ant = ttk.Notebook(pc_botframe)
+        self.nb_ant = tkinter.ttk.Notebook(pc_botframe)
         self.nb_ant.pack(fill='both', expand='yes')
         self.nb_ant.bind("<<NotebookTabChanged>>", self.ant_tab_event)
         self.ant_selected = 0   # Currently selected antenna (0-based index)
@@ -331,7 +331,7 @@ class App():
             # contain valid times.
             self.status.config(text = 'Status: '+event.key+' ignored.  Not in window.')
             return
-        if not 'tflags' in self.pc_dictlist[self.scan_selected].keys():
+        if not 'tflags' in list(self.pc_dictlist[self.scan_selected].keys()):
             self.status.config(text = 'Status: Selected scan has no time profiles (SQL scan?)')
             return
         key = event.key.upper()
@@ -445,7 +445,7 @@ class App():
         self.ref2_selected = None
         self.scan2_selected = None
         self.band_selected = None
-        sel = map(int, self.pc_scanbox.curselection())
+        sel = list(map(int, self.pc_scanbox.curselection()))
         for s in sel:
             self.pc_scanbox.selection_clear(s)
         self.pc_scanbox.configure(selectmode=Tk.SINGLE)
@@ -543,7 +543,7 @@ class App():
     def scan_select(self, event=None):
         ''' Get information on what scan has been selected. '''
         w = self.pc_scanbox
-        sel = map(int, w.curselection())
+        sel = list(map(int, w.curselection()))
         if len(sel) == 3:
             # Third line selected--deselecting...
             for s in sel:
@@ -575,7 +575,7 @@ class App():
                 self.pc_scanbox.selection_clear(curscan+2)
                 self.pc_scanbox.selection_clear(k+2)             
             elif line1[-1] != 'R':
-                print line1,'is not an already analyzed REFCAL scan.'
+                print(line1,'is not an already analyzed REFCAL scan.')
                 self.pc_scanbox.selection_clear(k+2)
                 return
             else:
@@ -751,7 +751,7 @@ class App():
                     ax[1].xaxis.set_major_locator(MaxNLocator(3))
                     ax[1].xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M"))
                     # Apply any existing time flags
-                    if 'tflags' in self.pc_dictlist[self.scan_selected].keys():
+                    if 'tflags' in list(self.pc_dictlist[self.scan_selected].keys()):
                         tflags = self.pc_dictlist[self.scan_selected]['tflags'][ant,band,:]
                         if tflags[0] != 0:
                             ax[0].plot_date(tflags[0]*np.ones(2),ax[0].get_ylim(),'g-')
@@ -853,7 +853,7 @@ class App():
         j = self.ref2_selected
         lodict = None
         hidict = None
-        print np.sum(np.array(self.pc_dictlist[i]['flags'][:13,:2]).astype(int)), np.sum(np.array(self.pc_dictlist[j]['flags'][:13,:2]).astype(int))
+        print(np.sum(np.array(self.pc_dictlist[i]['flags'][:13,:2]).astype(int)), np.sum(np.array(self.pc_dictlist[j]['flags'][:13,:2]).astype(int)))
         if np.sum(np.array(self.pc_dictlist[i]['flags'][:13,:2]).astype(int)) > 500:
             lodict = self.pc_dictlist[i]
             loscan = i
@@ -867,7 +867,7 @@ class App():
             hidict = self.pc_dictlist[j]
             hiscan = j
         if lodict is None or hidict is None:
-            print 'Selected Refcal scans do not form a LO-HI pair.'
+            print('Selected Refcal scans do not form a LO-HI pair.')
             return
         # The LO and HI receiver dicts have been identified.  Now determine phase slope of LO
         # relative to HI, and apply to correct the LO phases
@@ -1020,8 +1020,8 @@ def phase_diff(phacal, refcal):
 def findscans(trange):
     '''Identify phasecal scans from UFDB files
     '''
-    import dbutil
-    import dump_tsys
+    from . import dbutil
+    from . import dump_tsys
     tstart, tend = trange.lv.astype(int).astype(str)
     cursor = dbutil.get_cursor()
     verstr = dbutil.find_table_version(cursor, tstart, True)
@@ -1041,7 +1041,7 @@ def findscans(trange):
         # to ensure we have the whole local day
         try:
             ufdb2 = dump_tsys.rd_ufdb(Time(int(tstart)+86400.,format='lv'))
-            for key in ufdb.keys():
+            for key in list(ufdb.keys()):
                 ufdb.update({key: np.append(ufdb[key], ufdb2[key])})
         except:
             # No previous day, so just skip it.
@@ -1062,10 +1062,10 @@ def rd_refcal(file, quackint=120., navg=3):
     ''' Reads a single UDB file representing a calibrator scan, and averages over the
         bands in the file
     '''
-    from read_idb import read_idb, bl2ord
+    from .read_idb import read_idb, bl2ord
     from copy import deepcopy
-    import chan_util_bc as cu
-    import dbutil as db
+    from . import chan_util_bc as cu
+    from . import dbutil as db
     
     out = read_idb([file], navg=navg, quackint=quackint)
 
@@ -1142,7 +1142,7 @@ def refcal_anal(out):
     vis[np.where(out['flag'] == 1)] = np.nan
     times = out['times']
     # Apply tflags
-    if 'tflags' in out.keys():
+    if 'tflags' in list(out.keys()):
         tflags = out['tflags']
         # Apply time flags
         for i in range(13):

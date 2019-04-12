@@ -3,10 +3,10 @@
 
 import aipy, ephem, numpy
 import numpy
-import util
+from . import util
 from math import cos, sin
 from numpy import pi
-from eovsa_array import *
+from .eovsa_array import *
 
 class Source:
     pass
@@ -50,9 +50,9 @@ def import_source(srcname):
             break
     
     if srcname in s.name:
-        print s.ra, s.dec
+        print(s.ra, s.dec)
         src = aipy.phs.RadioFixedBody(s.ra,s.dec,name=s.name,epoch='2000')
-        print src
+        print(src)
         return src
     else:
         return 'Source '+srcname+' not found in Starburst catalog. Not added to schedule!'

@@ -21,9 +21,9 @@
 #      were the same.
 #
 
-import dump_tsys as dtsys     
+from . import dump_tsys as dtsys     
 import time
-import offline
+from . import offline
 
   
 def rd_tsys_multi(trange):

@@ -14,7 +14,7 @@ last edited: August 2011
 
 import sys
 from PyQt4 import QtGui, QtCore
-from util import Time
+from .util import Time
 
 class Example(QtGui.QMainWindow):
     
@@ -54,13 +54,13 @@ class Example(QtGui.QMainWindow):
         self.timer.singleShot(1,self.inc_time)
 
     def new(self):
-        print 'New File was selected'
+        print('New File was selected')
         
     def open(self):
-        print 'Open File was selected'
+        print('Open File was selected')
         
     def save(self):
-        print 'Save File was selected'
+        print('Save File was selected')
         
     def inc_time(self):
         self.timer.singleShot(1000,self.inc_time)

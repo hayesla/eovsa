@@ -89,10 +89,10 @@ def plot_callback(channel, board, roach):
     global df, rec,  roach_ip
 
     if channel != 'I' and channel != 'Q' and channel != 'both':
-        print 'Channel input not recognized, set to both'
+        print('Channel input not recognized, set to both')
         channel = 'both'
     if int(board) != 1 and int(board) != 0:
-        print board, 'Board input not recognized, set to 0'
+        print(board, 'Board input not recognized, set to 0')
         board = 0
     
     try:
@@ -112,7 +112,7 @@ def plot_callback(channel, board, roach):
         
 
         subplots[0].cla()
-        subplots[0].set_xticks(range(-130, 131, 20))
+        subplots[0].set_xticks(list(range(-130, 131, 20)))
         
         if channel == 'I' or channel == 'both':
             histData, bins, patches = subplots[0].hist(data, bins = 256, range = (-128,128))
@@ -157,47 +157,47 @@ def plot_callback(channel, board, roach):
         else:
             startstop = 'start'
         
-        prompt = raw_input('\nEnter "S" to '+startstop+' recording, "X" to change channel, "quit" to exit program: ')
+        prompt = input('\nEnter "S" to '+startstop+' recording, "X" to change channel, "quit" to exit program: ')
         if prompt == 'S':
             rec = not rec
             if rec:
-                print 'Started recording'
+                print('Started recording')
             else:
-                print 'Stopped recording'            
+                print('Stopped recording')            
         elif prompt == 'quit':
             sys.exit()
         elif prompt == 'X':
        
             #Change Channel
-            channel = raw_input('\nChannel I or Q (Enter "both" for both, "X" to change adc board, "quit" to exit program): ')
+            channel = input('\nChannel I or Q (Enter "both" for both, "X" to change adc board, "quit" to exit program): ')
             if channel == 'quit':
                 sys.exit()
             elif channel == 'X':
             
                 #Change Board
-                board = raw_input('Board 0 or 1 (Enter "X" to change Roach IP address, "quit" to exit program): ')
+                board = input('Board 0 or 1 (Enter "X" to change Roach IP address, "quit" to exit program): ')
                 if board == 'quit':
                     sys.exit()
                 elif board == 'X':
                 
                     #Change Roach  
-                    roach_ip = raw_input('Enter Roach IP address ("quit" to exit program): ')
+                    roach_ip = input('Enter Roach IP address ("quit" to exit program): ')
                     if roach_ip == 'quit':
                         sys.exit()
                     roach = corr.katcp_wrapper.FpgaClient(roach_ip)
-                    board = raw_input('Board 0 or 1:')
-                    channel = raw_input('Channel I or Q (Enter "both" for both): ')
+                    board = input('Board 0 or 1:')
+                    channel = input('Channel I or Q (Enter "both" for both): ')
                     fig.canvas.manager.window.after(100, plot_callback, channel, board, roach)
                     
                 elif int(board) == 0 or int(board) == 1:
-                    channel = raw_input('Channel I or Q (Enter "both" for both): ')
+                    channel = input('Channel I or Q (Enter "both" for both): ')
                 
                 fig.canvas.manager.window.after(100, plot_callback, channel, board, roach) 
                
             fig.canvas.manager.window.after(100, plot_callback, channel, board, roach)
         
         else:
-            print 'input not recognized'
+            print('input not recognized')
         fig.canvas.manager.window.after(100, plot_callback, channel, board, roach)
                     
 if __name__ == '__main__':
@@ -213,7 +213,7 @@ if __name__ == '__main__':
         subplots.append(subPlot)
 
     # start the process
-    print 'Starting plots...'
+    print('Starting plots...')
     fig.subplots_adjust(hspace=0.8)
     fig.canvas.manager.window.after(100, plot_callback, channel, board, roach)
     plt.show()

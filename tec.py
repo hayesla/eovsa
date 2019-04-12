@@ -1,7 +1,7 @@
 #   2015-Jun-16  DG
 #      FTP to cRIOs now requires a username and password
 #
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
 
 def rd_teclog(crio=1):
@@ -41,26 +41,26 @@ def rd_teclog(crio=1):
         userpass = 'admin:observer@'
         ftpadr = 'ftp://'+userpass+'crio'+str(crio)+'.solar.pvt/tec.txt'
     except:
-        print 'Cannot create FTP address from crio:',crio
+        print('Cannot create FTP address from crio:',crio)
         return {}
     try:
-        f = urllib2.urlopen(ftpadr,timeout=0.5)
+        f = urllib.request.urlopen(ftpadr,timeout=0.5)
         lines = np.array(f.readlines())
         f.close()
     except:
-        print 'Cannot retrieve TEC log file from',ftpadr
+        print('Cannot retrieve TEC log file from',ftpadr)
         return {}
     idx = np.array([],'int')
     for i in range(len(lines)):
         if len(lines[i].split()) == 2: 
             idx = np.append(idx,i)
     if len(idx) == 0:
-        print 'No correct commands found.  Possibly may have to issue TEC$A command to turn off broadcast?'
+        print('No correct commands found.  Possibly may have to issue TEC$A command to turn off broadcast?')
     rd_cmds = lines[idx[0:96]]
     responses = lines[idx[0:96]+1]
     # Compare responses with expected values (output is an array of True/False)
     ok = np.in1d(responses,expected_values)
     bad = np.where(~ok)[0]
     for i in bad:
-        print rd_cmds[i].strip(),'gave bad response',responses[i].strip(),'Expected:',expected_commands[i].strip(),'=',expected_values[i].strip()
+        print(rd_cmds[i].strip(),'gave bad response',responses[i].strip(),'Expected:',expected_commands[i].strip(),'=',expected_values[i].strip())
     return {}

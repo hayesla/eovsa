@@ -4,7 +4,7 @@
     Email: lkkung@caltech.edu
 """
 
-import i_worker
+from . import i_worker
 import serial
 
 # Description of Lakeshore device. Currently hard-coded.

@@ -35,7 +35,7 @@ def fem_cal(ant):
     plt.plot(np.log(hv),hp,'o')
     plt.plot(lhv,np.polyval(pfit,lhv))
     for i,p in enumerate(pfit[::-1]):
-        print 'HPOL.c{:d} = {:10.7f}'.format(i,p)
+        print('HPOL.c{:d} = {:10.7f}'.format(i,p))
     vfiles = glob.glob('Antenna '+str(ant)+' V*.txt')
     if len(vfiles) > 1: vfiles = np.sort(vfiles)
     f = open(vfiles[-1],'r')
@@ -58,5 +58,5 @@ def fem_cal(ant):
     plt.xlabel('Log Voltage [V]')
     plt.title('Antenna '+str(ant))
     for i,p in enumerate(pfit[::-1]):
-        print 'VPOL.c{:d} = {:10.7f}'.format(i,p)
+        print('VPOL.c{:d} = {:10.7f}'.format(i,p))
     plt.show()

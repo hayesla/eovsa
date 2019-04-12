@@ -83,11 +83,11 @@ def plot_spectrogram(fghz, ut, tsys, ax=None, cbar=True, logsample=False, **kwar
         fghzl, tsysl = lin_sample(fghz, utd, tsys)
             
     dmin = 1.
-    if 'dmin' in kwargs.keys():
+    if 'dmin' in list(kwargs.keys()):
         if kwargs['dmin'] is not None:
             dmin = kwargs['dmin']
     dmax = tsys.max()
-    if 'dmax' in kwargs.keys():
+    if 'dmax' in list(kwargs.keys()):
         if kwargs['dmax'] is not None:
             dmax = kwargs['dmax']
 
@@ -98,24 +98,24 @@ def plot_spectrogram(fghz, ut, tsys, ax=None, cbar=True, logsample=False, **kwar
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M:%S"))
     
     # Set labels if requested
-    if 'xlabel' in kwargs.keys():
+    if 'xlabel' in list(kwargs.keys()):
         if kwargs['xlabel'] == 'auto':
             ax.set_xlabel('Time [UT on '+datstr+']')
         else:
             ax.set_xlabel(kwargs['xlabel'])
-    if 'ylabel' in kwargs.keys():
+    if 'ylabel' in list(kwargs.keys()):
         if kwargs['ylabel'] == 'auto':
             ax.set_ylabel('Frequency [GHz]')
         else:
             ax.set_ylabel(kwargs['ylabel'])
-    if 'title' in kwargs.keys():
+    if 'title' in list(kwargs.keys()):
         ax.set_title(kwargs['title'])
     return ax
 
 import numpy as np
-import dump_tsys
-from util import Time
-import offline
+from . import dump_tsys
+from .util import Time
+from . import offline
 
 class Spectrogram():
     
@@ -137,9 +137,9 @@ class Spectrogram():
         fghz, self.calfac, self.offsun = offline.read_calfac(trange[0])
         self.bidx = [0,100]
         self.drange = [None,None]
-        self.antlist = range(nant)
+        self.antlist = list(range(nant))
         self.cbar = True
-        self.showants = range(nant)
+        self.showants = list(range(nant))
         self.domedian = True
         self.docal = True
         self.dolog = False
@@ -155,7 +155,7 @@ class Spectrogram():
             # This results in only a single plot
             self.ax = plot_spectrogram(self.fghz[self.fidx[0]:self.fidx[1]], self.time[self.tidx[0]:self.tidx[1]], tsys, ax=self.ax, cbar=self.cbar, logsample=self.dolog, dmin=self.drange[0], dmax=self.drange[1])
         else:
-            print 'Cannot (yet) plot data for each anteanna separately.  Please set <self>.domedian = True first'
+            print('Cannot (yet) plot data for each anteanna separately.  Please set <self>.domedian = True first')
         
         
     def get_median_data(self, xtsys=None, ytsys=None):

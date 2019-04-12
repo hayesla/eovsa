@@ -2,14 +2,14 @@
 #      Converted from using datime() to using Time() based on astropy
 
 import stateframe, os, datetime, struct
-from util import Time
+from .util import Time
 import numpy as np
 import pylab as plt
 
 def get_val_from_stflog(filename,loc):
     arr = False
     if len(loc) == 3:
-        print 'Cannot plot multiple values--will plot only index 0'
+        print('Cannot plot multiple values--will plot only index 0')
         arr = True
     with open(filename,'rb') as f:
         data = f.read(100)

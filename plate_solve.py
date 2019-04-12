@@ -64,7 +64,7 @@ def plate_solve(imgdir,obsdate):
                 lineout = line[:43]+'{:02d}:{:02d}:{:06.3f}  {:02d}:{:02d}:{:06.3f}'.format(rah,ram,ras,decd,decm,decs) + '  ' + stime
             else:
                 lineout = line[:43]+'{:02d}:{:02d}:{:06.3f} {:03d}:{:02d}:{:06.3f}'.format(rah,ram,ras,decd,-decm,-decs) + '  ' + stime
-        print lineout
+        print(lineout)
         o.write(lineout+'\n')
 
     o.close()

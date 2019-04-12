@@ -27,7 +27,7 @@ def tot_scichan():
     for n in nsavg:
         df=ifbw/nschan
         nscichan.append(int(gifbw/(n*df)))
-    print nscichan
+    print(nscichan)
     return sum(nscichan)
 
 def chan_asmt(bnd):
@@ -202,7 +202,7 @@ def freq2bdname(fghz):
             if len(bd) == 1:
                 bds.append(bd[0]+1)
             else:
-                print '{0:f} GHz is not found in any band'.format(fghz)
+                print('{0:f} GHz is not found in any band'.format(fghz))
                 return -1
         return bds
     else:
@@ -210,5 +210,5 @@ def freq2bdname(fghz):
         if len(bd) == 1:
             return bd[0]+1
         else:
-            print '{0:f} GHz is not found in any band'.format(fghz)
+            print('{0:f} GHz is not found in any band'.format(fghz))
             return -1

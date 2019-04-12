@@ -16,9 +16,9 @@
 import requests
 from requests.auth import HTTPDigestAuth
 import telnetlib, time
-import Queue
+import queue
 
-q = Queue.Queue()
+q = queue.Queue()
 
 def ant_toggle(antnum, device=None, wait=None, cycle=True):
     ''' Toggles power to one of the devices attached to the Viking Relay switch
@@ -143,7 +143,7 @@ def pwr_cycle(host,loadn,user='admin',passwd='pwr4me',wait=None):
         term_str = ['login:', 'Password:', '> ',    '> ',   '> ',    '> ',  '> ',           '> ',  '> ', '> ', '> ', '> ', '> ']
         response = [user+'\n',passwd+'\n', '1\n',   '1\n',  '2\n',   '2\n', str(loadn)+'\n','2\n', '2\n','X\n','X\n','X\n','X\n']
         if type(wait) != int:
-            print 'Warning: Could not interpret wait duration',wait,'.  Must be an integer type.  Will use 30 s'
+            print('Warning: Could not interpret wait duration',wait,'.  Must be an integer type.  Will use 30 s')
             dur = 30
         else:
             dur = wait
@@ -156,7 +156,7 @@ def pwr_cycle(host,loadn,user='admin',passwd='pwr4me',wait=None):
     for i in range(len(term_str)):
         out = tn.read_until(term_str[i],1)
         if out[-len(term_str[i]):] != term_str[i]:
-            print 'Telnet connection to',host,'timed out.'
+            print('Telnet connection to',host,'timed out.')
             tn.close()
             return False
             break
@@ -187,7 +187,7 @@ def pwr_off(host,user,passwd,loadn):
     for i in range(len(term_str)):
         out = tn.read_until(term_str[i],1)
         if out[-len(term_str[i]):] != term_str[i]:
-            print 'Telnet connection to',host,'timed out.'
+            print('Telnet connection to',host,'timed out.')
             tn.close()
             return False
             break

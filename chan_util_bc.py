@@ -98,7 +98,7 @@ def tot_scichan():
     for n in nsavg:
         df=ifbw/nschan
         nscichan.append(int(gifbw/(n*df)))
-    print nscichan
+    print(nscichan)
     return sum(nscichan)
 
 def chan_asmt(bnd):
@@ -202,14 +202,14 @@ def get_chanmask(fsequence,t=None):
         Returns a 204800-byte array (50*4096) with 1's where channels are kept,
         and 0's were channels are to be flagged.
     '''
-    import urllib2, copy
-    from util import Time
+    import urllib.request, urllib.error, urllib.parse, copy
+    from .util import Time
     userpass = 'admin:observer@'
     if t is None:
         # Get current date
         t = Time.now()
     now = t.iso[:10].replace('-','')
-    f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm',timeout=0.5)
+    f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm',timeout=0.5)
     files = f.readlines()
     f.close()
     goodfile = ''
@@ -237,7 +237,7 @@ def get_chanmask(fsequence,t=None):
         # Format of the file is BAND: List, where BAND is integer 1-34, followed by a colon ':', 
         # and List is a comma-separated list of integers or ranges, e.g. 385, 861, 2945-2946, etc.
         # Both bands and channel lists can be in any order.
-        RFIfile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+goodfile,timeout=0.5)
+        RFIfile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+goodfile,timeout=0.5)
         lines = RFIfile.readlines()
         for line in lines:
             band, rest = line.split(':')
@@ -282,7 +282,7 @@ def freq2bdname(fghz):
             if len(bd) == 1:
                 bds.append(bd[0]+1)
             else:
-                print '{0:f} GHz is not found in any band'.format(fghz)
+                print('{0:f} GHz is not found in any band'.format(fghz))
                 return -1
         return bds
     else:
@@ -290,5 +290,5 @@ def freq2bdname(fghz):
         if len(bd) == 1:
             return bd[0]+1
         else:
-            print '{0:f} GHz is not found in any band'.format(fghz)
+            print('{0:f} GHz is not found in any band'.format(fghz))
             return -1

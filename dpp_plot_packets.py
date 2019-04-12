@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from util import Time
+from .util import Time
 
 def procstat(k1,k2):
     f = open('/proc/net/softnet_stat','r')
@@ -36,7 +36,7 @@ def plot_packets(n, cpu=[22,23], ax=None):
         try:
             t[i+1] = time.time() - t0
         except:
-            print 'All done.'
+            print('All done.')
             return
         val = procstat(cpu[0],cpu[1])
         if1 = (val-val0)[0]/(t[i+1]-t[i])  # Packets/s on interface 1
@@ -44,7 +44,7 @@ def plot_packets(n, cpu=[22,23], ax=None):
         ld1[i] = if1
         ld2[i] = if2
         if timeout == 0 and (100000 < if1 < 130000) or (100000 < if2 < 130000):
-            print Time.now().iso,'Packet loss detected!', if1, if2, 'Resetting interfaces'
+            print(Time.now().iso,'Packet loss detected!', if1, if2, 'Resetting interfaces')
             command = ['sudo','/usr/sbin/netplan','apply']
             proc = subprocess.Popen(command)
             timeout = 5   # Leave a 5-s window to avoid resetting too often
@@ -78,25 +78,25 @@ def fix_packets(cpu=[22,23]):
     t[0] = -1.0
     i = 0
     timeout = 5   # Leave a 5-s window to avoid resetting too often
-    print Time.now().iso, 'Started...'
+    print(Time.now().iso, 'Started...')
     while t[i] < n:
         try:
             t[i+1] = time.time() - t0
         except:
-            print 'All done.'
+            print('All done.')
             return
         val = procstat(cpu[0],cpu[1])
         if1 = (val-val0)[0]/(t[i+1]-t[i])
         if2 = (val-val0)[1]/(t[i+1]-t[i])
         if timeout == 0 and (100000 < if1 < 130000) or (100000 < if2 < 130000):
-            print Time.now().iso,'Packet loss detected!', np.round(if1), np.round(if2), 'Resetting interfaces'
+            print(Time.now().iso,'Packet loss detected!', np.round(if1), np.round(if2), 'Resetting interfaces')
             command = ['sudo','/usr/sbin/netplan','apply']
             proc = subprocess.Popen(command)
             timeout = 5   # Leave a 5-s window to avoid resetting too often
         else:
             timeout = max(timeout - 1, 0)
         if int(round(t[i]) % 60) == 0:
-            print Time.now().iso, np.round(if1), np.round(if2)
+            print(Time.now().iso, np.round(if1), np.round(if2))
         val0 = val
         i += 1
         time.sleep(1 - (time.time() % 1))

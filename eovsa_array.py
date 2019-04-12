@@ -50,7 +50,7 @@
 
 import aipy, ephem, numpy
 from math import cos, sin
-from util import Vector,Time
+from .util import Vector,Time
 from numpy import pi, mat
 
 global lat
@@ -201,7 +201,7 @@ def sun_risetime(t,limit_deg=10):
         s1.compute(aa)
         if s1.alt > limit_rad:
             h -= 1
-            print s1.alt, h
+            print(s1.alt, h)
             # Loop over minute of hour
             for m in range(60):
                 jultime = 2400000.5 + mjd_day + (h + m/60.)/24.
@@ -209,14 +209,14 @@ def sun_risetime(t,limit_deg=10):
                 s1.compute(aa)
                 if s1.alt > limit_rad:
                     m -= 1
-                    print s1.alt, h, m
+                    print(s1.alt, h, m)
                     # Loop over second of minute
                     for s in range(60):
                         jultime = 2400000.5 + mjd_day + (h + (m + s/60.)/60.)/24.
                         aa.set_jultime(jultime)
                         s1.compute(aa)
                         if s1.alt > limit_rad:
-                            print s1.alt, h, m, s
+                            print(s1.alt, h, m, s)
                             risetime = Time(mjd_day + (h + (m + s/60.)/60.)/24.,format='mjd')
                             return risetime
 

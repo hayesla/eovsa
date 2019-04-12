@@ -92,7 +92,7 @@
 #      Updated DCM Master table to version 2.0, increasing from 34 to 52 bands to reflect new IF Filters
 #
 import struct, util
-import stateframe as sf
+from . import stateframe as sf
 import numpy as np
 
 
@@ -975,18 +975,18 @@ def send_xml2sql(type=None, t=None, test=False, nant=None, nfrq=None):
     if type:
         # If a particular type is specified, limit the action to that type
         typdict = {type: typdict[type]}
-    for key in typdict.keys():
+    for key in list(typdict.keys()):
         # print 'Working on',typdict[key][0]
         # Execute the code to create the xml description for this key
         if key == 1 or key == 10:
             # Special case for TP calibration
             if nant is None or nfrq is None:
-                print 'For', typdict[key][0], 'values for both nant and nfrq are required.'
+                print('For', typdict[key][0], 'values for both nant and nfrq are required.')
                 cursor.close()
                 return
-            exec 'buf = ' + typdict[key][1] + '(nant=' + str(nant) + ',nfrq=' + str(nfrq) + ')'
+            exec('buf = ' + typdict[key][1] + '(nant=' + str(nant) + ',nfrq=' + str(nfrq) + ')')
         else:
-            exec 'buf = ' + typdict[key][1] + '()'
+            exec('buf = ' + typdict[key][1] + '()')
         # Resulting buf must be written to a temporary file and reread
         # by xml_ptrs()
         f = open('/tmp/tmp.xml', 'wb')
@@ -1022,18 +1022,18 @@ def send_xml2sql(type=None, t=None, test=False, nant=None, nfrq=None):
             # print 'Trying to add',typdict[key][0]
             try:
                 if test:
-                    print 'Would have updated', typdict[key][0], 'to version', defn_version
+                    print('Would have updated', typdict[key][0], 'to version', defn_version)
                 else:
                     cursor.execute('insert into aBin (Timestamp,Version,Description,Bin) values (?,?,?,?)',
                                    timestamp, key, typdict[key][0], dbutil.stateframedef.pyodbc.Binary(buf))
-                    print 'Type definition for', typdict[key][
-                        0], 'successfully added/updated to version', defn_version, '--OK'
+                    print('Type definition for', typdict[key][
+                        0], 'successfully added/updated to version', defn_version, '--OK')
                     cursor.commit()
             except:
-                print 'Unknown error occurred in adding', typdict[key][0]
-                print sys.exc_info()[1]
+                print('Unknown error occurred in adding', typdict[key][0])
+                print(sys.exc_info()[1])
         else:
-            print 'Type definition for', typdict[key][0], 'version', defn_version, 'exists--OK'
+            print('Type definition for', typdict[key][0], 'version', defn_version, 'exists--OK')
     cursor.close()
 
 
@@ -1052,7 +1052,7 @@ def read_cal_xml(type, t=None):
     try:
         typinfo = typdict[type]
     except:
-        print 'Type', type, 'not found in type definition dictionary.'
+        print('Type', type, 'not found in type definition dictionary.')
         return {}, None
     cursor = dbutil.get_cursor()
     # Read type definition XML from abin table
@@ -1062,7 +1062,7 @@ def read_cal_xml(type, t=None):
     if msg == 'Success':
         if len(sqldict) == 0:
             # This type of xml file does not yet exist in the database, so mark it for adding
-            print 'Type', type, 'not defined in abin table.'
+            print('Type', type, 'not defined in abin table.')
             cursor.close()
             return {}, None
         else:
@@ -1104,7 +1104,7 @@ def read_cal_xmlX(caltype, t=None, verbose=True, neat=False, gettime=False):
     try:
         typinfo = typdict[caltype]
     except:
-        print 'Type', caltype, 'not found in type definition dictionary.'
+        print('Type', caltype, 'not found in type definition dictionary.')
         return {}, None
     cursor = dbutil.get_cursor()
     # Read type definition XML from abin table
@@ -1121,7 +1121,7 @@ def read_cal_xmlX(caltype, t=None, verbose=True, neat=False, gettime=False):
         if len(sqldict) == 0:
             if verbose:
                 # This type of xml file does not yet exist in the database, so mark it for adding
-                print 'Type', caltype, 'not defined in abin table.'
+                print('Type', caltype, 'not defined in abin table.')
                 cursor.close()
             return {}, None
         else:
@@ -1131,13 +1131,13 @@ def read_cal_xmlX(caltype, t=None, verbose=True, neat=False, gettime=False):
                 if neat:
                     idxs = [tlist.index(ll) for ll in tlistc]
                 else:
-                    idxs = range(len(sqldict['Timestamp']))
+                    idxs = list(range(len(sqldict['Timestamp'])))
                 if verbose:
-                    print '{} records are found in {} ~ {}.'.format(len(idxs), t[0].iso, t[-1].iso)
+                    print('{} records are found in {} ~ {}.'.format(len(idxs), t[0].iso, t[-1].iso))
                     for idx, ll in enumerate(idxs):
                         t = util.Time(sqldict['Timestamp'][ll], format='lv')
                         ver = sqldict['Version'][ll]
-                        print '{} ---> ver {} {}'.format(idx + 1, ver, t.iso)
+                        print('{} ---> ver {} {}'.format(idx + 1, ver, t.iso))
                 xml, ver = [], []
                 for idx, ll in enumerate(idxs):
                     # There is one, so read it and the corresponding binary data
@@ -1188,8 +1188,8 @@ def read_cal(type, t=None):
         cursor.close()
         if msg == 'Success':
             if sqldict == {}:
-                print 'Error: Query returned no records.'
-                print query
+                print('Error: Query returned no records.')
+                print(query)
                 return {}, None
             buf = sqldict['Bin'][0]  # Binary representation of data
             # Next two lines extends XML and buffer to add the SQL timestamp of the record read.
@@ -1198,8 +1198,8 @@ def read_cal(type, t=None):
             buf += struct.pack('d',sqldict['Timestamp'][0])    # Appends SQL timestamp to buffer
             return xmldict, str(buf)
         else:
-            print 'Unknown error occurred reading', typdict[type][0]
-            print sys.exc_info()[1]
+            print('Unknown error occurred reading', typdict[type][0])
+            print(sys.exc_info()[1])
             return {}, None
     else:
         return {}, None
@@ -1223,7 +1223,7 @@ def read_calX(caltype, t=None, verbose=True, neat=False, gettime=False, reverse=
         calibration record. If time-range is provided, a list of binary buffers will be returned.
     '''
     import dbutil, sys
-    import stateframe as stf
+    from . import stateframe as stf
     if t is None:
         t = util.Time.now()
 
@@ -1258,8 +1258,8 @@ def read_calX(caltype, t=None, verbose=True, neat=False, gettime=False, reverse=
         if msg == 'Success':
             if sqldict == {}:
                 if verbose:
-                    print 'Error: Query returned no records.'
-                    print query
+                    print('Error: Query returned no records.')
+                    print(query)
                 return {}, None
             if tislist:
                 tlist = [util.Time(stf.extract(str(ll), xmldict['Timestamp']), format='lv').iso for ll in
@@ -1268,13 +1268,13 @@ def read_calX(caltype, t=None, verbose=True, neat=False, gettime=False, reverse=
                 if neat:
                     idxs = [tlist.index(ll) for ll in tlistc]
                 else:
-                    idxs = range(len(sqldict['Timestamp']))
+                    idxs = list(range(len(sqldict['Timestamp'])))
                 buf = [str(sqldict['Bin'][ll]) for ll in idxs]
                 if verbose:
-                    print '{} records are found in {} ~ {}.'.format(len(buf), t[0].iso, t[-1].iso)
+                    print('{} records are found in {} ~ {}.'.format(len(buf), t[0].iso, t[-1].iso))
                     for idx, ll in enumerate(buf):
                         t = util.Time(stf.extract(ll, xmldict['Timestamp']), format='lv')
-                        print '{} ---> {}'.format(idx + 1, t.iso)
+                        print('{} ---> {}'.format(idx + 1, t.iso))
                 if gettime:
                     ts = [tlist[ll] for ll in idxs]
                     return xmldict, buf, ts
@@ -1285,8 +1285,8 @@ def read_calX(caltype, t=None, verbose=True, neat=False, gettime=False, reverse=
                 return xmldict, str(buf)
         else:
             if verbose:
-                print 'Unknown error occurred reading', typdict[caltype][0]
-                print sys.exc_info()[1]
+                print('Unknown error occurred reading', typdict[caltype][0])
+                print(sys.exc_info()[1])
             return {}, None
     else:
         return {}, None
@@ -1347,7 +1347,7 @@ def write_cal(type, buf, t=None):
     try:
         typinfo = typdict[int(type)]
     except:
-        print 'Type', int(type), 'not found in type definition dictionary.'
+        print('Type', int(type), 'not found in type definition dictionary.')
         return False
     cursor = dbutil.get_cursor()
     # Read type definition XML from abin table and do a sanity check
@@ -1358,7 +1358,7 @@ def write_cal(type, buf, t=None):
     if msg == 'Success':
         if len(outdict) == 0:
             # This type of xml file does not yet exist in the database, so indicate an error
-            print 'Error: Type', type, 'not defined in abin table.'
+            print('Error: Type', type, 'not defined in abin table.')
             cursor.close()
             return False
         else:
@@ -1375,7 +1375,7 @@ def write_cal(type, buf, t=None):
                 cursor.close()
                 return True
             else:
-                print 'Error: Size of buffer', len(buf), 'does not match this calibration type.  Expecting', binsize
+                print('Error: Size of buffer', len(buf), 'does not match this calibration type.  Expecting', binsize)
                 cursor.close()
                 return False
 
@@ -1392,16 +1392,16 @@ def delete_cal(type, t=None, relax=False):
 
         Returns True if success, or False if failure.
     '''
-    import dbutil as db
+    from . import dbutil as db
     if t is None:
-        print 'A time (as a Time() object) must be provided.'
+        print('A time (as a Time() object) must be provided.')
         return False
     if relax:
         try:
             xml, buf = read_cal(type, t=t)
             sqltime = str(int(sf.extract(buf,xml['SQL_timestamp'])))
         except:
-            print 'Error reading SQL time for specified cal type'
+            print('Error reading SQL time for specified cal type')
             return False
     else:
         sqltime = str(int(t.lv))
@@ -1410,25 +1410,25 @@ def delete_cal(type, t=None, relax=False):
     query = 'select * from abin where Timestamp = '+sqltime
     data, msg = db.do_query(cursor, query)
     if msg == 'Success':
-        print 'Found the following record(s):'
-        print 'ID          Date/Time         Calibration Type'
+        print('Found the following record(s):')
+        print('ID          Date/Time         Calibration Type')
         for i in range(len(data['Id'])):
             ctype = int(data['Version'][i])
             ctypestr = cal_types()[ctype][0]
             tiso = util.Time(int(data['Timestamp'][i]),format='lv').iso
-            print data['Id'][i],tiso,ctypestr
-        ids = raw_input('Enter ID number(s) of record(s) to delete [xxxx yyyy zzzz]: ')
+            print(data['Id'][i],tiso,ctypestr)
+        ids = input('Enter ID number(s) of record(s) to delete [xxxx yyyy zzzz]: ')
         try:
             idlist = [int(i) for i in ids.split(' ')]
         except:
-            print 'ID list not understood.'
+            print('ID list not understood.')
             return False
         for id in idlist:
             k, = np.where(id in data['Id'])
             if len(k) == 1:
                 cursor.execute('delete from abin where Id = '+str(id)+' and Timestamp = '+sqltime)
-                print 'Ready to delete ID:', id
-        ans = raw_input('Are you sure you want to delete these records [y/n]?')
+                print('Ready to delete ID:', id)
+        ans = input('Are you sure you want to delete these records [y/n]?')
         if ans.upper() == 'Y':
             cursor.commit()
             cursor.close()
@@ -1461,7 +1461,7 @@ def proto_tpcal2sql(filename, t=None):
         offsun = np.array(struct.unpack_from(str(nsiz) + 'f',
                                              data, (nfi + nsiz) * 4)).reshape(int(npol), int(nfi), nant)
     except:
-        print 'Error: Could not open/read file', filename
+        print('Error: Could not open/read file', filename)
         return False
     # For TP calibration, must explicitly write xml for this nant and nfrq, since
     # the definition changes if nant and nfrq change
@@ -1622,10 +1622,10 @@ def dcm_master_table2sql(filename, tbl=None, t=None):
             for line in lines:
                 if line[0] != '#':
                     band, rline = line.strip().split(':')
-                    attn[int(band) - 1] = map(int, rline.split())
+                    attn[int(band) - 1] = list(map(int, rline.split()))
                     bands[int(band) - 1] = band
         except:
-            print 'Error: Could not open/read file', filename
+            print('Error: Could not open/read file', filename)
             return False
     else:
         # Standard table was input, so interpret as output from adc_cal.set_dcm_attn()
@@ -1667,9 +1667,9 @@ def dcm_table2sql(filename, t=None):
         # Read file of attenuations (50 non-comment lines with ant + 30 attns)
         attn = np.zeros((50, 30), 'float')
         for i, line in enumerate(lines):
-            attn[i] = map(int, line.split())
+            attn[i] = list(map(int, line.split()))
     except:
-        print 'Error: Could not open/read file', filename
+        print('Error: Could not open/read file', filename)
         return False
     # Write timestamp
     buf = struct.pack('d', int(t.lv))
@@ -1697,7 +1697,7 @@ def dla_update2sql(dla_update, xy_delay=None, t=None, lorx=False):
                           for Ant 14 Lo-frequency receiver.
     '''
     if dla_update[0] != 0.0:
-        print 'First delay in list is not zero.  Delays must be relative to Ant 1'
+        print('First delay in list is not zero.  Delays must be relative to Ant 1')
         return False
     typedef = 4
     ver = cal_types()[typedef][2]
@@ -1741,14 +1741,14 @@ def dla_censql2table(t=None, acc=True):
         acc   boolean: if True (default), write the file to the ACC.
     '''
     import time
-    from util import Time
+    from .util import Time
     typedef = 4
     if t is None:
         t = util.Time.now()
     else:
         # Ensure that an old table is not written to ACC
-        print 'Warning! Specifying a time disables writing the file to the ACC.'
-        print 'FTP the file /tmp/delay_centers.txt by hand if that is what you intend.'
+        print('Warning! Specifying a time disables writing the file to the ACC.')
+        print('FTP the file /tmp/delay_centers.txt by hand if that is what you intend.')
         acc = False
     xml, buf = read_cal(4, t)
     delays = sf.extract(buf, xml['Delaycen_ns'])
@@ -1770,9 +1770,9 @@ def dla_censql2table(t=None, acc=True):
         acc.login('admin', 'observer')
         acc.cwd('parm')
         # Send DCM table lines to ACC
-        print acc.storlines('STOR delay_centers.txt', f)
+        print(acc.storlines('STOR delay_centers.txt', f))
         f.close()
-        print 'Successfully wrote delay_centers.txt to ACC'
+        print('Successfully wrote delay_centers.txt to ACC')
 
 
 def dla_centable2sql(filename='/tmp/delay_centers_tmp.txt', t=None):
@@ -1797,7 +1797,7 @@ def dla_centable2sql(filename='/tmp/delay_centers_tmp.txt', t=None):
                 ant, xdla, ydla = line.strip().split()
                 tau_ns[int(ant) - 1] = np.array([float(xdla), float(ydla)])
     except:
-        print 'Error: Could not open/read file', filename
+        print('Error: Could not open/read file', filename)
         return False
 
     # Write timestamp
@@ -1940,37 +1940,37 @@ def refcal2sql(rfcal, timestamp=None, lohi = False):
     else:
         typedef = 8
 
-    if not 'vis' in rfcal.keys():
+    if not 'vis' in list(rfcal.keys()):
         raise KeyError('Key "vis" not exist')
     ver = cal_types()[typedef][2]
     if timestamp:
         t = int(timestamp.lv)
     else:
-        if 'timestamp' in rfcal.keys():
+        if 'timestamp' in list(rfcal.keys()):
             t = int(rfcal['timestamp'].lv)
         else:
             t = int(util.Time.now().lv)
-    if 't_gcal' in rfcal.keys():
+    if 't_gcal' in list(rfcal.keys()):
         tgcal = int(rfcal['t_gcal'].lv)
     else:
         tgcal = -1
 
-    if 't_bg' in rfcal.keys():
+    if 't_bg' in list(rfcal.keys()):
         tbg = int(rfcal['t_bg'].lv)
     else:
         tbg = t
 
-    if 't_ed' in rfcal.keys():
+    if 't_ed' in list(rfcal.keys()):
         ted = int(rfcal['t_ed'].lv)
     else:
         ted = t
 
-    if 'flag' in rfcal.keys():
+    if 'flag' in list(rfcal.keys()):
         flag = rfcal['flag']
     else:
         flag = np.zeros_like(np.real(rfcal['vis']))
 
-    if 'sigma' in rfcal.keys():
+    if 'sigma' in list(rfcal.keys()):
         sigma = rfcal['sigma']
     else:
         sigma = np.zeros_like(np.real(rfcal['vis']))
@@ -2025,7 +2025,7 @@ def refcal2sql(rfcal, timestamp=None, lohi = False):
         for j in range(2):
             buf += struct.pack('34f', *flag[i, j])
     t = util.Time(t, format='lv')
-    print 'sending refcal of {} to SQL database.'.format(t.iso)
+    print('sending refcal of {} to SQL database.'.format(t.iso))
     return write_cal(typedef, buf, t)
     # return buf
 
@@ -2038,29 +2038,29 @@ def phacal2sql(phcal, timestamp=None):
 
         This kind of record is type definition 9.
     '''
-    from util import Time
+    from .util import Time
     typedef = 9
-    if not 'phacal' in phcal.keys():
+    if not 'phacal' in list(phcal.keys()):
         raise KeyError('Key "phacal" not exist')
     ver = cal_types()[typedef][2]
     if timestamp:
         t = int(timestamp.lv)
     else:
-        if 't_pha' in phcal.keys():
+        if 't_pha' in list(phcal.keys()):
             t = int(phcal['t_pha'].lv)
         else:
             t = int(util.Time.now().lv)
-    if 't_ref' in phcal.keys():
+    if 't_ref' in list(phcal.keys()):
         trefcal = int(phcal['t_ref'].lv)
     else:
         trefcal = -1
 
-    if 't_bg' in phcal['phacal'].keys():
+    if 't_bg' in list(phcal['phacal'].keys()):
         tbg = int(phcal['phacal']['t_bg'].lv)
     else:
         tbg = -1
 
-    if 't_ed' in phcal['phacal'].keys():
+    if 't_ed' in list(phcal['phacal'].keys()):
         ted = int(phcal['phacal']['t_ed'].lv)
     else:
         ted = -1
@@ -2136,6 +2136,6 @@ def phacal2sql(phcal, timestamp=None):
             buf += struct.pack('34f', *phacal_flag[i, j])
 
     t = util.Time(t, format='lv')
-    print 'sending phacal of {} to SQL database.'.format(t.iso)
+    print('sending phacal of {} to SQL database.'.format(t.iso))
     return write_cal(typedef, buf, t)
     # return buf

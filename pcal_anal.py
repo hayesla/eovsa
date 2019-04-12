@@ -15,7 +15,7 @@
 #
 
 import numpy as np
-from util import Time, lobe
+from .util import Time, lobe
 ten_minutes = 600./86400.
 one_minute = 60./86400.
 
@@ -49,9 +49,9 @@ def mv_pcal_files():
 
 def findfile(trange):
 
-    from util import nearest_val_idx
+    from .util import nearest_val_idx
     import struct, time, glob, sys, socket
-    import dump_tsys
+    from . import dump_tsys
 
     host = socket.gethostname()
     if host == 'dpp':
@@ -67,7 +67,7 @@ def findfile(trange):
         fdb = {}
         fdb1 = dump_tsys.rd_fdb(trange[0])
         fdb2 = dump_tsys.rd_fdb(trange[1])
-        for key in fdb1.keys():
+        for key in list(fdb1.keys()):
             fdb.update({key:np.append(fdb1[key],fdb2[key])})
     else:
         # Both start and end times are on the same day
@@ -99,10 +99,10 @@ def findfile(trange):
             m += 1
         
     if k == 0: 
-        print 'No phase calibration data within given time range'
+        print('No phase calibration data within given time range')
         return None
     else: 
-        print 'Found',k,'scans in timerange.'
+        print('Found',k,'scans in timerange.')
         for i in range(k):
             f1 = fdb['FILE'][np.where(fdb['SCANID'] == scans[m+i])].astype('str')
             f2 = [fpath + f for f in f1]
@@ -124,8 +124,8 @@ def graph(f,navg=None,path=None):
     import matplotlib.pyplot as plt
     from matplotlib.ticker import FormatStrFormatter
     import struct, time, glob, sys, socket
-    import read_idb as ri
-    import dbutil as db
+    from . import read_idb as ri
+    from . import dbutil as db
 
     if navg is None:
         navg = 60
@@ -205,7 +205,7 @@ def pcal_anal(trange,path=None):
     import os.path
     import socket
     import glob
-    import read_idb as ri
+    from . import read_idb as ri
 
     if path is None:
         path = ''
@@ -216,7 +216,7 @@ def pcal_anal(trange,path=None):
     statuslist = out['status']
     starttimelist = out['tstlist']
     nscans = len(filelist)
-    print 'Found',nscans,'scans to process.'
+    print('Found',nscans,'scans to process.')
     for i in range(nscans):
         good, = np.where(np.array(statuslist[i]) == 'done')
         flist = np.array(filelist[i])[good].tolist()   # List of "done" files
@@ -236,18 +236,18 @@ def pcal_anal(trange,path=None):
             f2 = glob.glob(path + 'pcT*'+tmarkp+'*.png')
             f3 = glob.glob(path + 'pcT*'+tmarkn+'*.png')
             if f1 == [] and f2 == [] and f3 == []:
-                print 'No files:',tmarkn,tmark,tmarkp,'found.'
-                print 'Processing completed scan',i+1
+                print('No files:',tmarkn,tmark,tmarkp,'found.')
+                print('Processing completed scan',i+1)
                 graph(filelist[i],path=path)
             else:
-                print 'Scan processing already complete.  Skipping scan',i+1
+                print('Scan processing already complete.  Skipping scan',i+1)
         elif len(good) == len(filelist[i]) and tdif < ten_minutes:
             # All files in this scan are marked "done", but it has been less than 10 min, so process the scan
-            print 'Processing completed scan',i+1
+            print('Processing completed scan',i+1)
             graph(flist,path=path)        
         elif len(good) == len(filelist[i])-1:
             # This scan is still active, so process all files up to this point.
-            print 'Processing active scan',i+1
+            print('Processing active scan',i+1)
             graph(flist,path=path)
 
             
@@ -258,5 +258,5 @@ if __name__ == '__main__':
     t1 = Time.now().jd-0.25
     t2 = Time.now().jd
     trange = Time([t1,t2],format='jd')
-    print trange.iso
+    print(trange.iso)
     pcal_anal(trange,path=path)

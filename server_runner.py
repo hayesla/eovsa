@@ -8,12 +8,12 @@ import os
 import sys
 import time
 import signal
-import feanta_server
-import pdu_worker
-import brick_worker
-import bb_worker
-import cryostat_worker
-from daemon import runner
+from . import feanta_server
+from . import pdu_worker
+from . import brick_worker
+from . import bb_worker
+from . import cryostat_worker
+from .daemon import runner
 
 def instantiate(pid_file, log_file):
     # Instantiate workers.
@@ -55,13 +55,13 @@ def __kill(pidfile):
             i = i + 1
             if i % 10 == 0:
                 os.kill(pid, signal.SIGHUP)
-    except OSError, err:
+    except OSError as err:
         err = str(err)
         if err.find("No such process") > 0:
             if os.path.exists(pidfile):
                 os.remove(pidfile)
         else:
-            print str(err)
+            print(str(err))
             sys.exit(1)
 
 def stop(pid_file):

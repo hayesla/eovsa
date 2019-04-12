@@ -89,11 +89,11 @@
 #       one in swreg_pkt_fft that is actually used.
 
 import corr, qdr, struct, numpy, time, copy, sys
-import urllib2, subprocess
+import urllib.request, urllib.error, urllib.parse, subprocess
 from ftplib import FTP
 from katcp import Message
-from pwr_cycle import pwr_cycle, pwr_off
-from util import Time
+from .pwr_cycle import pwr_cycle, pwr_off
+from .util import Time
 
 # Start of ROACH object definition
 # ========================
@@ -144,7 +144,7 @@ class Roach():
             # Read boffile name from ACC's ini file
             try:
                 userpass = 'admin:observer@'
-                f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/acc.ini',timeout=0.5)
+                f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/acc.ini',timeout=0.5)
                 lines = f.readlines()
                 f.close()
                 for line in lines:
@@ -183,7 +183,7 @@ class Roach():
             cfgfile = boffile[:-3]+'ini'
             try:
                 userpass = 'admin:observer@'
-                c = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+cfgfile,timeout=0.5)
+                c = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+cfgfile,timeout=0.5)
                 cfg = c.readlines()
                 c.close()
             except:
@@ -214,12 +214,12 @@ class Roach():
                 pass
             else:
                 for i,bof in enumerate(bofs):
-                    if bof[:10] == 'eovsa_corr': print i,':',bof
-                bofn = raw_input('Enter number of boffile to load:')
+                    if bof[:10] == 'eovsa_corr': print(i,':',bof)
+                bofn = input('Enter number of boffile to load:')
                 try:
                     boffile = bofs[int(bofn)]
                 except:
-                    print 'Entered value not a string'
+                    print('Entered value not a string')
                     self.msg = 'Count not load boffile--error in input.'
                     self.boffile = None
                     return
@@ -249,7 +249,7 @@ class Roach():
             #val  = [0x7FFF, 0xB2FF, 0x007F, 0x807F, 0x03FF, 0x007F, 0x807F, 0x00FF, 0x007F]  # 300 MHz
             #if interleaved: val[4] = 0x23FF # Uncomment this line for interleaved mode
             for i in range(len(addr)):
-                print('Setting ADC register %04Xh to 0x%04X' % (addr[i], val[i]))
+                print(('Setting ADC register %04Xh to 0x%04X' % (addr[i], val[i])))
                 # Program both ZDOKs (this could be made smarter if needed).
                 corr.katadc.spi_write_register(self.fpga, 0, addr[i], val[i])
                 corr.katadc.spi_write_register(self.fpga, 1, addr[i], val[i])
@@ -296,7 +296,7 @@ class Roach():
             return
         db = (attn[rnum-1]*2).astype('int')
         if dbg:
-            print 'ADC Atten',db,'packed =',hex((db*bpow).sum())
+            print('ADC Atten',db,'packed =',hex((db*bpow).sum()))
         else:
             self.fpga.write_int('swreg_adc_atten',(db*bpow).sum())
 
@@ -306,7 +306,7 @@ class Roach():
             return
         ena = en[rnum-1].astype('int')
         if dbg:
-            print 'ADC Enable',ena,'packed =',hex((ena*bpow).sum())
+            print('ADC Enable',ena,'packed =',hex((ena*bpow).sum()))
         else:
             self.fpga.write_int('swreg_adc_en',(ena*bpow).sum())
 
@@ -318,7 +318,7 @@ class Roach():
         psw1.shape = 32
         pow32 = 2**numpy.arange(31,-1,-1) 
         if dbg:
-            print 'Phase Switching',psw1,'packed =',hex((psw1*pow32).sum())
+            print('Phase Switching',psw1,'packed =',hex((psw1*pow32).sum()))
         else:
             self.fpga.write_int('swreg_phase_switch',(psw1*pow32).sum())
         
@@ -329,8 +329,8 @@ class Roach():
         # Convert to integer delays in units of ADC clock
         dlas = 5000 + (dla[[self.ants[0]-1,self.ants[1]-1]]*1000./clk).astype('int')
         if dbg:
-            print 'Delay0',dlas[0],'packed =',hex(dlas[0]*(2**16)+dlas[0])
-            print 'Delay1',dlas[1],'packed =',hex(dlas[1]*(2**16)+dlas[1])
+            print('Delay0',dlas[0],'packed =',hex(dlas[0]*(2**16)+dlas[0]))
+            print('Delay1',dlas[1],'packed =',hex(dlas[1]*(2**16)+dlas[1]))
         else:
             self.fpga.write_int('swreg_d0',dlas[0]*(2**16)+dlas[0])
             self.fpga.write_int('swreg_d1',dlas[1]*(2**16)+dlas[1])
@@ -345,8 +345,8 @@ class Roach():
             self.msg = 'Incorrect format for packet delay'
             return
         if dbg:
-            print 'Packet Delay',pktdla
-            print 'FFT Shift',fftshift,'packed =',hex((2**16)*pktdla+fftshift)
+            print('Packet Delay',pktdla)
+            print('FFT Shift',fftshift,'packed =',hex((2**16)*pktdla+fftshift))
         else:
             self.fpga.write_int('swreg_pkt_fft',(2**16)*pktdla+fftshift)
 
@@ -380,8 +380,8 @@ class Roach():
             x_acc_len = 4
 
         if dbg:
-            print 'Acc Length',acc_len
-            print 'Acc Start',acc_start,'packed =',hex((2**16)*acc_len+acc_start)
+            print('Acc Length',acc_len)
+            print('Acc Start',acc_start,'packed =',hex((2**16)*acc_len+acc_start))
         else:
             self.fpga.write_int('swreg_acc_len',(2**16)*acc_len + acc_start)
 
@@ -391,8 +391,8 @@ class Roach():
             self.msg = 'Incorrect format for "actual boards"'
             return
         if dbg:
-            print 'Board ID',rnum-1
-            print 'Actual Boards',act_bds,'packed =',hex((2**16)*(rnum-1) + act_bds)
+            print('Board ID',rnum-1)
+            print('Actual Boards',act_bds,'packed =',hex((2**16)*(rnum-1) + act_bds))
         else:
             self.fpga.write_int('swreg_board_info',(2**16)*(rnum-1) + act_bds)
 
@@ -409,14 +409,14 @@ class Roach():
                 j = int(self.roach_ip[5:6])-1
                 # If j is odd, use next lower index -- this only works for pairs of ROACHes
                 j = (j/2)*2
-                print 'Roach'+str(j)+' FX0 IP address','swreg_ip0_roach0',fx[0,j],'packed =',ip2int(fx[0,j])
-                print 'Roach'+str(j)+' FX1 IP address','swreg_ip1_roach0',fx[1,j],'packed =',ip2int(fx[1,j])
-                print 'Roach'+str(j+1)+' FX0 IP address','swreg_ip0_roach1',fx[0,j+1],'packed =',ip2int(fx[0,j+1])
-                print 'Roach'+str(j+1)+' FX1 IP address','swreg_ip1_roach1',fx[1,j+1],'packed =',ip2int(fx[1,j+1])
+                print('Roach'+str(j)+' FX0 IP address','swreg_ip0_roach0',fx[0,j],'packed =',ip2int(fx[0,j]))
+                print('Roach'+str(j)+' FX1 IP address','swreg_ip1_roach0',fx[1,j],'packed =',ip2int(fx[1,j]))
+                print('Roach'+str(j+1)+' FX0 IP address','swreg_ip0_roach1',fx[0,j+1],'packed =',ip2int(fx[0,j+1]))
+                print('Roach'+str(j+1)+' FX1 IP address','swreg_ip1_roach1',fx[1,j+1],'packed =',ip2int(fx[1,j+1]))
             else:
                 for j in range(8):
-                    print 'Roach'+str(j)+' FX0 IP address','swreg_ip0_roach'+str(j),fx[0,j],'packed =',ip2int(fx[0,j])
-                    print 'Roach'+str(j)+' FX1 IP address','swreg_ip1_roach'+str(j),fx[1,j],'packed =',ip2int(fx[1,j])
+                    print('Roach'+str(j)+' FX0 IP address','swreg_ip0_roach'+str(j),fx[0,j],'packed =',ip2int(fx[0,j]))
+                    print('Roach'+str(j)+' FX1 IP address','swreg_ip1_roach'+str(j),fx[1,j],'packed =',ip2int(fx[1,j]))
         else:
             if nbds == 2:
                 # Case of 4-antenna prototype
@@ -446,7 +446,7 @@ class Roach():
             self.msg = 'Incorrect format for FX port'
             return
         if dbg:
-            print 'FX Port',fx_port
+            print('FX Port',fx_port)
         else:
             self.fpga.write_int('swreg_fx_udp_port',fx_port)
 
@@ -475,7 +475,7 @@ class Roach():
         pows = 2**numpy.array([31,30,29,28,23])
         vect = numpy.array([mypps_sel,mypps,mypoln,myadcprot,myvgen]).astype('int')
         if dbg:
-            print 'Control Register vector [PPS_sel,PPS,Poln,ADCProt,VGen]',vect,'packed',hex((vect*pows).sum())
+            print('Control Register vector [PPS_sel,PPS,Poln,ADCProt,VGen]',vect,'packed',hex((vect*pows).sum()))
         else:
             self.fpga.write_int('swreg_ctrl',(vect*pows).sum())
 
@@ -483,7 +483,7 @@ class Roach():
         pows = 2**numpy.array([16,8,4,0])
         vect = numpy.array([x_acc_len,0,rnum-1,mypoln])
         if dbg:
-            print 'X Control Register vector [Acc Length,0,Board,Poln]',vect,'packed',hex((vect*pows).sum())
+            print('X Control Register vector [Acc Length,0,Board,Poln]',vect,'packed',hex((vect*pows).sum()))
         else:
             self.fpga.write_int('swreg_ctrl_x',(vect*pows).sum())
 
@@ -519,7 +519,7 @@ class Roach():
         if dppn is None:
             return
         if dbg:
-            print 'DPP IP Address',dppn[subnet-1],'packed =',ip2int(dppn[subnet-1])
+            print('DPP IP Address',dppn[subnet-1],'packed =',ip2int(dppn[subnet-1]))
         else:
             self.fpga.write_int('swreg_dpp_ip',ip2int(dppn[subnet-1]))
         dpp_port, self.msg = rd_ini(cfg,'dpp port')
@@ -527,7 +527,7 @@ class Roach():
             self.msg = 'Incorrect format for DPP port'
             return
         if dbg:
-            print 'DPP Port',dpp_port
+            print('DPP Port',dpp_port)
         else:
             self.fpga.write_int('swreg_dpp_port',dpp_port)
 
@@ -595,7 +595,7 @@ class Roach():
         if cof is None:
             cof = 32
         if dbg:
-            print 'Eq Coefficient:',cof
+            print('Eq Coefficient:',cof)
             
         # Reset 10 GbE cores
         if not dbg:
@@ -618,7 +618,7 @@ class Roach():
                     for qdrstr in qdrs:
                         if qdrstr[5:] == 'ctrl':
                             q = qdr.Qdr(self.fpga,qdrstr[:4])
-                            print 'QDR',qdrstr[:4],'calibration status:',q.qdr_cal(False)#verbosity=2)
+                            print('QDR',qdrstr[:4],'calibration status:',q.qdr_cal(False))#verbosity=2)
                             #print 'QDR',qdrstr[:4],'calibration skipped...'
     
         self.msg = 'Success'
@@ -708,7 +708,7 @@ class Roach():
                 values.append('error')
             else:
                 values.append('nominal')
-            self.katadc = dict(zip(keys,values))
+            self.katadc = dict(list(zip(keys,values)))
             self.msg = 'Success'
         else:
             self.msg = 'Could not update katadc sensors--client not connected'
@@ -754,7 +754,7 @@ class Roach():
                 self.msg = 'Could not init sensors:',reply.arguments[0]
                 return
             
-            self.sensors = dict(zip(keys,values))
+            self.sensors = dict(list(zip(keys,values)))
             self.msg = 'Success'
         else:
             self.msg = 'Could not update sensors--client not connected'
@@ -890,7 +890,7 @@ class Roach():
         ''' Turn test-vector generator on or off.
         '''
         current_val = self.fpga.read_uint('swreg_ctrl')
-        if verbose: print 'Initial state :',binary_repr(2**32+current_val)[1:]
+        if verbose: print('Initial state :',binary_repr(2**32+current_val)[1:])
         if state == 'on':
             # Set test-vector-generator bit to 1
             current_val = current_val | (2**32 >> 9)
@@ -898,15 +898,15 @@ class Roach():
             # Set test-vector-generator bit to 0
             current_val -= current_val & (2**32 >> 9)
         self.fpga.write_int('swreg_ctrl', current_val)
-        if verbose: print 'After tvg set :',binary_repr(2**32+current_val)[1:]
+        if verbose: print('After tvg set :',binary_repr(2**32+current_val)[1:])
         # Toggle tvg enable, ensuring that it starts at 0
         current_val -= current_val & (2**32 >> 12)  # Zeros the tvg enable bit
         self.fpga.write_int('swreg_ctrl', current_val)
-        if verbose: print 'TVG enable off:',binary_repr(2**32+current_val)[1:]
+        if verbose: print('TVG enable off:',binary_repr(2**32+current_val)[1:])
         time.sleep(0.1)
         current_val |= (2**32 >> 12)
         self.fpga.write_int('swreg_ctrl', current_val)
-        if verbose: print 'TVG enable on :',binary_repr(2**32+current_val)[1:]
+        if verbose: print('TVG enable on :',binary_repr(2**32+current_val)[1:])
         
 #======= Equalizer Gain ========
     def set_eq(self,xn=0,ifb=None,coeff=1.0+0j,update=False):
@@ -945,13 +945,13 @@ class Roach():
             if len(coeff) == 128:
                 newvals = numpy.real(coeff).astype('int') + 1j*numpy.imag(coeff).astype('int')
             else:
-                print 'Error in length of coeff parameter. Must be scalar or length 128.'
-                print 'No update performed.'
+                print('Error in length of coeff parameter. Must be scalar or length 128.')
+                print('No update performed.')
                 self.msg = 'Error in length of coeff parameter'
                 return
         else:
-                print 'Error in type of coeff parameter. Must be scalar numpy.ndarray.'
-                print 'No update performed.'
+                print('Error in type of coeff parameter. Must be scalar numpy.ndarray.')
+                print('No update performed.')
                 self.msg = 'Error in type of coeff parameter'
                 return
         # At this point, I have current coefficients cvals, and new coefficients newvals,
@@ -1000,8 +1000,8 @@ class Roach():
         eqname = numpy.array([['eq_x0_coeffs','eq_x1_coeffs'],['eq_x2_coeffs','eq_x3_coeffs']])
         if coeff is None:
             # Will read directly from the SQL database--not yet implemented
-            import cal_header
-            import stateframe
+            from . import cal_header
+            from . import stateframe
             # Read latest data for calibration type given by sql_ver
             sdict, buf = cal_header.read_cal(sql_ver)
             coeff = stateframe.extract(buf,sdict['EQ_Coeff'])
@@ -1056,13 +1056,13 @@ def arm(roach_list=None):
         '''
         # Do some sanity checks on roach list
         if roach_list is None:
-            print 'Must provide a list of connected ROACH objects'
+            print('Must provide a list of connected ROACH objects')
             return
         if not isinstance(roach_list,list):
-            print 'Must provide a list of connected ROACH objects'
+            print('Must provide a list of connected ROACH objects')
             return
         if not isinstance(roach_list[0],Roach):
-            print 'List is not ROACH object list'
+            print('List is not ROACH object list')
             return
 
         # Check connection to each board prior to arming
@@ -1071,9 +1071,9 @@ def arm(roach_list=None):
             if roach.fpga.is_connected():
                 ngood += 1
             else:
-                print 'Roach',roach.roach_ip,'not connected!'        
+                print('Roach',roach.roach_ip,'not connected!')        
         if ngood != len(roach_list):
-            print 'At least one ROACH not connected, so none were armed'
+            print('At least one ROACH not connected, so none were armed')
             return
         
         # Wait for turn of second (+ 200 ms) to ensure arming well
@@ -1094,12 +1094,12 @@ def arm(roach_list=None):
         for roach in roach_list:
             sync = roach.fpga.read_int('sync')
             if sync:
-                print roach.roach_ip,'synced =',True
+                print(roach.roach_ip,'synced =',True)
             else:
-                print roach.roach_ip,'synced =',False
+                print(roach.roach_ip,'synced =',False)
         mjd_str = '{:16.10f}'.format(tacc0)
         line = mjd_str+'     # MJD sync time: '+Time(tacc0,format='mjd').iso+'\n'
-        print line
+        print(line)
         f = open('/tmp/acc0time.txt','w')
         f.write(line)
         f.close()
@@ -1110,11 +1110,11 @@ def arm(roach_list=None):
             acc.login('admin','observer')
             acc.cwd('parm')
             # Send ACC0 time to ACC
-            print acc.storlines('STOR acc0time.txt',f)
+            print(acc.storlines('STOR acc0time.txt',f))
             f.close()
-            print 'Successfully wrote acc0time.txt to ACC'
+            print('Successfully wrote acc0time.txt to ACC')
         except:
-            print 'Cannot FTP acc0time.txt to ACC'
+            print('Cannot FTP acc0time.txt to ACC')
         
 
 def reload(roach_list=None,pcycle=False):
@@ -1126,22 +1126,22 @@ def reload(roach_list=None,pcycle=False):
     # Do some sanity checks on roach list
     ips = False
     if roach_list is None:
-        print 'Must provide a list of ip addresses or ROACH objects'
+        print('Must provide a list of ip addresses or ROACH objects')
         return
     if not isinstance(roach_list,list):
-        print 'Must provide a list of ip addresses or ROACH objects'
+        print('Must provide a list of ip addresses or ROACH objects')
         return
     if not isinstance(roach_list[0],Roach):
         # This is presumably a list of ip addresses
         if not isinstance(roach_list[0],str):
-            print 'Roach list is neither ROACH objects nor strings.'
+            print('Roach list is neither ROACH objects nor strings.')
             return
         else:
             ips = True
 
     # If pcycle is True, loop over roach boards and cycle their power
     if pcycle:
-        print 'Power cycling',roach_list
+        print('Power cycling',roach_list)
         for roach in roach_list:
             if ips:
                 rnum = roach[5:6]
@@ -1149,16 +1149,16 @@ def reload(roach_list=None,pcycle=False):
                 rnum = roach.roach_ip[5:6]
             result = pwr_cycle('pduroach.solar.pvt',rnum)
             if not result:
-                print 'Connection timed out. Try again.'
+                print('Connection timed out. Try again.')
                 return
         # All ROACH boards have been power cycled.
         if len(roach_list) < 7:
             # Wait 60 s for bootup before proceeding
-            print 'Sleeping 60 seconds while ROACH(es) bootup completes'
+            print('Sleeping 60 seconds while ROACH(es) bootup completes')
             time.sleep(60)
         else:
             # Wait 90 s for bootup before proceeding
-            print 'Sleeping 90 seconds while ROACH(es) bootup completes'
+            print('Sleeping 90 seconds while ROACH(es) bootup completes')
             time.sleep(90)
 
     # If ips is True, create ROACH objects from ip addresses
@@ -1166,12 +1166,12 @@ def reload(roach_list=None,pcycle=False):
         # Loop over roach list and replace ip address with ROACH object
         for i,roach in enumerate(roach_list):
             roach_list[i] = Roach(roach)
-            print roach_list[i].roach_ip,'boffile status',roach_list[i].msg
+            print(roach_list[i].roach_ip,'boffile status',roach_list[i].msg)
 
     # Now loop over ROACH object list to (re)load boffile
     for i, roach in enumerate(roach_list):
         roach.load(boffile=roach_list[i].boffile)
-        print roach.roach_ip,'status',roach.msg
+        print(roach.roach_ip,'status',roach.msg)
         
     # All set, so arm the boards
     arm(roach_list)
@@ -1183,10 +1183,10 @@ def reload(roach_list=None,pcycle=False):
 
     for roach in roach_list:
         ctrl = roach.fpga.read_int('swreg_ctrl')
-        print 'SWREG_CTRL is originally:',ctrl
+        print('SWREG_CTRL is originally:',ctrl)
         roach.fpga.write_int('swreg_ctrl',ctrl+1)
         ctrl = roach.fpga.read_int('swreg_ctrl')
-        print 'SWREG_CTRL is now:',ctrl
+        print('SWREG_CTRL is now:',ctrl)
 
     # Sleep for 2 s, then get current mcount on first roach
     time.sleep(2)
@@ -1195,7 +1195,7 @@ def reload(roach_list=None,pcycle=False):
     if len(roach_list) == 8:
         mcstart = 350
         #mcstart = 250 # 300 MHz
-    print 'MCount is:',mc,'Future MCount should be:',mc+mcstart
+    print('MCount is:',mc,'Future MCount should be:',mc+mcstart)
     # Set mcount to desired start value
     mc = mcstart
     # Set mcount_start in all roaches for 16 s from now
@@ -1204,7 +1204,7 @@ def reload(roach_list=None,pcycle=False):
         roach.fpga.write_int('swreg_mcount_start',mc)
     time.sleep(16)
     for i,roach in enumerate(roach_list):
-        print 'MCount for roach',i,roach.fpga.read_int('rx_mcount_fx0',0)
+        print('MCount for roach',i,roach.fpga.read_int('rx_mcount_fx0',0))
 
 # Helper routines that are not part of the ROACH object
 #======= rd_ini ========
@@ -1376,7 +1376,7 @@ def adj_eq_auto(niter=2,co_in=None,do_plot=False):
         plot_apratio(po=po0,ac=ac0,co=co0,fseq=fseq0,lineplot=True)
         plt.show()
     for i in range(niter):
-        print 'Iteration: '+str(i+1)
+        print('Iteration: '+str(i+1))
         # adjust new equalizer coefficients
         co1 = calc_eq(po=po0, ac=ac0, fseq=fseq0)
         # apply new equalizer coefficients
@@ -1398,21 +1398,21 @@ def set_eq_all(roach_list=None,co=None,verbose=False):
         roach_list = [Roach('roach'+str(i+1)) for i in range(8)]
     if co is None:
         co = numpy.zeros((16,2,34))+16.
-    print 'setting equalizer levels for all 8 ROACHes...'
+    print('setting equalizer levels for all 8 ROACHes...')
     for i in range(8): 
         if verbose:
-            print 'roach '+str(i+1)+' is connected? ', roach_list[i].fpga.is_connected()
+            print('roach '+str(i+1)+' is connected? ', roach_list[i].fpga.is_connected())
         roach_list[i].set_eq_array(coeff=co[i*2:i*2+2,:,:])
 
 def jcap_data():
     import glob,dbutil
-    import pcapture2 as p
+    from . import pcapture2 as p
     import os
     # capture 1-s of data using Jim McK capture
     p.sendcmd('/home/user/test_svn/Miriad/packet16_dump_test/dpp_packet_frame_dump')
     # get the newest capture file
     capfile=max(glob.iglob('/data1/PRT/PRT*.dat'),key=os.path.getctime)
-    print 'Captured data in file: '+capfile
+    print('Captured data in file: '+capfile)
     # read the frequency sequence
     cursor = dbutil.get_cursor()
     query = 'select top 50 * from hV37_vD50 order by Timestamp desc'
@@ -1421,7 +1421,7 @@ def jcap_data():
         fs=(data['FSeqList']-0.45)*2.
         fseq=numpy.flipud(numpy.round(fs.tolist()).astype(int))
     else:
-        print 'query from the stateframe failed...'
+        print('query from the stateframe failed...')
         return
     out=p.rd_jspec(capfile)
     po=out['p']
@@ -1435,7 +1435,7 @@ def calc_eq(po=None, ac=None, co=numpy.zeros((16,2,34))+16., fseq=None, rminmax=
     co_out=numpy.zeros((nant,nx,nifb))
     for i in range(nant): 
         for j in range(nx):
-            co_tmp=[list([]) for _ in xrange(nifb)]
+            co_tmp=[list([]) for _ in range(nifb)]
             for t in range(nt):
                 ifb=fseq[t]-1
                 co_=co_in[i,j,ifb]
@@ -1484,12 +1484,12 @@ def plot_apratio(po=None,ac=None,co=numpy.zeros((16,2,34))+16.,fseq=None,lineplo
                 rmed[t]=numpy.nanmedian(r[:,t][r[:,t].nonzero()])
             ax[0,i].set_title('Ant '+str(i+1))
             if lineplot:
-                ax[j*4+2,i].plot(range(nt),rmed,'.')
+                ax[j*4+2,i].plot(list(range(nt)),rmed,'.')
                 ax[j*4+2,i].set_ylim([0.1,10.])
                 ax[j*4+2,i].set_yscale('log')
             else:
                 ax[j*4+2,i].imshow(numpy.log10(r),vmin=-1,vmax=1)
-            ax[j*4+3,i].plot(range(nt),co_t,'.')
+            ax[j*4+3,i].plot(list(range(nt)),co_t,'.')
             ax[j*4+3,i].set_ylim([4.,64.])
             if i > 0:
                 ax[j*4,i].get_yaxis().set_ticks([])
@@ -1507,10 +1507,10 @@ def seteq(coeff):
 def readeq():
     ro = [Roach('roach'+str(i+1)) for i in range(8)]
     for rn in ro:
-        print ' '
-        print rn.roach_ip,
+        print(' ')
+        print(rn.roach_ip, end=' ')
         for i in range(4):
             buf = rn.fpga.read('eq_x'+str(i)+'_coeffs',8192*4)
             vals = numpy.array(struct.unpack('>16384h',buf),dtype='>h')
-            print ' eq_x'+str(i)+'_coeffs is',vals[0]/64.,
+            print(' eq_x'+str(i)+'_coeffs is',vals[0]/64., end=' ')
         rn.fpga.stop()

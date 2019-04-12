@@ -25,11 +25,11 @@
 #    of order.  When first antenna has a higher number, swap i,j indices in ibl lookup.
 import aipy
 import os
-from util import Time
+from .util import Time
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
-import spectrogram_fit as sp
+from . import spectrogram_fit as sp
 import copy
 
 def readXdata(filename):
@@ -60,7 +60,7 @@ def readXdata(filename):
     # Use antennalist if available
     if 'antlist' in uv.vartable:
         ants = uv['antlist']
-        antlist = map(int, ants.split())
+        antlist = list(map(int, ants.split()))
     else:
         antlist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
@@ -161,14 +161,14 @@ def get_X_data(data):
                 src = copy.copy(src0)
                 fghz = freq
             if src != src0:
-                print 'Source name:',src0,'is different from initial source name:',src
-                print 'Will stop reading files.'
+                print('Source name:',src0,'is different from initial source name:',src)
+                print('Will stop reading files.')
                 break
             IDBdatalist.append(IDBdata)
             uvw.append(uvwdata)
             times.append(timearray)
         except:
-            print 'The problematic file is: ' + files
+            print('The problematic file is: ' + files)
     # Sometimes an IDB file will be truncated early and have a number of frequencies
     # that is incompatible with the others, so make a list of the number of frequencies 
     # in each IDBdata and keep only those with the most common number.
@@ -181,8 +181,8 @@ def get_X_data(data):
     nfgood = np.median(nfs)
     badidx, = np.where(nfs != nfgood)
     if len(badidx) != 0 and len(nfs) < 3:
-        print 'Files have different numbers of frequencies, and result is ambiguous.'
-        print 'Will take the file with the higher number of frequencies'
+        print('Files have different numbers of frequencies, and result is ambiguous.')
+        print('Will take the file with the higher number of frequencies')
         nfgood = nfs.max()
     # Make a list, nfbad, of entries with fewer than the max number of frequencies
     nfbad = []
@@ -194,7 +194,7 @@ def get_X_data(data):
         IDBdatalist.pop(nfbad[i])
         times.pop(nfbad[i])
         uvw.pop(nfbad[i])
-        print 'File',data[nfbad[i]],'eliminated due to too few frequencies.'
+        print('File',data[nfbad[i]],'eliminated due to too few frequencies.')
     IDBdata = np.concatenate(IDBdatalist,2)
     times = Time(np.array(np.concatenate(times)).astype('float'),format='jd')
     uvw = np.concatenate(uvw,0)
@@ -309,6 +309,6 @@ def show_selfcalibrated(index, trange, plot='multipanel', antennas=0):
                 ax[2,4].text(100,10,'Total Power',color='white')
                 plt.subplots_adjust(left=0.02, bottom=0.03, right=0.99, top=0.97, wspace=0.20, hspace=0.20)
             else:
-                print 'please choose valid plot type'
+                print('please choose valid plot type')
 
     

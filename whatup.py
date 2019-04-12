@@ -19,17 +19,17 @@
 #    27-m cable tension is fixed, so go back to +/- 55-degree HA limits.
 
 import os, util
-import eovsa_cat
-from eovsa_visibility import *
+from . import eovsa_cat
+from .eovsa_visibility import *
 from pylab import *
 import copy
-from readvla import readvlacaldb
+from .readvla import readvlacaldb
 import numpy as np
 import matplotlib.cm as cm
 from astropy.time import TimeDelta
 import matplotlib.dates as mdates
 
-import tooltip as tt
+from . import tooltip as tt
 
 def deg(rad):
     return (rad * 180./pi + 180) % 360 - 180
@@ -74,7 +74,7 @@ def whatup(minflux=7., dur=24., t=None, showtp=False):
     try:
         float(dur)
     except ValueError:
-        print 'Bad value for dur. Use default dur=8.'
+        print('Bad value for dur. Use default dur=8.')
         dur = 8.
 
     # Add times in 1-min steps up to duration dur (hours)

@@ -1,4 +1,4 @@
-from eovsa_lst import *
+from .eovsa_lst import *
 
 def geosat_trackfile(name, hadeg, decdeg):
     # Generates a 1-hour track file for a geosynchronous satellite

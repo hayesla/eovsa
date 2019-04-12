@@ -14,7 +14,7 @@
 #     (in case BRICK outlet is powered off). Added try..except clause 
 #     to just return zeros in __brickmonitor_query(), for this case.
 #
-import i_worker
+from . import i_worker
 import socket
 import struct
 
@@ -433,7 +433,7 @@ class BrickWorker(i_worker.IWorker):
             mantissa -= 0x1000000000
         if mantissa == 0 :
             return(0.0)
-        exp = num & 0x00000FFFL
+        exp = num & 0x00000FFF
         exp -= 2082
         return (mantissa * pow(2.0, float(exp))) # return (num >> 12) * 2**((num & 0xFFF) - 2082)
 

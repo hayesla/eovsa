@@ -295,31 +295,31 @@ from PyQt4 import QtGui, QtCore
 #from tkMessageBox import *
 #from tkFileDialog import *
 from ftplib import FTP
-import urllib2
-import util
+import urllib.request, urllib.error, urllib.parse
+from . import util
 import threading, pwr_cycle
 import subprocess
-import roach
-from eovsa_tracktable import *
-from eovsa_array import *
-from eovsa_lst import eovsa_ha
+from . import roach
+from .eovsa_tracktable import *
+from .eovsa_array import *
+from .eovsa_lst import eovsa_ha
 from math import pi
-from readvla import *
-from scan_header import *
-from gen_schedule_sf import *
-import stateframe, stateframedef
+from .readvla import *
+from .scan_header import *
+from .gen_schedule_sf import *
+from . import stateframe, stateframedef
 from aipy.phs import PointingError
 import corr, time, numpy, socket, struct, sys
 import ephem
-import eovsa_cat
-from eovsa_visibility import scan_visible
-from whenup import whenup
+from . import eovsa_cat
+from .eovsa_visibility import scan_visible
+from .whenup import whenup
 #import starburst
 from matplotlib.mlab import find
-import cal_header
-import adc_cal2
-import pcapture2
-from whenup import make_sched
+from . import cal_header
+from . import adc_cal2
+from . import pcapture2
+from .whenup import make_sched
 
 # Determine whether this is the master schedule (Subarray1) or controlling a second subarray
 # To run the master schedule, just type > python schedule.py
@@ -389,11 +389,11 @@ def init_scanheader_dict(version=37.0):
     mjd0 = aa.date + 15019.5   # Convert from ephem date to mjd
 
     try:
-        f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/acc0time.txt',timeout=1)
+        f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/acc0time.txt',timeout=1)
         mjdacc0 = np.double(f.readline().split()[0])
         f.close()
     except:
-        print t.iso,'ACC connection for acc0 time timed out.  Reading from /tmp/acc0time.txt'
+        print(t.iso,'ACC connection for acc0 time timed out.  Reading from /tmp/acc0time.txt')
         f = open('/tmp/acc0time.txt','r')
         mjdacc0 = np.double(f.readline().split()[0])
         f.close()
@@ -419,12 +419,12 @@ def init_scanheader_dict(version=37.0):
         dcen  = dcenters[:,0]
         dceny = dcenters[:,1]
     except:
-        print t.iso,'SQL connection for delay centers failed.'
+        print(t.iso,'SQL connection for delay centers failed.')
         dcen = [0]*16
     
     try:
         # Read eovsa_corr.ini file from ACC and get ROACH antenna assignments. 
-        inifile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/eovsa_corr.ini',timeout=1)
+        inifile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/eovsa_corr.ini',timeout=1)
         antasgn = ''
         for line in inifile.readlines():
             if line.find('antasgn') == 0:
@@ -433,9 +433,9 @@ def init_scanheader_dict(version=37.0):
         # Convert string to numpy array
         antlist = numpy.array(antasgn[:-1].split(',')).astype('int')
     except:
-        print t.iso,'ACC connection for eovsa_corr.ini (ROACH antenna assignments) timed out.'
+        print(t.iso,'ACC connection for eovsa_corr.ini (ROACH antenna assignments) timed out.')
         antlist = numpy.arange(16)   # Assume [bad assumption!] that antennas are assigned in order
-    print t.iso, 'Antlist is:', antlist
+    print(t.iso, 'Antlist is:', antlist)
     
     sh_dict = {'timestamp': timestamp,
                'Version': version,
@@ -585,7 +585,7 @@ def get_antlist(key='sun',filename='default.antlist'):
     try:
         return antlist_dict[key.lower()]
     except:
-        print 'Warning: get_antlist() could not find an antlist of name', key,
+        print('Warning: get_antlist() could not find an antlist of name', key, end=' ')
         'in file', filename + '. In this case get_antlist() returns an empty string.'
         return ''
 
@@ -637,7 +637,7 @@ class App(QtGui.QMainWindow):
         # binsize, xmlpath, scdport and sfport
         try:
             self.accini = stateframe.rd_ACCfile()
-        except urllib2.URLError:
+        except urllib.error.URLError:
             showerror('Error','ACC unreachable, or ACC.ini file does not exist\n'
                                      +'Cannot continue.')
             exit()
@@ -742,7 +742,7 @@ class App(QtGui.QMainWindow):
                         visible = scan_visible(src,self.aa,trange,check_27m,check_2m)
                         if not visible:
                             self.error = 'Warning, source '+name+' not visible at scheduled time: Schedule line '+str(i+1)
-                            print self.error
+                            print(self.error)
                     except:
                         self.error = 'Err: source '+name+' not found in catalog.  Not added to schedule!'
 
@@ -1051,24 +1051,24 @@ class FormWidget(QtGui.QWidget):
                 #self.brd_clk_freq = 300
             self.roaches.append(roachModule.Roach(roach_ip, boffile_name))#, cfg))
             if self.roaches[-1].msg == 'Success':
-                print roach_ip,'is reachable'
+                print(roach_ip,'is reachable')
                 self.roaches[-1].dlasweep = None
                 try:
                     self.roaches[-1].brd_clk = self.roaches[-1].fpga.est_brd_clk()
-                    print roach_ip,'clock is',self.roaches[-1].brd_clk
+                    print(roach_ip,'clock is',self.roaches[-1].brd_clk)
                     if self.brd_clk_freq is None:
                         # Board clock has not been set yet, so set it once (from first ROACH)
                         self.brd_clk_freq = int(self.roaches[-1].brd_clk)
                     if abs(self.roaches[-1].brd_clk-self.brd_clk_freq)>1:
-                        print roach_ip,'clock NOT', self.brd_clk_freq, 'MHz.'
+                        print(roach_ip,'clock NOT', self.brd_clk_freq, 'MHz.')
                 except:
-                    print roach_ip,'could NOT read FPGA clock speed. Will mark unreachable'
+                    print(roach_ip,'could NOT read FPGA clock speed. Will mark unreachable')
                     self.roaches[-1].brd_clk = 0.0
                     self.roaches[-1].fpga.stop()
                     self.roaches[-1].fpga = None
                 sh_dict['roach_brd_clk'][rnum] = self.roaches[-1].brd_clk
             else:
-                print roach_ip,'is unreachable!',self.roaches[-1].msg
+                print(roach_ip,'is unreachable!',self.roaches[-1].msg)
                 self.roaches.pop()
 
     #============================
@@ -1078,7 +1078,7 @@ class FormWidget(QtGui.QWidget):
         # which should hopefully do it, but we should also log the fact by setting
         # a flag in the self object.
         self.error = 'The 15-s-alarm went off!'
-        print self.error
+        print(self.error)
         # Try to reestablish connection to the ROACHes, and set self.fpga accordingly
         # This will keep dla2roach() from hanging.
         self.connect2roach()
@@ -1146,13 +1146,13 @@ class FormWidget(QtGui.QWidget):
         w = event.widget
         command = w.get()
         if w == self.wproj:
-            print 'Project is:',command
+            print('Project is:',command)
         elif w == self.woper:
-            print 'Observer is:',command
+            print('Observer is:',command)
         elif w == self.comm:
-            print 'Comment is:',command
+            print('Comment is:',command)
         else:
-            print 'unknown widget'
+            print('unknown widget')
 
     #============================
     def display_ctl(self,event):
@@ -1163,7 +1163,7 @@ class FormWidget(QtGui.QWidget):
             # Schedule is running, so clear selection and do nothing
             w.selection_clear(0,END)
         else:
-            sel = map(int, w.curselection())
+            sel = list(map(int, w.curselection()))
             if len(sel) == 1:
                 line = w.get(sel[0])
                 cmds = line[20:].split()
@@ -1190,7 +1190,7 @@ class FormWidget(QtGui.QWidget):
     #============================
     def adjust_selection(self,sel,delt):
         if len(sel) == 0:
-            sel = range(self.lastline)
+            sel = list(range(self.lastline))
         d = util.datime()
         for i in sel:
             line = self.L.get(i)
@@ -1207,7 +1207,7 @@ class FormWidget(QtGui.QWidget):
             are Hours, Minutes and Seconds. If no selection is made
             it will create an error.
         '''
-        sel = map(int, self.L.curselection())  # list of line indexes selected
+        sel = list(map(int, self.L.curselection()))  # list of line indexes selected
         if self.var.get() == 0:
             one_day = 1.
             self.adjust_selection(sel,-one_day)
@@ -1227,7 +1227,7 @@ class FormWidget(QtGui.QWidget):
             are Hours, Minutes and Seconds. If no selection is made
             it will create an error.
         '''
-        sel = map(int, self.L.curselection())  # list of line indexes selected
+        sel = list(map(int, self.L.curselection()))  # list of line indexes selected
         if self.var.get() == 0:
             one_day = 1.
             self.adjust_selection(sel,one_day)
@@ -1257,7 +1257,7 @@ class FormWidget(QtGui.QWidget):
             # Determine how many days from date of first line to today
             line = self.L.get(0)
             days = int(t.mjd) - int(mjd(line))
-            print 'Adding ',days,'days.'
+            print('Adding ',days,'days.')
             for i in range(self.lastline):
                 line = self.L.get(i)
                 linemjd = mjd(line) + days
@@ -1385,13 +1385,13 @@ class FormWidget(QtGui.QWidget):
                     else:
                         # No source found for wide, so mark line as a failure
                         line = line[:29] + 'No Src!!' + line[37:]
-                        print 'No source after searching the following sources: '
+                        print('No source after searching the following sources: ')
                         for f in fsortwide:
                             idx = fluxwide.index(f)
                             jys = fluxwide[idx]
                             src = srclistwide[idx]
                             visible = scan_visible(src,self.aa,trange)
-                            print src.name, jys, visible, src.ra, src.dec, '     ', src.az, src.alt
+                            print(src.name, jys, visible, src.ra, src.dec, '     ', src.az, src.alt)
                 self.L.delete(i)
                 self.L.insert(i,line)
                 if i == 1:
@@ -1409,7 +1409,7 @@ class FormWidget(QtGui.QWidget):
             insert it at the insertion indicator
         '''
         self.status.configure( state = NORMAL )
-        sel = map(int, self.L.curselection())
+        sel = list(map(int, self.L.curselection()))
         if len(sel) == 1:
             index = sel[0]
             self.content = self.E1.get().upper()
@@ -1534,11 +1534,11 @@ class FormWidget(QtGui.QWidget):
         global trigger_timer
         
         try:
-            k = sun_timer.keys()
+            k = list(sun_timer.keys())
         except:
             sun_timer = {}
         try:
-            k = trigger_timer.keys()
+            k = list(trigger_timer.keys())
         except:
             trigger_timer = {}
         
@@ -1569,14 +1569,14 @@ class FormWidget(QtGui.QWidget):
             except KeyError:
                 trigger_timer[antnum] = 1000   # start high so that it won't wait 20s before the first trigger
             if trigger_timer[antnum] < trigger_cadence:
-                if test_mode: print 'Skipping ant '+ str(antnum) + ' because <' +str(trigger_cadence)+' sec since last trigger'
+                if test_mode: print('Skipping ant '+ str(antnum) + ' because <' +str(trigger_cadence)+' sec since last trigger')
                 continue
             
             # skip this antenna if all crio monitor data for this ant is zero
             c = sf['Antenna'][antnum-1]['Controller']
-            sflist = array([stateframe.extract(data,c[k]) for k in c.keys()])
+            sflist = array([stateframe.extract(data,c[k]) for k in list(c.keys())])
             if len(find(sflist != 0)) == 0:
-                if test_mode: print 'Skipping ant '+ str(antnum)+' because no stateframe data from controller'
+                if test_mode: print('Skipping ant '+ str(antnum)+' because no stateframe data from controller')
                 continue
             
             trigger = False  # set this to True if too close to Sun
@@ -1586,10 +1586,10 @@ class FormWidget(QtGui.QWidget):
             runmode = runmode_map[rm]
             
             if test_mode:
-                print '-----------'
-                print 'LST:', lst, '- Sun coords:', sun_coords
-                print 'Antnum:', antnum
-                print 'Runmode:', rm, runmode
+                print('-----------')
+                print('LST:', lst, '- Sun coords:', sun_coords)
+                print('Antnum:', antnum)
+                print('Runmode:', rm, runmode)
             
             # determine whether to trigger moving to safe position
             
@@ -1606,7 +1606,7 @@ class FormWidget(QtGui.QWidget):
                 try:
                     t = sun_timer[antnum]
                 except KeyError:
-                    if test_mode: print 'KeyError! setting suntimer to 0'
+                    if test_mode: print('KeyError! setting suntimer to 0')
                     sun_timer[antnum] = 0.
                 # if Actual position is too close to Sun, increment timer by one second
                 sun_timer[antnum] = sun_timer[antnum] + 1.
@@ -1614,14 +1614,14 @@ class FormWidget(QtGui.QWidget):
                 # trigger if Actual position has been close to Sun for more than max_time
                 # (and not within 0.5 degrees of safe_pos)
                 safe_actual_dist = ephem.separation(actual_coords,safe_coords)
-                if test_mode: print 'Dist between stow and actual position:', safe_actual_dist
+                if test_mode: print('Dist between stow and actual position:', safe_actual_dist)
                 if safe_actual_dist > 0.5:
                     trigger = True
 
             if test_mode:
-                print 'Actual coords:', actual_coords, '- Actual dist:', actual_dist
-                print 'Sun timer:', sun_timer[antnum]
-                print 'Trigger based on Sun timer:', trigger
+                print('Actual coords:', actual_coords, '- Actual dist:', actual_dist)
+                print('Sun timer:', sun_timer[antnum])
+                print('Trigger based on Sun timer:', trigger)
                 
             # runmodes POSITION and TRACK: trigger if Requested pos too near Sun
             if runmode in ['track','position']:
@@ -1629,14 +1629,14 @@ class FormWidget(QtGui.QWidget):
                 dec_requested = sf_dict['RequestedElevation'][antnum-1] * pi/180.
                 requested_coords = (lst-HA_requested,dec_requested)
                 requested_dist = ephem.separation(requested_coords,sun_coords)*180./pi
-                if test_mode: print 'Requested coords:', requested_coords, '- Requested dist:', requested_dist
+                if test_mode: print('Requested coords:', requested_coords, '- Requested dist:', requested_dist)
                 if requested_dist < min_dist:
                     # trigger if Requested position is too close to Sun and not within 0.5 degrees of stow
                     safe_requested_dist = ephem.separation(requested_coords,safe_coords)
-                    if test_mode: print 'Dist between stow and requested position:', safe_requested_dist
+                    if test_mode: print('Dist between stow and requested position:', safe_requested_dist)
                     if safe_requested_dist > 0.5:
                         trigger = True
-            if test_mode: print 'Trigger:', trigger
+            if test_mode: print('Trigger:', trigger)
             
             if trigger:
                 trigger_timer[antnum] = 0. # reset timer so antenna has time to process command and slew off Sun
@@ -1647,9 +1647,9 @@ class FormWidget(QtGui.QWidget):
                 pos_cmd = 'position ' + safe_str + ' ant' + str(antnum)
                 self.sendctlline(stop_cmd)
                 self.sendctlline(pos_cmd)
-                print 'Antenna ' + str(antnum) + ' actual or requested position too close to Sun, sending to safe position: ' + safe_str
-                print stop_cmd
-                print pos_cmd
+                print('Antenna ' + str(antnum) + ' actual or requested position too close to Sun, sending to safe position: ' + safe_str)
+                print(stop_cmd)
+                print(pos_cmd)
             
         sys.stdout.flush()
                 
@@ -1677,7 +1677,7 @@ class FormWidget(QtGui.QWidget):
             pass
         else:
             # If elapsed time is not nominal (e.g. 990 or 1010), write it to log file.
-            print t.iso,str(int(self.telapsed*1000))
+            print(t.iso,str(int(self.telapsed*1000)))
             sys.stdout.flush() # Flush stdout (/tmp/schedule.log or /tmp/schedule_[self.subarray_name].log) so we can see this '-'.
 
         # Attempt to read from spawned task pwr_cycle.ant_toggle() queue.  Reads up to 10
@@ -1685,13 +1685,13 @@ class FormWidget(QtGui.QWidget):
         for i in range(10):
             try:
                 msg = pwr_cycle.q.get_nowait()
-                print t.iso,msg
+                print(t.iso,msg)
             except:
                 break
         # Attempt to read from spawned task pcapture2.capture_1s() queue.
         try:
             msg = pcapture2.q.get_nowait()
-            print t.iso,msg
+            print(t.iso,msg)
         except:
             pass
             
@@ -1700,9 +1700,9 @@ class FormWidget(QtGui.QWidget):
         if self.subarray_name != 'Subarray1':
             subarray1_pid = self.get_subarray_pid('Subarray1')
             if subarray1_pid == -1:
-                print util.datime().get('str'), \
+                print(util.datime().get('str'), \
                       'Warning: The master schedule (Subarray1) is not running.  This means that antenna diagnostic ' + \
-                      'information will not be updated in the ACC stateframe and no data will be written to the SQL database.'
+                      'information will not be updated in the ACC stateframe and no data will be written to the SQL database.')
                 sys.stdout.flush() # Flush stdout (/tmp/schedule.log or /tmp/schedule_[self.subarray_name].log) once per second so we can see the output.
 
         # Update phase tracking (u,v,w and delays)
@@ -1785,11 +1785,11 @@ class FormWidget(QtGui.QWidget):
             if r.fpga:
                 r.get_delays()
                 if r.msg == 'Success':
-                    delays = dict(zip(['dx0','dy0','dx1','dy1'],r.delays))
+                    delays = dict(list(zip(['dx0','dy0','dx1','dy1'],r.delays)))
                 else:
-                    delays = dict(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0]))
+                    delays = dict(list(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0])))
             else:
-                delays = dict(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0]))
+                delays = dict(list(zip(['dx0','dy0','dx1','dy1'],[0,0,0,0])))
             self.delays[rnum].update(delays)        
 
         for i in range(8):
@@ -1866,7 +1866,7 @@ class FormWidget(QtGui.QWidget):
             time.sleep(0.02)
             s.close()
         except socket.timeout: 
-            print util.datime().get('str'),'Socket time-out when writing sched stateframe to ACC'
+            print(util.datime().get('str'),'Socket time-out when writing sched stateframe to ACC')
             s.close()
         except:
             self.error = 'Err: Cannot write sched stateframe to ACC'
@@ -1896,7 +1896,7 @@ class FormWidget(QtGui.QWidget):
                     # When self.wait = 0, continue executing commands starting with
                     # line self.nextctlline, which should be line following $WAIT
                     self.wait -= 1
-                    print 'Waiting...',self.wait
+                    print('Waiting...',self.wait)
                     sys.stdout.flush()
                     if self.wait == 0:
                         self.execute_cmds()
@@ -1972,13 +1972,13 @@ class FormWidget(QtGui.QWidget):
                         else:
                             if r.dlasweep['pol'] == 'X':
                                 r.set_delays([dlax[a1-1]+dla,dlay[a1-1],dlax[a2-1],dlay[a2-1]])
-                                print 'DLASWEEP Ant',a1,'X delay',dla
+                                print('DLASWEEP Ant',a1,'X delay',dla)
                             elif r.dlasweep['pol'] == 'Y':
                                 r.set_delays([dlax[a1-1],dlay[a1-1]+dla,dlax[a2-1],dlay[a2-1]])
-                                print 'DLASWEEP Ant',a1,'Y delay',dla
+                                print('DLASWEEP Ant',a1,'Y delay',dla)
                             else:
                                 r.set_delays([dlax[a1-1]+dla,dlay[a1-1]+dla,dlax[a2-1],dlay[a2-1]])
-                                print 'DLASWEEP Ant',a1,'X and Y delay',dla
+                                print('DLASWEEP Ant',a1,'X and Y delay',dla)
                     elif r.dlasweep['ant'] == a2:
                         # Increment delay by one
                         r.dlasweep['dla'] += 1
@@ -1990,13 +1990,13 @@ class FormWidget(QtGui.QWidget):
                             r.dlasweep = None
                         if r.dlasweep['pol'] == 'X':
                             r.set_delays([dlax[a1-1],dlay[a1-1],dlax[a2-1]+dla,dlay[a2-1]])
-                            print 'DLASWEEP Ant',a2,'X delay',dla
+                            print('DLASWEEP Ant',a2,'X delay',dla)
                         elif r.dlasweep['pol'] == 'Y':
                             r.set_delays([dlax[a1-1],dlay[a1-1],dlax[a2-1],dlay[a2-1]+dla])
-                            print 'DLASWEEP Ant',a2,'Y delay',dla
+                            print('DLASWEEP Ant',a2,'Y delay',dla)
                         else:
                             r.set_delays([dlax[a1-1],dlay[a1-1],dlax[a2-1]+dla,dlay[a2-1]+dla])
-                            print 'DLASWEEP Ant',a2,'X and Y delay',dla
+                            print('DLASWEEP Ant',a2,'X and Y delay',dla)
                     elif r.dlasweep['ant'] == 0:
                         # If ant is 0, sweep delays for both antennas 
                         #             (used for total power polarization tests)
@@ -2010,13 +2010,13 @@ class FormWidget(QtGui.QWidget):
                             r.dlasweep = None
                         if r.dlasweep['pol'] == 'X':
                             r.set_delays([dlax[a1-1]+dla,dlay[a1-1],dlax[a2-1]+dla,dlay[a2-1]])
-                            print 'DLASWEEP Ant',a1,'and',a2,'X delay',dla
+                            print('DLASWEEP Ant',a1,'and',a2,'X delay',dla)
                         elif r.dlasweep['pol'] == 'Y':
                             r.set_delays([dlax[a1-1],dlay[a1-1]+dla,dlax[a2-1],dlay[a2-1]+dla])
-                            print 'DLASWEEP Ant',a1,'and',a2,'Y delay',dla
+                            print('DLASWEEP Ant',a1,'and',a2,'Y delay',dla)
                         else:
                             r.set_delays([dlax[a1-1]+dla,dlay[a1-1]+dla,dlax[a2-1]+dla,dlay[a2-1]+dla])
-                            print 'DLASWEEP Ant',a1,'and',a2,'X and Y delay',dla
+                            print('DLASWEEP Ant',a1,'and',a2,'X and Y delay',dla)
                             
                 if r.msg != 'Success':
                     self.error = r.msg+' '+r.roach_ip
@@ -2059,11 +2059,11 @@ class FormWidget(QtGui.QWidget):
             acc.login('admin','observer')
             acc.cwd('parm')
             # Send DCM table lines to ACC
-            print acc.storlines('STOR dcm.txt',g)
+            print(acc.storlines('STOR dcm.txt',g))
             g.close()
-            print 'Successfully wrote dcm.txt to ACC'
+            print('Successfully wrote dcm.txt to ACC')
         except:
-            print 'Cannot FTP dcm.txt to ACC'
+            print('Cannot FTP dcm.txt to ACC')
     
     #============================
     def execute_cmds(self):
@@ -2121,7 +2121,7 @@ class FormWidget(QtGui.QWidget):
             sh_dict['project'] = 'STARBURST'
             sh_dict['source_id'] = cmds[1]
             sh_dict['track_mode'] = 'RADEC '
-            print 'Source is',cmds[1]
+            print('Source is',cmds[1])
         elif cmds[0].upper() == 'GEOSAT' or cmds[0].upper() == 'DELAYCAL':
             sh_dict['project'] = 'GEOSAT'
             sh_dict['source_id'] = cmds[1].replace('_',' ')
@@ -2129,10 +2129,10 @@ class FormWidget(QtGui.QWidget):
             # moving satellite capability, track_mode for those should be 'SATELL'
             sh_dict['track_mode'] = 'FIXED '
             try:
-                f = urllib2.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt',timeout=20)
+                f = urllib.request.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt',timeout=20)
                 lines = f.readlines()
             except:
-                print util.Time.now().iso,'Connection to Celestrak timed out.'
+                print(util.Time.now().iso,'Connection to Celestrak timed out.')
                 sh_dict['source_id']='None'
                 lines = ['']
             for i,line in enumerate(lines):
@@ -2151,19 +2151,19 @@ class FormWidget(QtGui.QWidget):
                 geosat=aipy.amp.RadioFixedBody(sat.ra,sat.dec,name=sat.name)
                 self.aa.cat.add_srcs([geosat,geosat])
             else:
-                print 'Geosat named ',sh_dict['source_id'],'not found!'
+                print('Geosat named ',sh_dict['source_id'],'not found!')
                 sh_dict['source_id']='None'
         else:
             # Default project is just the first command on line (truncate to 32 chars)
             sh_dict['project'] = cmds[0][:32]
-            print cmds[0][:32]
+            print(cmds[0][:32])
             if len(cmds) == 1:
                 # Case of only one string on command line
                 sh_dict['source_id'] = 'None'
             else:
                 # Default source ID is second string on command line (truncate to 12 chars)
                 sh_dict['source_id'] = cmds[1][:12]
-            print sh_dict['source_id']
+            print(sh_dict['source_id'])
             sh_dict['track_mode'] = 'FIXED '        
         lines = f2.readlines()
         for ctlline in lines:
@@ -2298,13 +2298,13 @@ class FormWidget(QtGui.QWidget):
                     acc.close()
                     f.close()
                     #userpass = 'admin:observer@'
-                    f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fname)
+                    f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+fname)
                     tbl_echo = ''
                     for line in f.readlines():
                         tbl_echo += line.rstrip()+'\n'
                     if tbl != tbl_echo:
-                        print 'Error: Transfer of track table',fname,'failed!'
-                        print tbl,'not equal\n',tbl_echo
+                        print('Error: Transfer of track table',fname,'failed!')
+                        print(tbl,'not equal\n',tbl_echo)
                 #==== FEM-INIT ====
                 elif ctlline.split()[0].upper() == '$FEM-INIT':
                     ant_str = 'ant1-13'
@@ -2346,14 +2346,14 @@ class FormWidget(QtGui.QWidget):
                             if RX_pos < 150.:
                                 # Consistent with LoRX being in position, or heading there, so set as True
                                 self.lorx = True
-                                print 'Ant 14 delays will be set for LO-Frequency Receiver'
+                                print('Ant 14 delays will be set for LO-Frequency Receiver')
                             else:
-                                print 'Ant 14 outlet set for LO-Frequency Receiver, but RxcSelect position is wrong.'
-                                print 'Ant 14 delays will be set for HI-Frequency Receiver.'
+                                print('Ant 14 outlet set for LO-Frequency Receiver, but RxcSelect position is wrong.')
+                                print('Ant 14 delays will be set for HI-Frequency Receiver.')
                         else:
-                            print 'Ant 14 delays will be set for HI-Frequency Receiver.'
+                            print('Ant 14 delays will be set for HI-Frequency Receiver.')
                     else:
-                        print 'LO-Frequency Receiver check failed due to bad (0) stateframe.'
+                        print('LO-Frequency Receiver check failed due to bad (0) stateframe.')
 
                     # Fetch current delay centers from SQL database, and write them to
                     # the ACC file /parm/delay_centers.txt, which is used by the dppxmp program
@@ -2380,14 +2380,14 @@ class FormWidget(QtGui.QWidget):
                         acc.login('admin', 'observer')
                         acc.cwd('parm')
                         # Send DCM table lines to ACC
-                        print acc.storlines('STOR delay_centers.txt', f)
+                        print(acc.storlines('STOR delay_centers.txt', f))
                         f.close()
-                        print 'Successfully wrote delay_centers.txt to ACC'
+                        print('Successfully wrote delay_centers.txt to ACC')
                         
                         sh_dict['dlacen']  = dcenters[:,0]
                         sh_dict['dlaceny'] = dcenters[:,1]
                     except:
-                        print t.iso,'SQL connection for delay centers failed.  Delay center not updated'
+                        print(t.iso,'SQL connection for delay centers failed.  Delay center not updated')
 
                     if self.subarray_name == 'Subarray1':
                         try:
@@ -2416,7 +2416,7 @@ class FormWidget(QtGui.QWidget):
                     sh_dict['timestamp'] = tsec.lv
                     if srcname is not None:
                         set_uvw(self.aa,tsec,srcname)
-                        print 'Current RA, Dec, HA:',sh_dict['ra'],sh_dict['dec'],sh_dict['ha']
+                        print('Current RA, Dec, HA:',sh_dict['ra'],sh_dict['dec'],sh_dict['ha'])
                         sys.stdout.flush()
                     # Read KATADC status registers.  This can take a long time...
                     sys.stdout.write('There are '+str(len(self.roaches))+' active ROACHes\n')
@@ -2458,11 +2458,11 @@ class FormWidget(QtGui.QWidget):
                             
                     # Read acc0time.txt file from ACC and update scan header
                     try:
-                        f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/acc0time.txt',timeout=1)
+                        f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/acc0time.txt',timeout=1)
                         mjdacc0 = np.double(f.readline().split()[0])
                         f.close()
                     except:
-                        print t.iso,'ACC connection for acc0 time timed out.  Reading from /tmp/acc0time.txt'
+                        print(t.iso,'ACC connection for acc0 time timed out.  Reading from /tmp/acc0time.txt')
                         f = open('/tmp/acc0time.txt','r')
                         mjdacc0 = np.double(f.readline().split()[0])
                         f.close()
@@ -2515,32 +2515,32 @@ class FormWidget(QtGui.QWidget):
                     # range (does nothing if PA adjustment routine is already running)
                     #   Usage: $PA-SWEEP PA rate, where angle is swept from -PA to PA at
                     #                             rate of 1-degree-per-rate [s]
-                    print 'Got '+ctlline.split()[0].upper()+' command.'
+                    print('Got '+ctlline.split()[0].upper()+' command.')
                     if self.PAthread is None or not self.PAthread.is_alive():
                         # Thread is not already running, so it is safe to proceed
                         try:
-                            PA,rate = map(numpy.int,ctlline.strip().split()[-2:])
+                            PA,rate = list(map(numpy.int,ctlline.strip().split()[-2:]))
                         except:
                             # Reading arguments failed, so use defaults
                             PA = 80
                             rate = 3
-                        print 'PA and rate are ',PA,rate
+                        print('PA and rate are ',PA,rate)
                         try:
                             # Spawn the stateframe.PA_sweep() routine to update PA once/rate
                             self.PAthread = threading.Thread(target=stateframe.PA_sweep,kwargs={'PA':PA,'rate':rate})
                             self.PAthread.daemon = True
                             self.PAthread.start()
-                            print 'PAthread started.'
+                            print('PAthread started.')
                         except:
                             # Something went wrong
-                            print 'Error spawning PA_sweep task'
+                            print('Error spawning PA_sweep task')
                             pass
                 #==== PA-TRACK ====
                 elif ctlline.split()[0].upper() == '$PA-TRACK':
                     # Track 27-m focus rotation mechanism to correct for parallactic angle 
                     # of given antenna (does nothing if antenna not correctly specified)
                     #   Usage: $PA-TRACK ant4 <CROSSED>
-                    print 'Got '+ctlline.split()[0].upper()+' command.'
+                    print('Got '+ctlline.split()[0].upper()+' command.')
                     if self.PAthread is None or not self.PAthread.is_alive():
                         # Thread is not already running, so it is safe to proceed
                         antstr = ctlline.strip().split()[1].upper()
@@ -2548,18 +2548,18 @@ class FormWidget(QtGui.QWidget):
                         if len(ctlline.strip().split()) == 3:
                             if ctlline.strip().split()[2].upper() == 'CROSSED':
                                 crossed = True
-                        print 'Given antenna is '+antstr
+                        print('Given antenna is '+antstr)
                         try:
                             # Spawn the stateframe.PA_adjust() routine to update PA once/minute
                             antn = pcapture2.ant_str2list(antstr)[0]
-                            print 'Antenna index is',antn
+                            print('Antenna index is',antn)
                             self.PAthread = threading.Thread(target=stateframe.PA_adjust,kwargs={'ant':antn,'crossed':crossed})
                             self.PAthread.daemon = True
                             self.PAthread.start()
-                            print 'PAthread started.'
+                            print('PAthread started.')
                         except:
                             # Antenna not correctly specified, so do not spawn routine
-                            print 'Antenna specification no good?'
+                            print('Antenna specification no good?')
                             pass
                 #==== PA-STOP ====
                 elif ctlline.split()[0].upper() == '$PA-STOP':
@@ -2584,7 +2584,7 @@ class FormWidget(QtGui.QWidget):
                 elif ctlline.split()[0].upper() == '$DLASWEEP':
                     try:
                         vals = ctlline.split()
-                        print vals
+                        print(vals)
                         if len(vals) == 4:
                             junk,ant,dla,dlastop = vals
                             pol = None
@@ -2595,7 +2595,7 @@ class FormWidget(QtGui.QWidget):
                             if int(ant) == a1 or int(ant) == a2 or int(ant) == 0:
                                 r.dlasweep = {'ant':int(ant),'dla':int(dla),'dlastop':int(dlastop),'pol':pol}
                     except:
-                        print 'Could not interpret $DLASWEEP command'
+                        print('Could not interpret $DLASWEEP command')
                 #==== WAIT ====
                 elif ctlline.split()[0].upper() == '$WAIT':
                     # Need to wait for given number of seconds, so set self.waitmode to True,
@@ -2603,12 +2603,12 @@ class FormWidget(QtGui.QWidget):
                     try:
                         dur = int(ctlline.split()[1])
                     except:
-                        print 'Could not interpret duration on $WAIT command--defaulting to 10 s'
+                        print('Could not interpret duration on $WAIT command--defaulting to 10 s')
                         dur = 10
                     self.waitmode = True
                     #self.nextctlline = i+1
                     self.wait = dur
-                    print 'Initializing wait for',dur,'seconds'
+                    print('Initializing wait for',dur,'seconds')
                     #break
                 #==== PCYCLE ====
                 elif ctlline.split()[0].upper() == '$PCYCLE':
@@ -2616,7 +2616,7 @@ class FormWidget(QtGui.QWidget):
                     # for a given antenna.
                     device, ants = self.interpret_pcycle(ctlline)
                     if device is None:
-                        print 'Error interpreting $PCYCLE command',ctlline
+                        print('Error interpreting $PCYCLE command',ctlline)
                     else:
                         # Since device is not None, interpreting tokens succeeded.
                         if device == 'ANT':
@@ -2638,7 +2638,7 @@ class FormWidget(QtGui.QWidget):
                         r.get_attn()
                         rnum = int(r.roach_ip[5:6])
                         if r.msg == 'Success':
-                            sdev = dict(zip(['sdev.adc0.h','sdev.adc0.v','sdev.adc1.h','sdev.adc1.v'],r.sdev))
+                            sdev = dict(list(zip(['sdev.adc0.h','sdev.adc0.v','sdev.adc1.h','sdev.adc1.v'],r.sdev)))
                             sh_dict['katadc'][rnum].update(sdev)
                         else:
                             # In case of failure, set to empty dictionary
@@ -2660,7 +2660,7 @@ class FormWidget(QtGui.QWidget):
                     # Get LNA_settings.txt file from ACC and send the series of
                     # commands needed to set the LNA voltages
                     #userpass = 'admin:observer@'
-                    lnafile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/LNA_settings.txt',timeout=1)
+                    lnafile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/LNA_settings.txt',timeout=1)
                     lines = lnafile.readlines()
                     lnafile.close()
                     lnas = {0:'hh',1:'lh',2:'lv',3:'hv'}
@@ -2679,7 +2679,7 @@ class FormWidget(QtGui.QWidget):
                                     lna,fstr,polstr,model,sn,vdrain,vg1,vg2,idrain =lines[i+2+k].split()
                                     lnas_b[int(lna)] = {'vd':float(vdrain),'vg1':float(vg1),'vg2':float(vg2)}
                     except:
-                        print 'Error reading/parsing LNA_settings.txt file from ACC'
+                        print('Error reading/parsing LNA_settings.txt file from ACC')
                         
                     try:
                         for i in range(4):
@@ -2700,13 +2700,13 @@ class FormWidget(QtGui.QWidget):
                             cmdstr = 'LNA-GATE2 '+lnas[i]+' '+str(lnas_b[i]['vg2'])+' ANT15'
                             self.sendctlline(cmdstr)
                     except:
-                        print 'Error sending LNA_settings to ACC'
+                        print('Error sending LNA_settings to ACC')
 
                 #==== SUBARRAY ====
                 elif ctlline.split()[0].upper() == '$SUBARRAY':
                     # run the SUBARRRAY1 command if this is the master schedule,
                     # otherwise run the SUBARRAY2 command
-                    print '$SUBARRAY line is:',ctlline
+                    print('$SUBARRAY line is:',ctlline)
                     if ctlline.find('.antlist') == -1:
                         # there is no .antlist file in this line --> the antlist
                         # should be directly specified in the line, e.g.:
@@ -2736,10 +2736,10 @@ class FormWidget(QtGui.QWidget):
                         s.send(cmd)
                         time.sleep(0.01)
                         s.close()
-                        print 'ctl cmd \'' + ctlline + '\' sent to ACC as \'' + cmd + '\''
+                        print('ctl cmd \'' + ctlline + '\' sent to ACC as \'' + cmd + '\'')
                         sys.stdout.flush()
                     except:
-                        print 'ctl cmd \'' + cmd + '\' not succesfully sent to ACC'
+                        print('ctl cmd \'' + cmd + '\' not succesfully sent to ACC')
                         sys.stdout.flush()
                         pass
             else:
@@ -2747,7 +2747,7 @@ class FormWidget(QtGui.QWidget):
                 if cmds[0].upper() == 'FSEQ-FILE':
                     # This is an FSEQ-FILE command, so find and set frequency sequence
                     # Just FTP sequence file from ACC
-                    fseqfile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+cmds[1])
+                    fseqfile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/'+cmds[1])
                     nrpt = None     # Initially not defined
                     fsequence = ''  # Initially empty
                     for line in fseqfile.readlines():
@@ -2757,14 +2757,14 @@ class FormWidget(QtGui.QWidget):
                         if line.find(keywd) == 0:
                             dwellseq = line[len(keywd):].split(',')
                             if len(dwellseq) != 35:
-                                print 'FSEQ file',cmds[1],'DWELL line must have 35 entries.'
+                                print('FSEQ file',cmds[1],'DWELL line must have 35 entries.')
                                 break
                             # Find nearest-integer number of 0.02 s periods
                             nrpt = (numpy.array(dwellseq).astype('float')/0.02 + 0.5).astype('int')
                         keywd = 'LIST:SEQUENCE'
                         if line.find(keywd) == 0:
                             if nrpt is None:
-                                print 'FSEQ file',cmds[1],'DWELL line must come before SEQUENCE line.'
+                                print('FSEQ file',cmds[1],'DWELL line must come before SEQUENCE line.')
                                 break
                             bands = numpy.array(line[len(keywd):].split(',')).astype('int')
                             # Step through bands in fsequence and repeat them according to
@@ -2774,7 +2774,7 @@ class FormWidget(QtGui.QWidget):
                                     fsequence += str(band)+','
                             break
                     if fsequence == '':
-                        print 'FSEQ file',cmds[1],'not successfully interpreted.'
+                        print('FSEQ file',cmds[1],'not successfully interpreted.')
                         # Default to allowing all channels in RFI mask
                         sh_dict.update({'chanmask':numpy.array([1]*204800,'byte')})
                     else:

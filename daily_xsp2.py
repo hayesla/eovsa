@@ -11,8 +11,8 @@ if __name__ == "__main__":
     import matplotlib
     matplotlib.use("Agg")
 
-import read_idb as ri
-from util import Time
+from . import read_idb as ri
+from .util import Time
 import numpy as np
 import glob
 
@@ -30,13 +30,13 @@ def get_goes_data(t=None,sat_num=None):
     from sunpy.util.config import get_and_create_download_dir
     import shutil
     from astropy.io import fits
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
     if t is None:
         t = Time(Time.now().mjd - 1,format='mjd')
     yr = t.iso[:4]
     datstr = t.iso[:10].replace('-','')
     if sat_num is None:
-        f = urllib2.urlopen('https://umbra.nascom.nasa.gov/goes/fits/'+yr)
+        f = urllib.request.urlopen('https://umbra.nascom.nasa.gov/goes/fits/'+yr)
         lines = f.readlines()
         sat_num = []
         for line in lines:
@@ -49,7 +49,7 @@ def get_goes_data(t=None,sat_num=None):
     for sat in sat_num:
         filename = 'go'+sat+datstr+'.fits'
         url = 'https://umbra.nascom.nasa.gov/goes/fits/'+yr+'/'+filename
-        f = urllib2.urlopen(url)
+        f = urllib.request.urlopen(url)
         with open(get_and_create_download_dir()+'/'+filename,'wb') as g:
             shutil.copyfileobj(f,g)
         filenames.append(get_and_create_download_dir()+'/'+filename)
@@ -62,19 +62,19 @@ def get_goes_data(t=None,sat_num=None):
         merit = len(good)
         date_elements = gfits[0].header['DATE-OBS'].split('/')
         if merit > pmerit:
-            print 'File:',file,'is best'
+            print('File:',file,'is best')
             pmerit = merit
             goes_data = data
             goes_t = Time(date_elements[2]+'-'+date_elements[1]+'-'+date_elements[0]).plot_date + tsecs/86400.
     try:
         return goes_t, goes_data
     except:
-        print 'No good GOES data for',datstr
+        print('No good GOES data for',datstr)
         return None, None
         
 def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=True):
     # Plots (and returns) UDB data for an entire day
-    from flare_monitor import flare_monitor
+    from .flare_monitor import flare_monitor
     if t is None:
         t = Time.now()
     # Cannot get a GOES plot unless doplot is True
@@ -95,18 +95,18 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=True
     try:
         files = files[i:]
     except:
-        print 'No files found in /data1/eovsa/fits/UDB/ for',date
+        print('No files found in /data1/eovsa/fits/UDB/ for',date)
         return {}
     out = ri.read_idb(files,src='Sun')
     if gain_corr:
-        import gaincal2 as gc
+        from . import gaincal2 as gc
         out = gc.apply_gain_corr(out)
     trange = Time(out['time'][[0,-1]], format = 'jd')
     fghz = out['fghz']
     if doplot:
         import matplotlib.pylab as plt
         from matplotlib.dates import DateFormatter
-        import xspfits #jmm, 2018-01-05
+        from . import xspfits #jmm, 2018-01-05
         f, ax = plt.subplots(1,1,figsize=(14,5))
         pdata = np.sum(np.sum(np.abs(out['x'][0:11,:]),1),0)  # Spectrogram to plot
         X = np.sort(pdata.flatten())   # Sorted, flattened array
@@ -116,8 +116,8 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=True
         pdata[:,bad] = 0
         vmax = X[int(len(X)*0.95)]  # Clip at 5% of points
         im = ax.pcolormesh(Time(out['time'],format='jd').plot_date,out['fghz'],pdata,vmax=vmax)
-        print "***************** PDATA OUTPUT *********"
-        print pdata.shape
+        print("***************** PDATA OUTPUT *********")
+        print(pdata.shape)
         xspfits.daily_xsp_writefits(out, pdata)
         
         plt.colorbar(im,ax=ax,label='Amplitude [arb. units]')
@@ -197,10 +197,10 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, gain_corr=True
 
         ut, fl, projdict = flare_monitor(t)
         if fl == []:
-            print 'Error retrieving data for',t.iso[:10],'from SQL database.'
+            print('Error retrieving data for',t.iso[:10],'from SQL database.')
             return
         if projdict == {}:
-            print 'No annotation can be added to plot for',t.iso[:10]
+            print('No annotation can be added to plot for',t.iso[:10])
         else:
             defcolor = '#ff7f0e'
             nscans = len(projdict['Timestamp'])
@@ -261,13 +261,13 @@ if __name__ == "__main__":
         try:
             t = Time(sys.argv[1])
         except:
-            print 'Cannot interpret',sys.argv[1],'as a valid date/time string.'
+            print('Cannot interpret',sys.argv[1],'as a valid date/time string.')
             exit()
     if t is None:
         t = Time.now()   # Get today's date
         t2 = Time(t.mjd-2,format='mjd')   # Set t2 to day-before-yesterday
         t = Time(t.mjd-1,format='mjd')    # Set t to yesterday
-    print t.iso[:19],': ',
+    print(t.iso[:19],': ', end=' ')
 # easiest to test fits output without saving the figure
     blah = allday_udb(t=t, savfig=False)   # Process time t
     if not t2 is None:

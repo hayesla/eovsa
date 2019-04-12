@@ -9,7 +9,7 @@
 #      detail to verify it.  One change--inputs and outputs are
 #      in radians.
 
-from eovsa_lst import *
+from .eovsa_lst import *
 from numpy import pi, sin, cos, arcsin, arccos, arctan2
 lat = 37.233170*pi/180
 lng = -118.286953*pi/180

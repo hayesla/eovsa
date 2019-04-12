@@ -37,8 +37,8 @@ def readXdata(filename):
     return out, freq
 
 import copy
-import spectrogram_fit as sp
-from util import Time
+from . import spectrogram_fit as sp
+from .util import Time
 
 trange = Time(['2015-06-21 01:26:00','2015-06-21 01:46:00'])
 s = sp.Spectrogram(trange)

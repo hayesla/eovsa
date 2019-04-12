@@ -61,9 +61,9 @@
 #                                     + sin(src.alt)*cos(ovsa.lat))
 #    return ha
 
-from eovsa_array import *
+from .eovsa_array import *
 from math import pi
-from util import Time
+from .util import Time
 
 # New code is ridiculously simple
 def eovsa_lst(tin=None):

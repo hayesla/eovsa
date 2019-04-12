@@ -1,6 +1,6 @@
 import time, os
 import numpy as np
-from util import Time
+from .util import Time
 from astropy.io import fits
 
 def strip_non_printable(string_in):
@@ -19,19 +19,19 @@ def daily_xsp_writefits(xdat, pdata):
 
     file_out = ''
     if xdat == None or len(xdat) == 0:
-        print 'xsp_writefits: No data input'
+        print('xsp_writefits: No data input')
         return file_out
 #   end
 
 #UDB allday fits files
     xspfitsdir = '/data1/eovsa/fits/XSP/'
     if os.path.isdir(xspfitsdir) == False:
-        print "daily_xsp_writefits: creating "+xspfitsdir
+        print("daily_xsp_writefits: creating "+xspfitsdir)
         os.mkdir(xspfitsdir)
     #end if
 #create a filename, just use the start time
     t = xdat['time']
-    print t[0]
+    print(t[0])
     t0 = Time(t[0], format='jd') #The format is to tell the Time object about the input time
     t01 = t0.isot
     yr = t01[0:4]
@@ -41,7 +41,7 @@ def daily_xsp_writefits(xdat, pdata):
 #add directory
     outdir = xspfitsdir+'/'+yr+'/'
     if os.path.isdir(outdir) == False:
-        print "daily_xsp_writefits: creating "+outdir
+        print("daily_xsp_writefits: creating "+outdir)
         os.mkdir(outdir)
     #end if
     file_out = outdir+'/'+file_out
@@ -49,12 +49,12 @@ def daily_xsp_writefits(xdat, pdata):
     date_obs = t01
 #Convert to unix time, and add seconds to get date_end
 #http://astropy.readthedocs.org/en/latest/time
-    print "date_obs: ", date_obs
+    print("date_obs: ", date_obs)
     t0 = Time(date_obs)
     dt = int(86400*(max(t)-min(t)))
     t1 = Time(t0.unix+dt, format = 'unix')
     date_end = t1.isot
-    print "date_end: ", date_end
+    print("date_end: ", date_end)
 
 # Create the primary header
     tpwr = pdata
@@ -118,13 +118,13 @@ def tp_writefits(out, med):
 
     file_out = ''
     if out == None or len(out) == 0:
-        print 'tp_writefits: No data input'
+        print('tp_writefits: No data input')
         return file_out
 #   end
 
 #create a filename, just use the start time
     t = out['time']
-    print t[0]
+    print(t[0])
     t0 = Time(t[0], format='jd') #The format is to tell the Time object about the input time
     t01 = t0.iso
     yr = t01[0:4]
@@ -136,24 +136,24 @@ def tp_writefits(out, med):
 #flare fits files
     flarefitsdir = '/data1/eovsa/fits/flares/'
     if os.path.isdir(flarefitsdir) == False:
-        print "tp_writefits: creating "+flarefitsdir
+        print("tp_writefits: creating "+flarefitsdir)
         os.mkdir(flarefitsdir)
 #add directory
     outdir = flarefitsdir+'/'+yr+'/'
     if os.path.isdir(outdir) == False:
-        print "daily_xsp_writefits: creating "+outdir
+        print("daily_xsp_writefits: creating "+outdir)
         os.mkdir(outdir)
     file_out = outdir+'/'+file_out
 
     date_obs = t01
 #Convert to unix time, and add seconds to get date_end
 #http://astropy.readthedocs.org/en/latest/time
-    print "date_obs: ", date_obs
+    print("date_obs: ", date_obs)
     t0 = Time(date_obs)
     dt = int(86400*(max(t)-min(t)))
     t1 = Time(t0.unix+dt, format = 'unix')
     date_end = t1.iso
-    print "date_end: ", date_end
+    print("date_end: ", date_end)
 
 # Create the primary header
     tpwr = med

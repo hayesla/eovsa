@@ -120,13 +120,13 @@ def list_header(filename,ptype='P',boardID=None,verbose=False):
     out = pcap.readpkts()
     npkt = len(out)
     for j in range(npkt):
-        if verbose: print 'working on packet',j,'\r',
+        if verbose: print('working on packet',j,'\r', end=' ')
         buf = out[j][1]
         if len(buf) == 898:
             # This is a P packet
             if ptype == 'P':
                 header = struct.unpack(hdr,buf[-856:88-856])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 l = h['HeaderLength']
                 if l == 88:
                     if boardID != None and h['BoardID'] != boardID:
@@ -152,7 +152,7 @@ def list_header(filename,ptype='P',boardID=None,verbose=False):
             # This is an X packet
             if ptype == 'X':
                 header = struct.unpack(hdr,buf[42:88+42])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 l = h['HeaderLength']
                 if l == 88:
                     if boardID != None and h['BoardID'] != boardID:
@@ -201,7 +201,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False,proto=True):
     def pspectra(power):
         p = np.array(power)
         # idx is array([0,1, 16,17, 32,33, 48,49, 64,65, 80,81, 96,97, 112,113])
-        idx = np.array(zip(np.arange(0,128,16),np.arange(0,128,16)+1)).flatten()
+        idx = np.array(list(zip(np.arange(0,128,16),np.arange(0,128,16)+1))).flatten()
         # Distribute P, P2 into their spectra
         p1x = p[idx]/(2.**14)
         p1y = p[idx+2]/(2.**14)
@@ -258,7 +258,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False,proto=True):
             # Get length of X packets and value of first accumulation number
             xlen = len(b)
             header = struct.unpack(hdr,b[42:130])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             xaccum = h['AccumNum']
             pktnum = h['PacketNum']
             t0 = a  # Initial X packet timestamp
@@ -302,19 +302,19 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False,proto=True):
         # The format is all baselines, all poln products, for one channel
         outarr = np.zeros([nsec,50,4096,nx],'complex')
     else:
-        print 'Invalid ptype: must be "P" or "X"'
+        print('Invalid ptype: must be "P" or "X"')
         f.close()
         return False
     
     isec = 0
     a = -1
     for j in range(npkt):
-        if verbose: print 'working on packet',j,'\r',
+        if verbose: print('working on packet',j,'\r', end=' ')
         t, buf = out[j]
         if ptype is 'P' and len(buf) == 898:
             # This is a P packet
             header = struct.unpack(hdr,buf[42:130])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             n = h['PacketNum']
             if  h['BoardID'] == boardID:
                 if n == 0:
@@ -356,7 +356,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False,proto=True):
             if proto:
                 # This is an X packet from the prototype
                 header = struct.unpack(hdr,buf[42:130])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 n = h['PacketNum']
                 # Case of prototype packets
                 if  h['BoardID'] == boardID:
@@ -417,7 +417,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False,proto=True):
             else:
                 # This is an X packet from the production correlator
                 header = struct.unpack(hdr,buf[42:130])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 n = h['PacketNum']
                 # Override AccumNum with value based on packet timestamp, since
                 # AccumNum is currently messed up.
@@ -437,7 +437,7 @@ def rd_spec(filename,ptype='P',boardID=0,nboards=2,verbose=False,proto=True):
         else:
             # Some unknown packet?
             pass
-    if verbose: print '\n'
+    if verbose: print('\n')
     sout = outarr.shape
     outarr.shape = (sout[0]*sout[1],sout[2],sout[3])
     return outarr
@@ -490,7 +490,7 @@ def capture(filename='dump',nsec=1,ptype='P',overwrite=True):
 def capture_fig(useroach=[1,2],print_attn=False):
 
     import matplotlib.pyplot as plt
-    from util import Time
+    from .util import Time
     
     # Select which pair of ROACH boards is used for plot
 
@@ -677,13 +677,13 @@ if __name__ == "__main__":
                 attn[bad] = 0
             attn.shape = (30,34)
 
-            print '       Ant1  Ant2  Ant3  Ant4  Ant5  Ant6  Ant7  Ant8  Ant9 Ant10 Ant11 Ant12 Ant13 Ant14 Ant15'
-            print '       X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y'
-            print '      ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----'
+            print('       Ant1  Ant2  Ant3  Ant4  Ant5  Ant6  Ant7  Ant8  Ant9 Ant10 Ant11 Ant12 Ant13 Ant14 Ant15')
+            print('       X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y  X  Y')
+            print('      ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----')
             for i in range(34):
-                print '{:2} :  {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2}'.format(i+1,*attn[:,i])
+                print('{:2} :  {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2} {:2}'.format(i+1,*attn[:,i]))
         else:
-            print 'Command line argument',sys.argv[1],'not understood.  Exiting.'
+            print('Command line argument',sys.argv[1],'not understood.  Exiting.')
     else:
         t1,out1,ovfl1,ovfl2 = capture_fig(useroach=[1,2])
         t2,out2,ovfl3,ovfl4 = capture_fig(useroach=[3,4])

@@ -17,4 +17,4 @@ def get_packetrates():
     return [end_pkt2 - start_pkt2, end_pkt3 - start_pkt3]
 
 if __name__ == "__main__":
-    print get_packetrates()
+    print(get_packetrates())

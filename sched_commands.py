@@ -13,9 +13,9 @@
 #
 
 import os, time
-import urllib2
-from Tkinter import *
-import stateframe
+import urllib.request, urllib.error, urllib.parse
+from tkinter import *
+from . import stateframe
 import socket
 
 class App():
@@ -57,7 +57,7 @@ class App():
                 # Get LNA_settings.txt file from ACC and send the series of
                 # commands needed to set the LNA voltages
                 userpass = 'admin:observer@'
-                lnafile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/LNA_settings.txt',timeout=1)
+                lnafile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/LNA_settings.txt',timeout=1)
                 lines = lnafile.readlines()
                 lnafile.close()
                 lnas = {0:'hh',1:'lh',2:'lv',3:'hv'}
@@ -76,7 +76,7 @@ class App():
                                 lna,fstr,polstr,model,sn,vdrain,vg1,vg2,idrain =lines[i+2+k].split()
                                 lnas_b[int(lna)] = {'vd':float(vdrain),'vg1':float(vg1),'vg2':float(vg2)}
                 except:
-                    print 'Error reading/parsing LNA_settings.txt file from ACC'
+                    print('Error reading/parsing LNA_settings.txt file from ACC')
                         
                 try:
                     for i in range(4):
@@ -97,7 +97,7 @@ class App():
                         cmdstr = 'LNA-GATE2 '+lnas[i]+' '+str(lnas_b[i]['vg2'])+' ANT15'
                         self.execute_ctlline(cmdstr)
                 except:
-                    print 'Error sending LNA_settings to ACC'        
+                    print('Error sending LNA_settings to ACC')        
         
         
             self.execute_ctlline(command)

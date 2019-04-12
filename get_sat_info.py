@@ -14,15 +14,15 @@
 #   2016-Aug-05  DG
 #      Update get_sat_info() for plotting if the doplot keyword is True.
 #
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
 
 def sat_info(name):
     namestr = 'http://www.lyngsat.com/'+name+'.html'
     try:
-        f = urllib2.urlopen(namestr)
+        f = urllib.request.urlopen(namestr)
     except:
-        print '404 Error'
+        print('404 Error')
         return None
     lines = f.readlines()
     f.close()
@@ -37,12 +37,12 @@ def sat_info(name):
                 freq.append(line.split('<b>')[1].split('&nbsp')[0])
                 poln.append(line.split('&nbsp;')[1][0])
         if poln == []:
-            print 'No frequencies listed'
+            print('No frequencies listed')
             return None
-        print 'Success!'
+        print('Success!')
     except:
         # Probably this satellite is not active, so return default None values
-        print 'Satellite not active'
+        print('Satellite not active')
         return None
     # Find unique frequencies, and use indexes to get corresponding poln
     freq, idx = np.unique(np.array(freq).astype('int'),return_index=True)
@@ -52,8 +52,8 @@ def sat_info(name):
 
 def get_sat_info(names=None,doplot=False):
     import matplotlib.pylab as plt
-    from util import Time
-    f = urllib2.urlopen('http://www.lyngsat.com/tracker/america.html')
+    from .util import Time
+    f = urllib.request.urlopen('http://www.lyngsat.com/tracker/america.html')
     lines = f.readlines()
     f.close()
     found_names = []
@@ -74,7 +74,7 @@ def get_sat_info(names=None,doplot=False):
                     found_names.append(name)
     out = []
     for name in found_names:
-        print 'Reading information for satellite',name,
+        print('Reading information for satellite',name, end=' ')
         outi = sat_info(name)
         if outi is not None:
             out.append(outi)
@@ -95,5 +95,5 @@ def print_sat_names(satlist, Freq1, Freq2):
         if len(idx) == 0:
             pass
         else: 
-            print sat['name'], sat['loc'], f[idx]
+            print(sat['name'], sat['loc'], f[idx])
 

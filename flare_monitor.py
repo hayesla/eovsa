@@ -60,7 +60,7 @@
 #      Fixed small bug that caused crash on error return from xdata_display()
 #
 import numpy as np
-from util import Time
+from .util import Time
 
 def flare_monitor(t):
     ''' Get all front-end power-detector voltages for the given day
@@ -69,7 +69,7 @@ def flare_monitor(t):
         
         Returns ut times in plot_date format and median voltages.
     '''
-    import dbutil
+    from . import dbutil
     # timerange is 12 UT to 12 UT on next day, relative to the day in Time() object t
     trange = Time([int(t.mjd) + 12./24,int(t.mjd) + 36./24],format='mjd')
     tstart, tend = trange.lv.astype('str')
@@ -77,23 +77,23 @@ def flare_monitor(t):
     mjd = t.mjd
     verstr = dbutil.find_table_version(cursor,tstart)
     if verstr is None:
-        print 'No stateframe table found for given time.'
+        print('No stateframe table found for given time.')
         return tstart, [], {}
     query = 'select Timestamp,Ante_Fron_FEM_HPol_Voltage,Ante_Fron_FEM_VPol_Voltage from fV'+verstr+'_vD15 where timestamp between '+tstart+' and '+tend+' order by timestamp'
     data, msg = dbutil.do_query(cursor, query)
     if msg != 'Success':
-        print msg
+        print(msg)
         return tstart, [], {}
-    for k,v in data.items():
+    for k,v in list(data.items()):
         data[k].shape = (len(data[k])/15,15)
     hv = []
     try:
         ut = Time(data['Timestamp'][:,0].astype('float'),format='lv').plot_date 
     except:
-        print 'Error for time',t.iso
-        print 'Query:',query,' returned msg:',msg
-        print 'Keys:', data.keys()
-        print data['Timestamp'][0,0]
+        print('Error for time',t.iso)
+        print('Query:',query,' returned msg:',msg)
+        print('Keys:', list(data.keys()))
+        print(data['Timestamp'][0,0])
     hfac = np.median(data['Ante_Fron_FEM_HPol_Voltage'].astype('float'),0)
     vfac = np.median(data['Ante_Fron_FEM_VPol_Voltage'].astype('float'),0)
     for i in range(4):
@@ -107,16 +107,16 @@ def flare_monitor(t):
     # Get the project IDs for scans during the period
     verstrh = dbutil.find_table_version(cursor,trange[0].lv,True)
     if verstrh is None:
-        print 'No scan_header table found for given time.'
+        print('No scan_header table found for given time.')
         return ut[good], flm[good], {}
     query = 'select Timestamp,Project from hV'+verstrh+'_vD1 where Timestamp between '+tstart+' and '+tend+' order by Timestamp'
     projdict, msg = dbutil.do_query(cursor, query)
     if msg != 'Success':
-        print msg
+        print(msg)
         return ut[good], flm[good], {}
     elif len(projdict) == 0:
         # No Project ID found, so return data and empty projdict dictionary
-        print 'SQL Query was valid, but no Project data were found.'
+        print('SQL Query was valid, but no Project data were found.')
         return ut[good], flm[good], {}
     projdict['Timestamp'] = projdict['Timestamp'].astype('float')  # Convert timestamps from string to float
     for i in range(len(projdict['Project'])): projdict['Project'][i] = projdict['Project'][i].replace('\x00','')
@@ -163,10 +163,10 @@ def xdata_display(t,ax=None):
         Skip SK flagging [2017-Mar-20 DG]
     '''
     import time, os
-    import dump_tsys
+    from . import dump_tsys
     #import get_X_data2 as gd
-    import read_idb as ri
-    import spectrogram_fit as sp
+    from . import read_idb as ri
+    from . import spectrogram_fit as sp
 
     fdb = dump_tsys.rd_fdb(t)
     # Get files from next day, in case scan extends past current day
@@ -174,7 +174,7 @@ def xdata_display(t,ax=None):
     fdb1 = dump_tsys.rd_fdb(t1)
     # Concatenate the two days (if the second day exists)
     if fdb1 != {}:
-        for key in fdb.keys():
+        for key in list(fdb.keys()):
             fdb[key] = np.concatenate((fdb[key],fdb1[key]))
             
     # Find unique scan IDs
@@ -185,12 +185,12 @@ def xdata_display(t,ax=None):
     if len(good) > 0:
         scans = scans[good]
     else:
-        print 'No NormalObserving scans found.'
+        print('No NormalObserving scans found.')
         return None, None, None, None
 
     # Find scanID that starts earlier than, but closest to, the current time
     for i,scan in enumerate(scans):
-        print scan
+        print(scan)
         dt = t - Time(time.strftime('%Y-%m-%d %H:%M:%S',time.strptime(scan,'%y%m%d%H%M%S')))
         if dt.sec > 0.:
             iout = i
@@ -208,7 +208,7 @@ def xdata_display(t,ax=None):
             dt = t - Time(time.strftime('%Y-%m-%d %H:%M:%S',time.strptime(files[-1],'IDB%Y%m%d%H%M%S')))
         except:
             dt = 10000.  # Forces skip of plot creation
-            print 'Unexpected FDB file format.'
+            print('Unexpected FDB file format.')
             scan = None
         if dt.sec < 1200.:
             # This is a currently active scan, so create the figure
@@ -218,7 +218,7 @@ def xdata_display(t,ax=None):
                 datstr = t.iso[:10].replace('-','')
                 path = '/data1/eovsa/fits/IDB/'+datstr+'/'
                 if not os.path.isdir(path+files[0]):
-                    print 'No files found for this scan ID',scan
+                    print('No files found for this scan ID',scan)
                     scan = None
                     times = None
                     return scan, tlevel, bflag, times
@@ -244,11 +244,11 @@ def xdata_display(t,ax=None):
                                 ax=ax, logsample=None, xdata=True, cbar=True, dmax=dmax)
             #tlevel, bflag = flaremeter(data)
         else:
-            print 'Time',dt.sec,'is > 1200 s after last file of last NormalObserving scan.  No plot created.'
+            print('Time',dt.sec,'is > 1200 s after last file of last NormalObserving scan.  No plot created.')
             scan = None
             times = None
     else:
-        print 'No files found for this scan ID',scan
+        print('No files found for this scan ID',scan)
         scan = None
     return scan, tlevel, bflag, times
 
@@ -302,7 +302,7 @@ def get_history(times, tlevel, bflag):
         the new data)
     '''
     import glob
-    import dump_tsys
+    from . import dump_tsys
     import struct
     
     datstr = times[0].iso[:10].replace('-','')
@@ -352,11 +352,11 @@ if __name__ == "__main__":
         try:
             t = Time(sys.argv[1])
         except:
-            print 'Cannot interpret',sys.argv[1],'as a valid date/time string.'
+            print('Cannot interpret',sys.argv[1],'as a valid date/time string.')
             exit()
         if len(sys.argv) == 3:
             skip = True
-    print t.iso[:19],': ',
+    print(t.iso[:19],': ', end=' ')
     # if (t.mjd % 1) < 3./24:
         # # Special case of being run at or before 3 AM (UT), so change to late "yesterday" to finish out
         # # the previous UT day
@@ -374,7 +374,7 @@ if __name__ == "__main__":
         else:
             plt.savefig('/common/webplots/flaremon/XSP20'+scanid+'.png',bbox_inches='tight')
             plt.close(f)
-            print 'Plot written to /common/webplots/flaremon/XSP20'+scanid+'.png'
+            print('Plot written to /common/webplots/flaremon/XSP20'+scanid+'.png')
             bflag = cleanup(bflag)
         # See if a file for this date already exists, and if so, read it and 
         # append or replace with the newly determined levels
@@ -382,7 +382,7 @@ if __name__ == "__main__":
 
     ut, fl, projdict = flare_monitor(t)
     if fl == []:
-        print 'Error retrieving data for',t.iso[:10],'from SQL database.'
+        print('Error retrieving data for',t.iso[:10],'from SQL database.')
         exit()
     f, ax = plt.subplots(1,1)
     f.set_size_inches(10,3)
@@ -400,7 +400,7 @@ if __name__ == "__main__":
     ax.set_ylim(0.8,ymax)
     ax.set_xlim(int(ut[0])+13/24.,int(ut[0])+26/24.)  # Time plot ranges from 13 UT to 02 UT
     if projdict == {}:
-        print 'No annotation can be added to plot for',t.iso[:10]
+        print('No annotation can be added to plot for',t.iso[:10])
     else:
         nscans = len(projdict['Project'])
         SOS = Time(projdict['Timestamp'],format='lv').plot_date
@@ -435,7 +435,7 @@ if __name__ == "__main__":
     datstr = t.iso[:10].replace('-','')
     plt.savefig('/common/webplots/flaremon/FLM'+datstr+'.png',bbox_inches='tight')
     plt.close(f)
-    print 'Plot written to /common/webplots/flaremon/FLM'+datstr+'.png'
+    print('Plot written to /common/webplots/flaremon/FLM'+datstr+'.png')
     # Copy the most recent two files to fixed names so that the web page can find them.
     flist = np.sort(glob.glob('/common/webplots/flaremon/XSP20*'))
     shutil.copy(flist[-1],'/common/webplots/flaremon/XSP_latest.png')

@@ -78,16 +78,16 @@
 
 import struct, sys
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
-from read_xml2 import xml_ptrs
+from .read_xml2 import xml_ptrs
 import copy
-from util import Time
-from Tkinter import Tk
-from tkFileDialog import *
+from .util import Time
+from tkinter import Tk
+from tkinter.filedialog import *
 import xml.etree.ElementTree as ET
-import Queue
-q = Queue.Queue()
+import queue
+q = queue.Queue()
 
 #============================
 def control_room_temp():
@@ -96,10 +96,10 @@ def control_room_temp():
        impossible number, -99 C.
     '''
     try:
-        f = urllib2.urlopen('http://192.168.24.233/state.xml',timeout=0.4)
+        f = urllib.request.urlopen('http://192.168.24.233/state.xml',timeout=0.4)
     except:
         # Timeout error
-        print Time.now().iso,'Control room temperature connection timed out'
+        print(Time.now().iso,'Control room temperature connection timed out')
         return -99.0
     lines = f.readlines()
     f.close()
@@ -114,10 +114,10 @@ def weather(attempt=0):
     take the title and the information and put it in dictionary form'''
 
     try:
-        f = urllib2.urlopen('http://wx.cm.pvt/latestsampledata.xml',timeout=0.4)
+        f = urllib.request.urlopen('http://wx.cm.pvt/latestsampledata.xml',timeout=0.4)
     except:
         # Timeout error
-        print Time.now().iso,'Weather connection timed out'
+        print(Time.now().iso,'Weather connection timed out')
         return {}
     try:
         #tree = ET.parse(f)
@@ -125,11 +125,11 @@ def weather(attempt=0):
         if line.find('</oriondata>') == -1:
            # Line is often truncated, so fix it if possible
            line = line[:line.find('</o')]+'</oriondata>'
-           print Time.now().iso,'Fixed Weather info'
+           print(Time.now().iso,'Fixed Weather info')
         #tree = ET.XML(line)
     except:
         # Error reading weather info, so return blank dictionary
-        print Time.now().iso,'Problem reading Weather info'
+        print(Time.now().iso,'Problem reading Weather info')
         return {}
     f.close()
 
@@ -141,7 +141,7 @@ def weather(attempt=0):
             # Try again, then bail if it doesn't work
             return weather(attempt=1)
         # Error reading weather info, so return blank dictionary
-        print Time.now().iso,'Problem parsing Weather info'
+        print(Time.now().iso,'Problem parsing Weather info')
         return {}
     index = 0
 
@@ -168,7 +168,7 @@ def get_median_wind(wthr):
          than average.  I hope this does not take too long!  Returns
          the same dictionary, with median replacing average wind.
     '''
-    import dbutil as db
+    from . import dbutil as db
     cursor = db.get_cursor()
     query = 'select top 120 Timestamp,Sche_Data_Weat_Wind from fV66_vD1 order by Timestamp desc'
     data, msg = db.do_query(cursor,query)
@@ -191,16 +191,16 @@ def rd_solpwr(url='http://data.magnumenergy.com/MW5127'):
     '''
     # Read and decode the information from the power station at 12
     try:
-        f = urllib2.urlopen(url,timeout=0.4)
+        f = urllib.request.urlopen(url,timeout=0.4)
     except:
         # Timeout error
-        print Time.now().iso,'Solar Power connection timed out'
+        print(Time.now().iso,'Solar Power connection timed out')
         solpwr = {}
         return solpwr
     try:
         lines = f.readlines()
     except:
-        print Time.now().iso,'Solar Power readlines timed out'
+        print(Time.now().iso,'Solar Power readlines timed out')
         lines = None
     f.close()
     solpwr = {}
@@ -262,10 +262,10 @@ def rd_ACCfile():
     ACCfile = None
     if socket.getfqdn().find('solar.pvt') != -1:
         try:
-            ACCfile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/acc.ini',timeout=0.5)
+            ACCfile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/acc.ini',timeout=0.5)
         except:
             # Timeout error
-            print Time.now().iso,'FTP connection to ACC timed out'
+            print(Time.now().iso,'FTP connection to ACC timed out')
         # Since this is the HELIOS machine, make a disk copy of ACC.ini in the
         # current (dropbox) directory.  This will be used by other instances of
         # sf_display() on other machines that do not have access to acc.solar.pvt.
@@ -276,14 +276,14 @@ def rd_ACCfile():
                 o.write(line+'\n')
             o.close()
             ACCfile.close()
-            ACCfile = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/acc.ini',timeout=0.5)
+            ACCfile = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/acc.ini',timeout=0.5)
             # Also read XML file for stateframe from ACC, and decode template for later use
             sf, version = xml_ptrs()
         except:
             pass
     if ACCfile is None:
         # ACC not reachable?  Try reading static files.
-        print 'Cannot ftp ACC.ini.  Reading static acc.ini and stateframe.xml from current directory instead.'
+        print('Cannot ftp ACC.ini.  Reading static acc.ini and stateframe.xml from current directory instead.')
         ACCfile = open('acc.ini','r')
         # Also read XML file for stateframe from static file, and decode template for later use
         sf, version = xml_ptrs('stateframe.xml')
@@ -304,7 +304,7 @@ def rd_ACCfile():
                     scdport = int(line[len(n1):])
                 elif n2 in line:
                     sfport = int(line[len(n2):])
-                    print '\nConnecting to ACC at port:',sfport
+                    print('\nConnecting to ACC at port:',sfport)
                 elif n3 in line:
                     scdsfport = int(line[len(n3):])
                     break
@@ -347,7 +347,7 @@ def rd_stateframe(s,sf_num,n_expected):
         #sys.stdout.write('-')
         #sys.stdout.flush()  # Flush stdout (/tmp/schedule.log) so we can see the output.
     except socket.timeout:
-        print Time.now().iso,'Socket time-out when reading stateframe from ACC'
+        print(Time.now().iso,'Socket time-out when reading stateframe from ACC')
     return ''.join(totdata)
 
 #============================
@@ -420,7 +420,7 @@ def azel_from_stateframe(sf, data, antlist=None):
     dtor = np.pi/180.
     if antlist is None:
         # No antlist, so assume all antennas
-        antlist = range(15)
+        antlist = list(range(15))
 
     for i, ant in enumerate(antlist):
         c = sf['Antenna'][ant]['Controller']
@@ -523,7 +523,7 @@ def azel_from_sqldict(sqldict, antlist=None):
     dtor = np.pi/180.
     if antlist is None:
         # No antlist, so assume all antennas
-        antlist = range(15)
+        antlist = list(range(15))
 
     az1 = copy.deepcopy(sqldict['Ante_Cont_Azimuth1'].astype('float'))/10000.
     az_corr = copy.deepcopy(sqldict['Ante_Cont_AzimuthPositionCorre'].astype('float'))/10000.
@@ -597,7 +597,7 @@ def PA_adjust(ant=None, crossed=False):
                        from the nominal parallactic angle. Default is False
     '''
     import time
-    import adc_cal2
+    from . import adc_cal2
     if ant is None:
         q.put_nowait('No antenna specified. Exiting...')
         return
@@ -666,7 +666,7 @@ def PA_sweep(PA=80,rate=3):
                sweep in 10 minutes)
     '''
     import time
-    import adc_cal2
+    from . import adc_cal2
     if PA > 90:
         # Make sure PA is not too big
         PA = 90

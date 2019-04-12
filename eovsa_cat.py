@@ -26,9 +26,9 @@
 import aipy, ephem, numpy
 from math import cos, sin
 from numpy import pi, mat
-from readvla import readvlacaldb
-from eovsa_array import *
-import urllib2
+from .readvla import readvlacaldb
+from .eovsa_array import *
+import urllib.request, urllib.error, urllib.parse
 import re
 import os
 
@@ -63,7 +63,7 @@ def load_geosats():
         of RadioGeosat objects containing all satellites. (List contains 399 sats as of 6/19/14.)
     '''
     # Retrieve TLE file for geostationary satellites from Celestrak site.
-    f = urllib2.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt')
+    f = urllib.request.urlopen('http://www.celestrak.com/NORAD/elements/geo.txt')
     lines = f.readlines()
     f.close()
     nlines = len(lines)
@@ -81,7 +81,7 @@ def load_geosats():
             src = RadioGeosat(geosat_body) # convert from an ephem Body object to a RadioGeosat object
             satlist.append(src)
         except:
-            print 'Error in ephem.readtle: Geosat', lines[i].strip(), 'not added to source catalog.'
+            print('Error in ephem.readtle: Geosat', lines[i].strip(), 'not added to source catalog.')
     return satlist
     
 def load_gpssats():
@@ -89,7 +89,7 @@ def load_gpssats():
         of RadioGeosat objects containing all satellites. (List contains 31 sats as of 2/26/2019.)
     '''
     # Retrieve TLE file for geostationary satellites from Celestrak site.
-    f = urllib2.urlopen('https://celestrak.com/NORAD/elements/gps-ops.txt')
+    f = urllib.request.urlopen('https://celestrak.com/NORAD/elements/gps-ops.txt')
     lines = f.readlines()
     f.close()
     nlines = len(lines)
@@ -107,7 +107,7 @@ def load_gpssats():
             src = RadioGeosat(geosat_body) # convert from an ephem Body object to a RadioGeosat object
             satlist.append(src)
         except:
-            print 'Error in ephem.readtle: Geosat', lines[i].strip(), 'not added to source catalog.'
+            print('Error in ephem.readtle: Geosat', lines[i].strip(), 'not added to source catalog.')
     return satlist
 
 def load_o3bsats():
@@ -115,7 +115,7 @@ def load_o3bsats():
         of RadioGeosat objects containing all satellites.  
     '''
     # Retrieve TLE file for o3b satellites from Celestrak site.
-    f = urllib2.urlopen('http://www.celestrak.com/NORAD/elements/other-comm.txt')
+    f = urllib.request.urlopen('http://www.celestrak.com/NORAD/elements/other-comm.txt')
     lines = f.readlines()
     f.close()
     nlines = len(lines)
@@ -133,7 +133,7 @@ def load_o3bsats():
             src = RadioGeosat(geosat_body) # convert from an ephem Body object to a RadioGeosat object
             satlist.append(src)
         except:
-            print 'Error in ephem.readtle: o3bsat', lines[i].strip(), 'not added to source catalog.'
+            print('Error in ephem.readtle: o3bsat', lines[i].strip(), 'not added to source catalog.')
     return satlist
 
 def load_VLAcals():

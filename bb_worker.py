@@ -4,7 +4,7 @@
     Email: lkkung@caltech.edu
 """
 
-import i_worker
+from . import i_worker
 import numpy as np
 import socket
 

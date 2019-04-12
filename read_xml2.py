@@ -7,7 +7,7 @@ import xml.etree.ElementTree as etree
 import numpy as np
 import copy
 import struct
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import socket
 
 def handle_cluster(child):
@@ -22,13 +22,13 @@ def handle_cluster(child):
         mydict = {}    # Start an empty dictionary
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None
     if c[0].tag == "NumElts":
         n = int(c[0].text)
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None
     # Loop through all items in the cluster
     for i in range(n):
@@ -69,7 +69,7 @@ def handle_array(child):
         keys = [c[0].text]
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None, None, None
     # Handle up to four levels of dimension
     d1, d2, d3, d4 = 1, 1, 1, 1
@@ -78,7 +78,7 @@ def handle_array(child):
         fmt = 'I'
         c.pop(0)
     else:
-        print 'Illegal format for item',child
+        print('Illegal format for item',child)
         return None, None
     if c[0].tag == "Dimsize":
         d2 = int(c[0].text)
@@ -117,7 +117,7 @@ def handle_item(c):
     if c[0].tag == "Name":
         key = [c[0].text]
     else:
-        print 'Illegal format for item',c
+        print('Illegal format for item',c)
         return None, None
     return key, fmt
 
@@ -142,7 +142,7 @@ def xml_read(filename=None):
     userpass = 'admin:observer@'
 
     if filename is None:
-        f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/stateframe.xml')
+        f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/stateframe.xml')
         if socket.gethostname() == 'helios':
             # If this is the OVSA machine, make a disk copy of stateframe.xml in the
             # current (dropbox) directory.  This will be used by other instances of
@@ -153,7 +153,7 @@ def xml_read(filename=None):
                 o.write(line+'\n')
             o.close()
             f.close()
-            f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/stateframe.xml')
+            f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/ni-rt/startup/stateframe.xml')
     else: 
         f = open(filename)
     tree = etree.parse(f)
@@ -212,7 +212,7 @@ def handle_key(keys, dictlist, fmt, off):
             # Increment off by number of bytes taken by f            
             off += struct.calcsize(f)
         except:
-            print key, fmt
+            print(key, fmt)
         dictlist.append(mydict)   # Put original dictionary back
     elif valtype == list:
         # This is an array of values
@@ -282,7 +282,7 @@ def handle_key(keys, dictlist, fmt, off):
         dictlist.append(mydict)  # Put original dictionary back
         dictlist.append(val)     # Add new dictionary
     else:
-        print 'Unknown value type',valtype
+        print('Unknown value type',valtype)
     return keys, dictlist, fmt, off
 
 def xml_ptrs(filename=None):

@@ -15,11 +15,11 @@ if __name__ == "__main__":
         user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
     except:
         user_paths = []
-    print user_paths
+    print(user_paths)
 
 def last_date():
     import glob
-    from util import Time
+    from .util import Time
     files = glob.glob('/common/webplots/flaremon/daily/2018/*.png')
     files.sort()
     date = '2017-12-31 20:00:00'
@@ -38,13 +38,13 @@ if __name__ == "__main__":
           (yesterday and day-before-yesterday)
     '''
     import glob, sys
-    import daily_xsp
-    from util import Time
+    from . import daily_xsp
+    from .util import Time
     t = last_date()
     blah = {}
     while blah == {}:
         mjd = t.mjd
         t = Time(mjd+1,format='mjd')
-        print 'Working on:',t.iso[:19]
+        print('Working on:',t.iso[:19])
         blah = daily_xsp.allday_udb(t=t, savfig=True, savfits=True)   # Process time t
         

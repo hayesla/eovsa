@@ -20,11 +20,11 @@ if __name__ == "__main__":
         user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
     except:
         user_paths = []
-    print user_paths
+    print(user_paths)
 
 
-import read_idb as ri
-from util import Time
+from . import read_idb as ri
+from .util import Time
 import numpy as np
 import glob
 
@@ -42,7 +42,7 @@ def get_goes_data(t=None,sat_num=None):
     from sunpy.util.config import get_and_create_download_dir
     import shutil
     from astropy.io import fits
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
     if t is None:
         t = Time(Time.now().mjd - 1,format='mjd')
     yr = t.iso[:4]
@@ -50,9 +50,9 @@ def get_goes_data(t=None,sat_num=None):
     try:
         if sat_num is None:
             try:
-                f = urllib2.urlopen('https://umbra.nascom.nasa.gov/goes/fits/'+yr, timeout=3)
+                f = urllib.request.urlopen('https://umbra.nascom.nasa.gov/goes/fits/'+yr, timeout=3)
             except:
-                f = urllib2.urlopen('https://hesperia.gsfc.nasa.gov/goes/'+yr,timeout=3)
+                f = urllib.request.urlopen('https://hesperia.gsfc.nasa.gov/goes/'+yr,timeout=3)
             lines = f.readlines()
             sat_num = []
             for line in lines:
@@ -66,10 +66,10 @@ def get_goes_data(t=None,sat_num=None):
             filename = 'go'+sat+datstr+'.fits'
             try:
                 url = 'https://umbra.nascom.nasa.gov/goes/fits/'+yr+'/'+filename
-                f = urllib2.urlopen(url, timeout=3)
+                f = urllib.request.urlopen(url, timeout=3)
             except:
                 url = 'https://hesperia.gsfc.nasa.gov/goes/'+yr+'/'+filename
-                f = urllib2.urlopen(url, timeout=3)
+                f = urllib.request.urlopen(url, timeout=3)
             with open(get_and_create_download_dir()+'/'+filename,'wb') as g:
                 shutil.copyfileobj(f,g)
             filenames.append(get_and_create_download_dir()+'/'+filename)
@@ -82,24 +82,24 @@ def get_goes_data(t=None,sat_num=None):
             merit = len(good)
             date_elements = gfits[0].header['DATE-OBS'].split('/')
             if merit > pmerit:
-                print 'File:',file,'is best'
+                print('File:',file,'is best')
                 pmerit = merit
                 goes_data = data
                 goes_t = Time(date_elements[2]+'-'+date_elements[1]+'-'+date_elements[0]).plot_date + tsecs/86400.
         try:
             return goes_t, goes_data
         except:
-            print 'No good GOES data for',datstr
+            print('No good GOES data for',datstr)
             return None, None
     except:
-        print 'GOES site unreachable?'
+        print('GOES site unreachable?')
         return None, None
         
 def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, savfits=False, gain_corr=True):
     if savfits:
-        import xspfits #jmm, 2018-01-05
+        from . import xspfits #jmm, 2018-01-05
     # Plots (and returns) UDB data for an entire day
-    from flare_monitor import flare_monitor
+    from .flare_monitor import flare_monitor
     if t is None:
         t = Time.now()
     # Cannot get a GOES plot unless doplot is True
@@ -120,21 +120,21 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, savfits=False,
     try:
         files = files[i:]
     except:
-        print 'No files found in /data1/eovsa/fits/UDB/ for',date
+        print('No files found in /data1/eovsa/fits/UDB/ for',date)
         return {}
     out = ri.read_idb(files,src='Sun')
-    if out.keys() == []:
-        print 'Read error, or no Sun data in',files
+    if list(out.keys()) == []:
+        print('Read error, or no Sun data in',files)
         return {}
     if gain_corr:
-        import gaincal2 as gc
+        from . import gaincal2 as gc
         out = gc.apply_gain_corr(out)
     trange = Time(out['time'][[0,-1]], format = 'jd')
     fghz = out['fghz']
     pdata = np.sum(np.sum(np.abs(out['x'][0:11,:]),1),0)  # Spectrogram to plot
     if savfits:
-        print "***************** PDATA OUTPUT *********"
-        print pdata.shape
+        print("***************** PDATA OUTPUT *********")
+        print(pdata.shape)
         xspfits.daily_xsp_writefits(out, pdata)
     if doplot:
         import matplotlib.pylab as plt
@@ -224,10 +224,10 @@ def allday_udb(t=None, doplot=True, goes_plot=True, savfig=False, savfits=False,
 
         ut, fl, projdict = flare_monitor(t)
         if fl == []:
-            print 'Error retrieving data for',t.iso[:10],'from SQL database.'
+            print('Error retrieving data for',t.iso[:10],'from SQL database.')
             return
         if projdict == {}:
-            print 'No annotation can be added to plot for',t.iso[:10]
+            print('No annotation can be added to plot for',t.iso[:10])
         else:
             defcolor = '#ff7f0e'
             nscans = len(projdict['Timestamp'])
@@ -289,7 +289,7 @@ if __name__ == "__main__":
     if len(sys.argv) >= 2:
         try:
             t = Time(sys.argv[1])
-            print t.iso
+            print(t.iso)
             if len(sys.argv) == 3:
                 argin = sys.argv[2].upper()
         except:
@@ -304,13 +304,13 @@ if __name__ == "__main__":
         # Asking for FITS means also do all other features.
         savfits = True
     elif argin != '':
-        print 'Cannot interpret',argin,'as valid time, or string FITS or FITS-ONLY.'
+        print('Cannot interpret',argin,'as valid time, or string FITS or FITS-ONLY.')
         exit()
     if t is None:
         t = Time.now()   # Get today's date
         t2 = Time(t.mjd-2,format='mjd')   # Set t2 to day-before-yesterday
         t = Time(t.mjd-1,format='mjd')    # Set t to yesterday
-    print t.iso[:19],': ',
+    print(t.iso[:19],': ', end=' ')
     blah = allday_udb(t=t, doplot=doplot, goes_plot=goes_plot, savfig=savfig, savfits=savfits)   # Process time t
     if goes_plot and not t2 is None:
         # Do this second date only if goes_plot is True

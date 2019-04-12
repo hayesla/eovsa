@@ -29,7 +29,7 @@ def readvlacaldb():
     try:
         f = open(filename)
     except:
-        print 'vla_calibrator_list.txt does not exist!'
+        print('vla_calibrator_list.txt does not exist!')
         return
     # read lines and close file
     lines = f.readlines()
@@ -82,8 +82,8 @@ def readvlacaldb():
 
 from numpy import array
 from math import pi
-from util import *
-from eovsa_array import *
+from .util import *
+from .eovsa_array import *
 import ephem
 
 def compute_cal(cal,t):

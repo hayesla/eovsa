@@ -39,8 +39,8 @@
 #    Update refcal_anal() to calculate band 4 phase from lohi scan if lohi=True,
 #    and estimate band 4 phase using the most recent lohi=True result if otherwise.
 #
-import read_idb as ri
-from util import Time, ant_str2list, lobe, nearest_val_idx
+from . import read_idb as ri
+from .util import Time, ant_str2list, lobe, nearest_val_idx
 import numpy as np
 import matplotlib.pyplot as plt
 from glob import glob
@@ -63,9 +63,9 @@ def findfiles(trange, projid='PHASECAL', srcid=None):
     projid: String--PROJECTID in UFBD records. Default is PHASECAL
     srcid: String--SOURCEID in UFBD records. Can be a string or a list
     '''
-    from util import nearest_val_idx
+    from .util import nearest_val_idx
     import struct, time, glob, sys, socket
-    import dump_tsys
+    from . import dump_tsys
     fpath = '/data1/eovsa/fits/UDB/' + trange[0].iso[:4] + '/'
     t1 = trange[0].to_datetime()
     t2 = trange[1].to_datetime()
@@ -74,10 +74,10 @@ def findfiles(trange, projid='PHASECAL', srcid=None):
     if t1.date() != t2.date():
         # End day is different than start day, so read and concatenate two fdb files
         ufdb = dump_tsys.rd_ufdb(trange[0])
-        for ll in xrange(daydelta):
+        for ll in range(daydelta):
             ufdb2 = dump_tsys.rd_ufdb(Time(trange[0].mjd + ll + 1, format='mjd'))
             if ufdb2:
-                for key in ufdb.keys():
+                for key in list(ufdb.keys()):
                     ufdb.update({key: np.append(ufdb[key], ufdb2[key])})
     else:
         # Both start and end times are on the same day
@@ -114,10 +114,10 @@ def findfiles(trange, projid='PHASECAL', srcid=None):
             k += 1
 
     if k == 0:
-        print 'No scans found within given time range for ' + projid
+        print('No scans found within given time range for ' + projid)
         return None
     else:
-        print 'Found', k, 'scans in timerange.'
+        print('Found', k, 'scans in timerange.')
 
     return {'scanlist': flist, 'srclist': srclist, 'tstlist': tstlist, 'tedlist': tedlist}
 
@@ -135,7 +135,7 @@ def rd_refcal(trange, projid='PHASECAL', srcid=None, quackint=180., navg=3):
 
     '''
     import struct, time, glob, sys, socket
-    import dbutil as db
+    from . import dbutil as db
     sclist = findfiles(trange, projid, srcid)
     scanlist = sclist['scanlist']
     srclist = sclist['srclist']
@@ -150,7 +150,7 @@ def rd_refcal(trange, projid='PHASECAL', srcid=None, quackint=180., navg=3):
     decs = []
     good = []
     for n, scan in enumerate(scanlist):
-        print 'Reading scan: ' + scan
+        print('Reading scan: ' + scan)
         out = ri.read_idb([scan], navg=navg, quackint=quackint)
         nt = len(out['time'])
         if nt == 0:
@@ -192,11 +192,11 @@ def unrot_refcal(refcal_in):
     ''' Apply feed-rotation correction to data read with rd_refcal(), returning updated data in
         the same format for further processing.
     '''
-    import dbutil as db
+    from . import dbutil as db
     import copy
-    import chan_util_bc as cu
-    import cal_header as ch
-    from stateframe import extract
+    from . import chan_util_bc as cu
+    from . import cal_header as ch
+    from .stateframe import extract
     refcal = copy.deepcopy(refcal_in)
     xml, buf = ch.read_cal(11, Time(refcal['times'][0][0], format='jd'))
     dph = extract(buf, xml['XYphase'])
@@ -302,7 +302,7 @@ def graph(out, refcal=None, ant_str='ant1-13', bandplt=[5, 11, 17, 23], scanidx=
                         ax1[ant, b].set_yticks([])
                         ax2[ant, b].set_yticks([])
         except:
-            print 'Failure in plotting scan: ', scan
+            print('Failure in plotting scan: ', scan)
             continue
     if refcal:
         for ant in ant_list:
@@ -311,11 +311,11 @@ def graph(out, refcal=None, ant_str='ant1-13', bandplt=[5, 11, 17, 23], scanidx=
                 ampavg = refcal['amp'][ant, pol, bd - 1]
                 flg = refcal['flag'][ant, pol, bd - 1]
                 if flg == 0:
-                    if 't_bg' in refcal.keys():
+                    if 't_bg' in list(refcal.keys()):
                         bt = Time(refcal['t_bg'], format='jd').plot_date
                     else:
                         bt = Time(times[0][0], format='jd').plot_date
-                    if 't_ed' in refcal.keys():
+                    if 't_ed' in list(refcal.keys()):
                         et = Time(refcal['t_ed'], format='jd').plot_date
                     else:
                         et = Time(times[-1][-1], format='jd').plot_date
@@ -362,13 +362,13 @@ def refcal_anal(out, timerange=None, scanidx=None, minsnr=0.7, bandplt=[5, 11, 1
         times_ = out['times']
         fghzs = out['fghzs']
 
-    scanidx = range(len(scanlist))
+    scanidx = list(range(len(scanlist)))
     if len(set(np.array(srclist)[scanidx])) > 1:
         prompt = ''
         while not (prompt.lower() in ['y', 'n']):
-            prompt = raw_input('Multiple sources are selected. Are you sure to continue? [y/n]')
+            prompt = input('Multiple sources are selected. Are you sure to continue? [y/n]')
         if prompt.lower() == 'n':
-            print 'Abort...'
+            print('Abort...')
             return None
 
     fghz = fghzs[0]
@@ -379,7 +379,7 @@ def refcal_anal(out, timerange=None, scanidx=None, minsnr=0.7, bandplt=[5, 11, 1
     if timerange:
         tidx, = np.where((times > timerange[0].jd) & (times < timerange[1].jd))
         if len(tidx) == 0:
-            print 'no records within the selected timerange. Abort...'
+            print('no records within the selected timerange. Abort...')
         for i in range(len(scanlist)):
             sidx, = np.where((times_[i] > timerange[0].jd) & (times_[i] < timerange[1].jd))
             if len(sidx) > 0:
@@ -421,7 +421,7 @@ def refcal_anal(out, timerange=None, scanidx=None, minsnr=0.7, bandplt=[5, 11, 1
                         # print '# of valid datapoints: ',len(ind)
         # count how many datapoints are flagged in a given band
         nflag = np.count_nonzero(flag[:13, :, bd])
-        print '{0:d} of 26 measurements are flagged due to SNR < {1:.1f} in Band {2:d}'.format(nflag, minsnr, bd + 1)
+        print('{0:d} of 26 measurements are flagged due to SNR < {1:.1f} in Band {2:d}'.format(nflag, minsnr, bd + 1))
     # flag zero values (e.g., antennas or bands not observed)
     zeroind = np.where(np.abs(vis_ == 0))
     flag[zeroind] = 1
@@ -620,9 +620,9 @@ def graph_results(refcal, unwrap=True, savefigs=False):
             badstr = 'No calibration for:' + bad
         else:
             badstr = ''
-        print '|', dstr.replace('-', '/'), '||', tstr, '|| ', ref[
-            'src'], ' || || 0 ||  ||', bstr, '|| [http://ovsa.njit.edu/refcal/' + file1, 'Phase] || [http://ovsa.njit.edu/refcal/' + file2, 'Amp] ||', badstr
-        print '|-'
+        print('|', dstr.replace('-', '/'), '||', tstr, '|| ', ref[
+            'src'], ' || || 0 ||  ||', bstr, '|| [http://ovsa.njit.edu/refcal/' + file1, 'Phase] || [http://ovsa.njit.edu/refcal/' + file2, 'Amp] ||', badstr)
+        print('|-')
 
 
 def mbdfunc0(fghz, mbd):
@@ -672,10 +672,10 @@ def phase_diff(phacal, refcal=None, strictness=0.5, fitoffsets=False, verbose=Fa
     prms = [[], []]
     flag = [[], []]
     for ant in range(nants):
-        if verbose: print 'ant: ', ant
+        if verbose: print('ant: ', ant)
         for pol in range(2):
             if ant < 13:
-                if verbose: print 'pol: ', pol
+                if verbose: print('pol: ', pol)
                 ind, = np.where((flag_pha[ant, pol] == 0) & (flag_ref[ant, pol] == 0))
                 dpha_unw = np.unwrap(dpha[ant, pol, ind])
                 fghz = phacal['fghz'][ind]
@@ -696,8 +696,8 @@ def phase_diff(phacal, refcal=None, strictness=0.5, fitoffsets=False, verbose=Fa
                         pslope[pol].append(popt[1])
                         flag[pol].append(0)
                         residuals = mbdfunc1(fghz, *popt) - dpha_unw
-                        if verbose: print 'Phase offset (deg):', np.degrees(popt[0])
-                        if verbose: print 'MBD (ns):', popt[1]
+                        if verbose: print('Phase offset (deg):', np.degrees(popt[0]))
+                        if verbose: print('MBD (ns):', popt[1])
                     else:
                         popt, pcov = curve_fit(mbdfunc0, fghz, dpha_unw, p0=[0.], sigma=sigma, absolute_sigma=False)
                         poff[pol].append(0.0)
@@ -705,9 +705,9 @@ def phase_diff(phacal, refcal=None, strictness=0.5, fitoffsets=False, verbose=Fa
                         flag[pol].append(0)
                         residuals = mbdfunc0(fghz, *popt) - dpha_unw
                         if verbose:
-                            print 'Phase offset (deg): 0.0 (not fit)'
+                            print('Phase offset (deg): 0.0 (not fit)')
                         if verbose:
-                            print 'MBD (ns):', popt[0]
+                            print('MBD (ns):', popt[0])
                     rms = np.sqrt(np.dot(residuals, residuals) / len(residuals))
                     prms[pol].append(rms)
                     if rms > 1.0:
@@ -735,17 +735,17 @@ def phase_diff(phacal, refcal=None, strictness=0.5, fitoffsets=False, verbose=Fa
     ncols = 4
     nrows = np.int(np.ceil(nants / 4.0))
     print('------------------------------------------------------------------------------------------------------------------------')
-    print('PHASECAL quality assessment (rms in degree) ----- Field = {0:10s}, Time = {1}~{2}'.format(src, phacal['t_bg'].iso[:-4],
-                                                                                                     phacal['t_ed'].iso[:-4]))
+    print(('PHASECAL quality assessment (rms in degree) ----- Field = {0:10s}, Time = {1}~{2}'.format(src, phacal['t_bg'].iso[:-4],
+                                                                                                     phacal['t_ed'].iso[:-4])))
     print('------------------------------------------------------------------------------------------------------------------------')
     for row in range(nrows):
         if row < nrows - 1:
-            ants = range(ncols * row, ncols * (row + 1))
+            ants = list(range(ncols * row, ncols * (row + 1)))
         else:
-            ants = range(ncols * row, nants)
-        print '|'.join(map(antstr, ['eo{:02d}'.format(ll + 1) for ll in ants])) + '|'
-        print '|'.join([titlestr] * len(ants)) + '|'
-        print '|'.join([sepstr] * ncols) + '|'
+            ants = list(range(ncols * row, nants))
+        print('|'.join(map(antstr, ['eo{:02d}'.format(ll + 1) for ll in ants])) + '|')
+        print('|'.join([titlestr] * len(ants)) + '|')
+        print('|'.join([sepstr] * ncols) + '|')
         rms = []
         flg = []
         for ant in ants:
@@ -758,7 +758,7 @@ def phase_diff(phacal, refcal=None, strictness=0.5, fitoffsets=False, verbose=Fa
                     fg.append(' ')
             flg.append(fg)
         # rms = [[prms[pol][ant] for pol in range(2)] for ant in ants]
-        print ' '.join(map(caltbstr, rms, flg))
+        print(' '.join(map(caltbstr, rms, flg)))
 
     return {'t_pha': t_pha, 't_ref': t_ref, 'poff': np.transpose(poff), 'pslope': np.transpose(pslope), 'prms': np.transpose(prms),
             'flag': np.transpose(flag), 'phacal': phacal}
@@ -781,10 +781,10 @@ def graph_pdiff(p_diff, refcal, strictness=0.5, verbose=False, plot_rms=False):
         f, ax = plt.subplots(4, 13, figsize=(13, 5))
         f.suptitle('Phase Diff residuals vs. Freq from ' + t_pha.iso + ', relative to ' + t_ref.iso)
         for ant in range(15):
-            if verbose: print 'ant: ', ant
+            if verbose: print('ant: ', ant)
             for pol in range(2):
                 if ant < 13:
-                    if verbose: print 'pol: ', pol
+                    if verbose: print('pol: ', pol)
                     ind, = np.where((flag_pha[ant, pol] == 0) & (flag_ref[ant, pol] == 0))
                     dpha_unw = np.unwrap(dpha[ant, pol, ind])
                     fghz = phacal['fghz'][ind]
@@ -823,10 +823,10 @@ def graph_pdiff(p_diff, refcal, strictness=0.5, verbose=False, plot_rms=False):
         f, ax = plt.subplots(2, 13, figsize=(13, 5))
         f.suptitle('Phase Diff vs. Freq from ' + t_pha.iso + ', relative to ' + t_ref.iso)
         for ant in range(15):
-            if verbose: print 'ant: ', ant
+            if verbose: print('ant: ', ant)
             for pol in range(2):
                 if ant < 13:
-                    if verbose: print 'pol: ', pol
+                    if verbose: print('pol: ', pol)
                     ind, = np.where((flag_pha[ant, pol] == 0) & (flag_ref[ant, pol] == 0))
                     dpha_unw = np.unwrap(dpha[ant, pol, ind])
                     fghz = phacal['fghz'][ind]
@@ -852,8 +852,8 @@ def graph_pdiff(p_diff, refcal, strictness=0.5, verbose=False, plot_rms=False):
 
 def sql2refcal(t, lohi=False):
     '''Supply a timestamp in Time format, return the closest refcal data'''
-    import cal_header as ch
-    import stateframe as stf
+    from . import cal_header as ch
+    from . import stateframe as stf
     if lohi:
         caltype = 12
     else:
@@ -873,8 +873,8 @@ def sql2refcal(t, lohi=False):
 
 def sql2refcalX(trange, lohi=False, *args, **kwargs):
     '''same as sql2refcal. trange can be either a timestamp or a timerange.'''
-    import cal_header as ch
-    import stateframe as stf
+    from . import cal_header as ch
+    from . import stateframe as stf
     if lohi:
         caltype = 12
     else:
@@ -895,7 +895,7 @@ def sql2refcalX(trange, lohi=False, *args, **kwargs):
                 amp = np.absolute(ref)
                 refcals.append({'pha': pha, 'amp': amp, 'flag': flag, 'fghz': fghz, 'sigma': sigma, 'timestamp': timestamp, 't_bg': tbg, 't_ed': ted})
             except:
-                print 'failed to load record {} ---> {}'.format(i + 1, Time(stf.extract(buf, xml['Timestamp']), format='lv').iso)
+                print('failed to load record {} ---> {}'.format(i + 1, Time(stf.extract(buf, xml['Timestamp']), format='lv').iso))
         return refcals
     elif isinstance(bufs, str):
         refcal = stf.extract(bufs, xml['Refcal_Real']) + stf.extract(bufs, xml['Refcal_Imag']) * 1j
@@ -913,8 +913,8 @@ def sql2refcalX(trange, lohi=False, *args, **kwargs):
 def sql2phacalX(trange, *args, **kwargs):
     '''Supply a timestamp in Time format, return the closest phacal data.
         If a time range is provided, return records within the time range.'''
-    import cal_header as ch
-    import stateframe as stf
+    from . import cal_header as ch
+    from . import stateframe as stf
     xml, bufs = ch.read_calX(9, t=trange, *args, **kwargs)
     if isinstance(bufs, list):
         phacals = []
@@ -936,7 +936,7 @@ def sql2phacalX(trange, *args, **kwargs):
                                 'phacal': {'pha': pha, 'amp': amp, 'flag': phacal_flag, 'fghz': fghz, 'sigma': sigma, 'timestamp': timestamp,
                                            't_bg': tbg, 't_ed': ted}})
             except:
-                print 'failed to load record {} ---> {}'.format(i + 1, Time(stf.extract(buf, xml['Timestamp']), format='lv').iso)
+                print('failed to load record {} ---> {}'.format(i + 1, Time(stf.extract(buf, xml['Timestamp']), format='lv').iso))
         return phacals
     elif isinstance(bufs, str):
         phacal_flag = stf.extract(bufs, xml['Phacal_Flag'])
@@ -996,10 +996,10 @@ def fit_blerror(out):
             ph.append(np.angle(out['vis'][i]))
         ha = np.concatenate(ha)
         halist.append(ha)
-        print 'Result for source', src, ':'
+        print('Result for source', src, ':')
         if ha[-1] - ha[0] < np.pi / 3.:
-            print '***HA range is too short to fit for dBx, dBy'
-            print '***Must be at least 4 hours.  Will skip this source.'
+            print('***HA range is too short to fit for dBx, dBy')
+            print('***Must be at least 4 hours.  Will skip this source.')
         else:
             ph = np.concatenate(ph, 3)
             nant, npol, nf, nt = ph.shape
@@ -1016,11 +1016,11 @@ def fit_blerror(out):
             dBy = np.median(np.mean(dby[:, :, gdbands], 1), 1)
             ystd = np.std(np.mean(dby[:, :, gdbands], 1), 1)
 
-            print '          dBx [m]       dBy [m]'
+            print('          dBx [m]       dBy [m]')
             for i in range(13):
-                print 'Ant {:2d}'.format(i + 1), '{:6.3f}+/-{:6.4f} {:6.3f}+/-{:6.4f}'.format(dBx[0] - dBx[i], xstd[i], dBy[0] - dBy[i], ystd[i])
-            print 'Ant 14', '{:6.3f}+/-{:6.4f} {:6.3f}+/-{:6.4f}'.format(dBx[0], xstd[0], dBy[0], ystd[0])
-        print ' '
+                print('Ant {:2d}'.format(i + 1), '{:6.3f}+/-{:6.4f} {:6.3f}+/-{:6.4f}'.format(dBx[0] - dBx[i], xstd[i], dBy[0] - dBy[i], ystd[i]))
+            print('Ant 14', '{:6.3f}+/-{:6.4f} {:6.3f}+/-{:6.4f}'.format(dBx[0], xstd[0], dBy[0], ystd[0]))
+        print(' ')
         # Now fit for Bz errors (makes assumption that Bx and By errors are already small
         # nhamin = len(halist[0])
         # minsrc = 0

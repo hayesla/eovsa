@@ -1,5 +1,5 @@
-import get_sat_info as gs
-import pcapture2 as p
+from . import get_sat_info as gs
+from . import pcapture2 as p
 
 def xy2rl(filename, satname):
     out = p.rd_jspec(filename)

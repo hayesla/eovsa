@@ -18,19 +18,19 @@ def list_solar_network(mac=False):
         res = subprocess.check_output("nslookup "+ipaddr,shell=True)
         if res.find('name') != -1:
             name = res[res.find('name')+7:res.find('solar')+9]
-            print ipaddr+':',name,
+            print(ipaddr+':',name, end=' ')
             if mac:
                 try:
                     res = subprocess.check_output("ping -c 1 "+ipaddr,shell=True)
                     f = open('/proc/net/arp','r')
                     for line in f.readlines():
                         if line.find(ipaddr) != -1:
-                            print ' MAC:',line[41:58]
+                            print(' MAC:',line[41:58])
                             break
                 except:
-                    print ' MAC: None--ping failed.'
+                    print(' MAC: None--ping failed.')
             else:
-                print '\n'
+                print('\n')
 
 def list_nonassigned_dhcp():
     # Uses ping to find active IP addresses in the "non-assigned" range of
@@ -40,8 +40,8 @@ def list_nonassigned_dhcp():
         try:
             res = subprocess.check_output("ping -c 1 "+ipaddr,shell=True)
             if res.find('transmitted') != -1:
-                print ' IP: '+ipaddr+' found.'
+                print(' IP: '+ipaddr+' found.')
             else:
-                print 'Unexpected result:\n',res
+                print('Unexpected result:\n',res)
         except:
-            print ' IP: '+ipaddr+' --ping failed.'
+            print(' IP: '+ipaddr+' --ping failed.')

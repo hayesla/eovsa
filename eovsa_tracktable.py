@@ -14,9 +14,9 @@
 #      reinstated make_geosattable()
 #
 import aipy, ephem, numpy
-import util
+from . import util
 from numpy import pi,abs
-from eovsa_array import *
+from .eovsa_array import *
 
 def make_tracktable(srcname,aa,mjd1=None,mjd2=None,dt=1/24.):
     '''Generate a tracktable of coordinates of source with name srcname, which must be in 

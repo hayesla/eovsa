@@ -10,7 +10,7 @@ def show_image(filename,chan=0, bid=0, norm=False, sort=False, logrange=[None,No
     reclen = struct.calcsize(hdr+pp2+junk)
     nrec = fsize/reclen
     nspec = nrec/256
-    print 'This file contains',nspec,'spectra.'
+    print('This file contains',nspec,'spectra.')
     khdr = ['HeaderLength','PacketNum','FFTShift','AccumLength','GlobalAccumNum',
             'BoardID','AccumNum','DataType','PolType','Ai','Aj','ADCOverflow',
             'QuantClipNum','NSubbands','iFreq','Delay0','Delay1','Delay2','Delay3',
@@ -30,13 +30,13 @@ def show_image(filename,chan=0, bid=0, norm=False, sort=False, logrange=[None,No
             try:
                 rec = f.read(reclen)
             except:
-                print 'End of file'
+                print('End of file')
                 break
             # Unpack the header portion and convert to dictionary
             if len(rec) < 88:
                 break
             header = struct.unpack(hdr,rec[0:88])
-            h = dict(zip(khdr,header))
+            h = dict(list(zip(khdr,header)))
             dtype = h['DataType']
             bdid = h['BoardID']
             if dtype == 0 and bdid == bid:
@@ -84,7 +84,7 @@ def pspectra(power):
 
     p = array(power)
     # idx is array([0,1, 16,17, 32,33, 48,49, 64,65, 80,81, 96,97, 112,113])
-    idx = array(zip(arange(0,128,16),arange(0,128,16)+1)).flatten()
+    idx = array(list(zip(arange(0,128,16),arange(0,128,16)+1))).flatten()
     # Distribute P, P2 into their spectra
     p1x = p[idx]/(2.**14)
     p1y = p[idx+2]/(2.**14)
@@ -147,20 +147,20 @@ def list_header(filename):
             try:
                 rec = f.read(reclen)
             except:
-                print 'End of file'
+                print('End of file')
                 eof = True
                 break
             # Unpack the header portion and convert to dictionary
             try:
                 header = struct.unpack(hdr,rec[0:88])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 a = h['AccumNum']
                 n = h['PacketNum']
                 #print a, n, h['DataType'],
             except:
-                print 'Error reading header.'
+                print('Error reading header.')
                 badheader = True
-                print 'Expected 88 bytes, but got:',len(rec)
+                print('Expected 88 bytes, but got:',len(rec))
                 break
             if n == 0:
                 lines.append('{:4d}'.format(h['AccumNum'])
@@ -207,10 +207,10 @@ def print_packet_str(filename):
             rec = f.read(reclen)
             n += 1
         except:
-            print 'End of file reached'
+            print('End of file reached')
             break
         header = struct.unpack(hdr,rec[0:88])
-        h = dict(zip(khdr,header))
+        h = dict(list(zip(khdr,header)))
         this_bid = h['BoardID']
         this_dtype = h['DataType']
         this_accn = h['AccumNum']
@@ -223,7 +223,7 @@ def print_packet_str(filename):
                 board = 'R1'
                 if cur_bid:
                     board = 'R2'
-                print '{:5d}:{:5d} -- '.format(nstart,nend),board,dtype,cur_accn
+                print('{:5d}:{:5d} -- '.format(nstart,nend),board,dtype,cur_accn)
             nstart = n
             cur_bid = this_bid
             cur_dtype = this_dtype
@@ -267,11 +267,11 @@ def show_capture(filename,source):
                 try:
                     rec = f.read(reclen)
                 except:
-                    print 'End of file'
+                    print('End of file')
                     break
                 # Unpack the header portion and convert to dictionary
                 header = struct.unpack(hdr,rec[0:88])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 n = h['PacketNum']
                 M = h['AccumLength']
                 dtype = h['DataType']
@@ -282,7 +282,7 @@ def show_capture(filename,source):
                     # This is X-engine data
                     # Unpack X data
                     xdata = struct.unpack(xfmt,rec[88:])
-                    print n,xdata[0:4]
+                    print(n,xdata[0:4])
                     a12x_,a12y_,a13x_,a13y_,a14x_,a14y_,a23x_,a23y_,a24x_,a24y_,a34x_,a34y_ = xspectra(xdata)
                     a12x[n*16:(n+1)*16] = a12x_ 
                     a12y[n*16:(n+1)*16] = a12y_ 
@@ -301,7 +301,7 @@ def show_capture(filename,source):
                         n = 500
 
             # Plot X-engine data
-            response = raw_input("Plot What? [a12,a13,a14,a23,a24,a34,p12,etc. else exit]:")
+            response = input("Plot What? [a12,a13,a14,a23,a24,a34,p12,etc. else exit]:")
             if response == '':
                 response = rsav
             else:
@@ -413,11 +413,11 @@ def show_capture(filename,source):
                 try:
                     rec = f.read(reclen)
                 except:
-                    print 'End of file'
+                    print('End of file')
                     break
                 # Unpack the header portion and convert to dictionary
                 header = struct.unpack(hdr,rec[0:88])
-                h = dict(zip(khdr,header))
+                h = dict(list(zip(khdr,header)))
                 n = h['PacketNum']
                 M = h['AccumLength']
                 dtype = h['DataType']
@@ -453,7 +453,7 @@ def show_capture(filename,source):
                         # Signal that this is the end of 1 accumulation of data
                         n = 500
 
-            response = raw_input("Plot What? [px,py,p1,p2,p3,p4 for power, sk*, P* for power^2, else exit]:")
+            response = input("Plot What? [px,py,p1,p2,p3,p4 for power, sk*, P* for power^2, else exit]:")
             if response == '':
                 response = rsav
             else:

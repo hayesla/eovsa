@@ -1,8 +1,8 @@
-import read_idb as ri
-from util import Time
-import eovsa_array as ea
-import eovsa_lst as el
-import eovsa_cat as ec
+from . import read_idb as ri
+from .util import Time
+from . import eovsa_array as ea
+from . import eovsa_lst as el
+from . import eovsa_cat as ec
 import numpy as np
 import aipy
 import copy
@@ -101,15 +101,15 @@ def bline_fit(ps):
     # Convert the results to phase differences and list the O-C differences
     fmt = ' {:5.2f}'*13
     for i in range(nm):
-        print 'O-C differences for '+ps[i+1]['source']+'-'+ps[i]['source']
-        print 'Baselines 1-14  2-14  3-14  4-14  5-14  6-14  7-14  8-14  9-14 10-14 11-14 12-14 13-14'
+        print('O-C differences for '+ps[i+1]['source']+'-'+ps[i]['source'])
+        print('Baselines 1-14  2-14  3-14  4-14  5-14  6-14  7-14  8-14  9-14 10-14 11-14 12-14 13-14')
         for k in range(nf):
             dphi_O = ps[i+1]['phase'][:13,0,k] - ps[i]['phase'][:13,0,k]
             dphi_C = deltaB[:13,0]*cs[i,0]+deltaB[:13,1]*cs[i,1]+deltaB[:13,2]*cs[i,2]
             OmC = (dphi_O - dphi_C)
             OmC[np.where(OmC > np.pi)] -= 2*np.pi
             OmC[np.where(OmC < -np.pi)] += 2*np.pi
-            print str(fghz[k])[:5]+'GHz'+fmt.format(*OmC)
+            print(str(fghz[k])[:5]+'GHz'+fmt.format(*OmC))
     return deltaB, var
     
 def brute_fit(ps):
@@ -186,7 +186,7 @@ def bz(out1,out2):
             ax[j,i].plot(fghz,dphi,'o')
             ax[j,i].set_ylim(ax[j,i].yaxis.get_data_interval()+array((-1,1)))
             res[j], junk =  polyfit(fghz,dphi,1)
-            print 'Pol',j+1,':',res[j],'=> Bz =',res[j]/c,
-            print ' '
-        print 'Baseline',i+1,'Avg Bz:',mean(res)/c
+            print('Pol',j+1,':',res[j],'=> Bz =',res[j]/c, end=' ')
+            print(' ')
+        print('Baseline',i+1,'Avg Bz:',mean(res)/c)
     show()

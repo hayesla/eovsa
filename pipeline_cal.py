@@ -44,11 +44,11 @@
 #    The X vs. Y delay is in general very different for the two receivers.
 #
 
-import dbutil as db
+from . import dbutil as db
 import numpy as np
-from util import Time, nearest_val_idx, common_val_idx, lobe
-import stateframe
-import cal_header as ch
+from .util import Time, nearest_val_idx, common_val_idx, lobe
+from . import stateframe
+from . import cal_header as ch
 
 
 
@@ -106,9 +106,9 @@ def apply_fem_level(data, gctime=None):
           cdata    A dictionary with the level-corrected data.  The keys
                      p, x, p2, and a are all updated.
     '''
-    from util import common_val_idx, nearest_val_idx, bl2ord
-    import attncal as ac
-    from gaincal2 import get_fem_level
+    from .util import common_val_idx, nearest_val_idx, bl2ord
+    from . import attncal as ac
+    from .gaincal2 import get_fem_level
     import copy
 
     # Get timerange from data
@@ -192,8 +192,8 @@ def apply_attn_corr(data, tref=None, flags=None):
         to handle the different ordering/format of data from udb_util.py's
         readXdata() routine.
     '''
-    from gaincal2 import get_gain_state
-    from util import common_val_idx, nearest_val_idx, bl2ord
+    from .gaincal2 import get_gain_state
+    from .util import common_val_idx, nearest_val_idx, bl2ord
     import copy
     if tref is None:
         # No reference time specified, so get nearest earlier REFCAL
@@ -313,7 +313,7 @@ def apply_calfac(data, calfac):
                auto-correlation.
     '''
     import copy
-    from util import common_val_idx, bl2ord
+    from .util import common_val_idx, bl2ord
     fghz = data['fghz']
     nfin = len(fghz)
     # Find common frequencies
@@ -372,7 +372,7 @@ def unrot(data, azeldict=None):
                      x is updated.
     '''
     import copy
-    from util import lobe, bl2ord
+    from .util import lobe, bl2ord
     trange = Time(data['time'][[0, -1]], format='jd')
 
     if azeldict is None:
@@ -480,12 +480,12 @@ def udb_corr(filelist, outpath='./', calibrate=False, new=True, gctime=None, att
     for filename in filelist:
         t1 = time.time()
         out = uu.readXdata(filename)
-        print 'Reading file took', time.time() - t1, 's'
+        print('Reading file took', time.time() - t1, 's')
         sys.stdout.flush()
         trange = Time(out['time'][[0, -1]], format='jd')
         t1 = time.time()
         azeldict = get_sql_info(trange)
-        print 'Reading SQL info took', time.time() - t1, 's'
+        print('Reading SQL info took', time.time() - t1, 's')
         sys.stdout.flush()
         # Correct data for attenuation changes
         if attncal:
@@ -494,14 +494,14 @@ def udb_corr(filelist, outpath='./', calibrate=False, new=True, gctime=None, att
                 cout = apply_fem_level(out, gctime)
             else:
                 cout = apply_attn_corr(out)
-            print 'Applying attn correction took', time.time() - t1, 's'
+            print('Applying attn correction took', time.time() - t1, 's')
             sys.stdout.flush()
             t1 = time.time()
         else:
             cout = out
         # Correct data for differential feed rotation
         coutu = unrot(cout, azeldict)
-        print 'Applying feed rotation correction took', time.time() - t1, 's'
+        print('Applying feed rotation correction took', time.time() - t1, 's')
         sys.stdout.flush()
         # Optionally apply calibration to convert to solar flux units
         if calibrate:
@@ -516,9 +516,9 @@ def udb_corr(filelist, outpath='./', calibrate=False, new=True, gctime=None, att
             calfac = get_calfac(Time(mjd, format='mjd'))
             if Time(calfac['sqltime'], format='lv').mjd == mjd:
                 coutu = apply_calfac(coutu, calfac)
-                print 'Applying calibration took', time.time() - t1, 's'
+                print('Applying calibration took', time.time() - t1, 's')
             else:
-                print 'Error: no TP calibration for this date.  Skipping calibration.'
+                print('Error: no TP calibration for this date.  Skipping calibration.')
         sys.stdout.flush()
         filecount += 1
         if filecount == 1:

@@ -8,7 +8,7 @@
 #
 import numpy as np
 from scipy.optimize import leastsq
-from solpnt import gausfit, plt
+from .solpnt import gausfit, plt
 
 def disk_conv(fghz=None,doplot=False):
     ''' Calculate nominal beam size for 2.1 m EOVSA antennas

@@ -11,9 +11,9 @@ import time
 import glob
 import casacore.tables.table as tb
 import aipy
-import chan_util_bc as cu
-import read_idb as ri
-from dbutil import Time
+from . import chan_util_bc as cu
+from . import read_idb as ri
+from .dbutil import Time
 
 def bl_list2(nant=16):
     ''' Returns a two-dimensional array bl2ord that will translate
@@ -101,7 +101,7 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
 
         if 'antlist' in uv.vartable:
             ants = uv['antlist']
-            antlist = map(int, ants.split())
+            antlist = list(map(int, ants.split()))
         else:
             antlist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]    
 
@@ -154,7 +154,7 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
         sigma = np.ones((nrows,4),dtype=np.float)
         sigma = np.tile(sigma,(nband,1))
 
-        print 'IDB File {0} is readed in --- {1:10.2f} seconds ---'.format(filename,(time.time() - time0))
+        print('IDB File {0} is readed in --- {1:10.2f} seconds ---'.format(filename,(time.time() - time0)))
 
 
         # nocreatms=True
@@ -169,18 +169,18 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
 
 
         if not nocreatms:
-            print 'Empty MS {0} created in --- {1:10.2f} seconds ---'.format(msname,(time.time() - time0))
+            print('Empty MS {0} created in --- {1:10.2f} seconds ---'.format(msname,(time.time() - time0)))
         else:
             os.system("rm -fr %s"%msname)
             os.system("cp -r "+" %s"%modelms+" %s"%msname)     
-            print 'Standard MS is copied to {0} in --- {1:10.2f} seconds ---'.format(msname,(time.time() - time0))        
+            print('Standard MS is copied to {0} in --- {1:10.2f} seconds ---'.format(msname,(time.time() - time0)))        
 
 
 
         if not nowritems:
-            print '----------------------------------------'
-            print "Updating the main table of" '%s'%msname
-            print '----------------------------------------'
+            print('----------------------------------------')
+            print("Updating the main table of" '%s'%msname)
+            print('----------------------------------------')
             tabl=tb(msname,readonly=False)
             for l,bdedge in enumerate(bandedge[:-1]):
                 time1 = time.time()
@@ -188,7 +188,7 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
                 for row in range(nrows):
                     tabl.putcell('DATA',(row+l*nrows),out[:,bandedge[l]:bandedge[l+1],row].swapaxes(0,1))
                     tabl.putcell('FLAG',(row+l*nrows),flag[:,bandedge[l]:bandedge[l+1],row].swapaxes(0,1))
-                print '---spw {0:02d} is updated in --- {1:10.2f} seconds ---'.format((l+1),time.time() - time1)
+                print('---spw {0:02d} is updated in --- {1:10.2f} seconds ---'.format((l+1),time.time() - time1))
             tabl.putcol('UVW',uvwarray)
             tabl.putcol('SIGMA',sigma) 
             tabl.putcol('WEIGHT',1.0/sigma**2) 
@@ -200,17 +200,17 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
             tabl.putcol('TIME_CENTROID',timearr)
             tabl.close()
 
-            print '----------------------------------------'
-            print "Updating the OBSERVATION table of" '%s'%msname
-            print '----------------------------------------'
+            print('----------------------------------------')
+            print("Updating the OBSERVATION table of" '%s'%msname)
+            print('----------------------------------------')
             tabl=tb(msname+'/OBSERVATION',readonly=False)
             tabl.putcol('TIME_RANGE',np.asarray([ref_time_mjd-0.5*delta_time,ref_time_mjd+end_time-0.5*delta_time]).reshape(2,1).swapaxes(0,1))
             tabl.putcol('OBSERVER',['EOVSA team'])
             tabl.close()
 
-            print '----------------------------------------'
-            print "Updating the POINTING table of" '%s'%msname
-            print '----------------------------------------'
+            print('----------------------------------------')
+            print("Updating the POINTING table of" '%s'%msname)
+            print('----------------------------------------')
             tabl=tb(msname+'/POINTING',readonly=False)
             timearr=np.arange((time_steps),dtype=np.float).reshape(1,time_steps,1)
             timearr=np.tile(timearr,(nband,1,nants))
@@ -227,9 +227,9 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
             tabl.putcol('TARGET',target)
             tabl.close()
 
-            print '----------------------------------------'
-            print "Updating the SOURCE table of" '%s'%msname
-            print '----------------------------------------'
+            print('----------------------------------------')
+            print("Updating the SOURCE table of" '%s'%msname)
+            print('----------------------------------------')
             tabl=tb(msname+'/SOURCE',readonly=False)
             radec=tabl.getcol('DIRECTION')
             radecshape=radec.shape
@@ -241,9 +241,9 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
             tabl.close()  
 
 
-            print '----------------------------------------'
-            print "Updating the DATA_DESCRIPTION table of" '%s'%msname
-            print '----------------------------------------'
+            print('----------------------------------------')
+            print("Updating the DATA_DESCRIPTION table of" '%s'%msname)
+            print('----------------------------------------')
             tabl=tb(msname+'/DATA_DESCRIPTION/',readonly=False)  
             pol_id=tabl.getcol('POLARIZATION_ID')
             pol_id*=0
@@ -251,16 +251,16 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
             tabl.close()
 
             if not nocreatms:
-                print '----------------------------------------'
-                print "Updating the POLARIZATION table of" '%s'%msname
-                print '----------------------------------------'        
+                print('----------------------------------------')
+                print("Updating the POLARIZATION table of" '%s'%msname)
+                print('----------------------------------------')        
                 tabl=tb(msname+'/POLARIZATION/',readonly=False)  
                 tabl.removerows(rownrs=np.arange(1,nband,dtype=int))
                 tabl.close()         
 
-            print '----------------------------------------'
-            print "Updating the FIELD table of" '%s'%msname
-            print '----------------------------------------'        
+            print('----------------------------------------')
+            print("Updating the FIELD table of" '%s'%msname)
+            print('----------------------------------------')        
             tabl=tb(msname+'/FIELD/',readonly=False) 
             radec=tabl.getcol('DELAY_DIR')
             radecshape=radec.shape
@@ -284,7 +284,7 @@ def idb2ms(trange, modelms=None, outpath=None, nocreatms=False, nowritems=False)
             tabl.putcol('NAME',name)     
             tabl.close()   
 
-        print 'finished in --- {0:10.2f} seconds ---'.format(time.time() - time0)      
+        print('finished in --- {0:10.2f} seconds ---'.format(time.time() - time0))      
 
 
             

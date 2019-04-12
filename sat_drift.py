@@ -5,8 +5,8 @@
 #   2015-Oct-27  DG
 #      First written
 
-import urllib2
-from util import Time
+import urllib.request, urllib.error, urllib.parse
+from .util import Time
 from ftplib import FTP
 import time
 
@@ -20,7 +20,7 @@ def sat_drift(t,dir='RA',dist=1,dt=60.):
         The above options will cause 2-degree drift in 3 minutes in Dec
     '''
     userpass = 'admin:observer@'
-    f = urllib2.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/geosat_tab.radec',timeout=0.5)
+    f = urllib.request.urlopen('ftp://'+userpass+'acc.solar.pvt/parm/geosat_tab.radec',timeout=0.5)
     lines = f.readlines()
     f.close()
     mjd2 = Time(t).mjd # Middle time is given time
@@ -30,7 +30,7 @@ def sat_drift(t,dir='RA',dist=1,dt=60.):
         if mjda > mjd2:
             rb, db, mjd, tb = lines[i-1].split()
             mjdb = int(mjd) + float(tb)/86400000.
-            print i
+            print(i)
             break
 
     dtim = dt/86400.  # Convert to days
@@ -85,7 +85,7 @@ def sat_drift(t,dir='RA',dist=1,dt=60.):
     for line in lines[i:]:
        tbl += line.rstrip()+'\n'
 
-    print tbl
+    print(tbl)
     fname = 'geodrift_tab.radec'
     f = open('/tmp/'+fname,'w')
     f.write(tbl)

@@ -1,8 +1,8 @@
-import pipeline_cal as pc
-import gaincal2 as gc
-import attncal as ac
+from . import pipeline_cal as pc
+from . import gaincal2 as gc
+from . import attncal as ac
 import numpy as np
-from util import Time, nearest_val_idx, ant_str2list
+from .util import Time, nearest_val_idx, ant_str2list
 import matplotlib.pylab as plt
 from matplotlib.dates import DateFormatter
 
@@ -37,9 +37,9 @@ def autocorrect(out,ant_str='ant1-13',brange=[0,300]):
     for i in range(13):
         attn[i,0] = attn_dict['attn'][hlev[i],0,0]
         attn[i,1] = attn_dict['attn'][vlev[i],0,1]
-        print 'Ant',i+1,attn[i,0,20],attn[i,1,20]
+        print('Ant',i+1,attn[i,0,20],attn[i,1,20])
     attnfac = 10**(attn/10.)
-    for i in range(13): print attnfac[i,0,20],attnfac[i,1,20]
+    for i in range(13): print(attnfac[i,0,20],attnfac[i,1,20])
     for i in range(nt):
         out['p'][:13,:,:,i] = (out['p'][:13,:,:,i]*attnfac - tpoffsun)*tpcalfac 
     antlist = ant_str2list(ant_str)

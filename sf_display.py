@@ -78,10 +78,10 @@
 #     forever.
 #
 
-from Tkinter import *
-from ttk import *
-from tkMessageBox import *
-import tkFileDialog
+from tkinter import *
+from tkinter.ttk import *
+from tkinter.messagebox import *
+import tkinter.filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, \
                                               NavigationToolbar2Tk
 import pylab as plt
@@ -95,12 +95,12 @@ import socket
 import struct
 import copy
 import numpy as np
-import stateframe as stf
-from util import *
+from . import stateframe as stf
+from .util import *
 from collections import deque
 from math import fmod, pi
-import antenna_control as ant_ctrl
-import eovsa_lst as el
+from . import antenna_control as ant_ctrl
+from . import eovsa_lst as el
 
 
 class App():
@@ -113,8 +113,8 @@ class App():
             # (and supplied as command line arguments)
             self.accini['host'] = sys.argv[1]
             self.accini['sfport'] = int(sys.argv[2])
-        print 'Setting host to ', self.accini['host']
-        print 'Setting port to ', self.accini['sfport']
+        print('Setting host to ', self.accini['host'])
+        print('Setting port to ', self.accini['sfport'])
         
         self.root = Tk()
         self.root.protocol("WM_DELETE_WINDOW", self.quit)
@@ -244,9 +244,9 @@ class App():
         self.sub_plot1 = self.plot1.add_subplot(111)
         self.sub_plot1.grid()
         self.canvas = FigureCanvasTkAgg(self.plot1, fplot)
-        print 'draw temperature canvas'
+        print('draw temperature canvas')
         self.canvas.draw()
-        print 'draw canvas done'
+        print('draw canvas done')
         self.canvas.get_tk_widget().pack(side=TOP, expand=1)
         toolbar1 = NavigationToolbar2Tk(self.canvas, fplot)
         toolbar1.update()
@@ -380,7 +380,7 @@ class App():
                    plot_dict[key] = my_file.read()
 
         # Loop over files (key is filename)
-        for key in plot_dict.iterkeys():
+        for key in plot_dict.keys():
             temp = ''
             locator = []
             temp += plot_dict[key]
@@ -435,7 +435,7 @@ class App():
 
             self.DeleteBtn = Button(self.f3plot, text = 'Create New Tab', command = self.new_tab)
             self.DeleteBtn.pack(side=RIGHT)
-            for i in np.sort(plot_dict.keys()):
+            for i in np.sort(list(plot_dict.keys())):
                 self.saved_list.insert(END,i)
 
             self.plot_number = 3
@@ -555,7 +555,7 @@ class App():
         if thistype is dict:
             # This is not the end of the chain, so get keys and enter into a new dropdown
             self.keyvars.append(StringVar(name='dropdown'+str(position)))
-            sf_keys = item.keys()
+            sf_keys = list(item.keys())
             sf_keys.sort()
             sf_keys = [sf_keys[0]]+sf_keys
             self.menu.append(OptionMenu(self.selectframe, self.keyvars[-1], *sf_keys))
@@ -781,7 +781,7 @@ class App():
         data, msg = stf.get_stateframe(self.accini)
 
         if msg != 'No Error':
-            print msg
+            print(msg)
             data = None
         elif data:
             # Compare data version number to accini version number
@@ -886,7 +886,7 @@ class App():
             try:
                 logdir = os.environ['SF_LOGDIR']
             except:
-                logdir = tkFileDialog.askdirectory()
+                logdir = tkinter.filedialog.askdirectory()
                 if logdir == '':
                     # User must have cancelled, so we have to do something.  Use generic location
                     if os.name == 'posix':
@@ -896,7 +896,7 @@ class App():
                     else:
                         logdir = os.getcwd()
                 os.environ['SF_LOGDIR'] = logdir
-            print 'Stateframe logs will be written to',logdir
+            print('Stateframe logs will be written to',logdir)
             # Create file name from date
             # Get today's date
             t = Time.now()
@@ -952,7 +952,7 @@ class App():
  
         #self.Laz[i].insert(END,'=========Azimuth Status=========')
         j = 0
-        for text, color in az_stat.get(range(24)):
+        for text, color in az_stat.get(list(range(24))):
             if text:
                 if color == 'red':
                     self.Lbaz[i][j].configure(text=text,style='BR.TLabel')
@@ -983,7 +983,7 @@ class App():
 
         #self.L[i].insert(END,'=========Elevation Status=========')
         j = 0
-        for text, color in el_stat.get(range(24)):
+        for text, color in el_stat.get(list(range(24))):
             if text:
                 if color == 'red':
                     self.Lbel[i][j].configure(text=text,style='BR.TLabel')
@@ -994,7 +994,7 @@ class App():
         cs_stat = CenStatus(cs)
         #self.L[i].insert(END,'=========Central Status=========')
         j = 0
-        for text, color in cs_stat.get(range(32)):
+        for text, color in cs_stat.get(list(range(32))):
             if text:
                 if color == 'red':
                     self.Lbcn[i][j].configure(text=text,style='BR.TLabel')
@@ -2045,11 +2045,11 @@ class AzStatus(Status):
         self.off = ['']*sizebytes*8
         onlist = ['Tripped','Inactive','Local','Brake','Lo Soft Lim','Hi Soft Lim','Lo Hard Lim','Hi Hard Lim']
         offlist = ['Healthy','Active','Remote','Brake','Lo Soft Lim','Hi Soft Lim','Lo Hard Lim','Hi Hard Lim']
-        idx = range(8)
+        idx = list(range(8))
         self.set(idx,onlist,offlist)
         onlist = ['Position','Speed','Pos Offset','Vel Offset','Axis Lock','Lo DemandLim','Hi DemandLim']
         offlist = ['Position','Speed','Pos Offset','Vel Offset','Axis Lock','Lo Demand Ok','Hi Demand Ok']
-        idx = range(8,15)
+        idx = list(range(8,15))
         self.set(idx,onlist,offlist)
         onlist = ['Drive Ena','Permit','SpdDemandLim','Brake Alarm','Brake Disable']
         offlist = ['Drive Ena','Permit','SpdDemandLim','Brake Okay','Brake Enable']
@@ -2065,11 +2065,11 @@ class ElStatus(Status):
         self.off = ['']*sizebytes*8
         onlist = ['Tripped','Inactive','Local','Brake','Lo Soft Lim','Hi Soft Lim','Lo Hard Lim','Hi Hard Lim']
         offlist = ['Healthy','Active','Remote','Brake','Lo Soft Lim','Hi Soft Lim','Lo Hard Lim','Hi Hard Lim']
-        idx = range(8)
+        idx = list(range(8))
         self.set(idx,onlist,offlist)
         onlist = ['Position','Speed','Pos Offset','Vel Offset','Axis Lock','Lo DemandLim','Hi DemandLim']
         offlist = ['Position','Speed','Pos Offset','Vel Offset','Axis Lock','Lo Demand Ok','Hi Demand Ok']
-        idx = range(8,15)
+        idx = list(range(8,15))
         self.set(idx,onlist,offlist)
         onlist = ['Drive Ena','Permit','SpdDemandLim','Brake Alarm','Brake Disable']
         offlist = ['Drive Ena','Permit','SpdDemandLim','Brake Okay','Brake Enable']
@@ -2090,7 +2090,7 @@ class CenStatus(Status):
         self.off = ['']*sizebytes*8
         onlist = ['PwrConAux','Standby','Local','Clock Init','SNTP Dead','30s Timeout','<10 TrkPts','STOW']
         offlist = ['PwrConAux','Operate','Remote','Clock Okay','SNTP Okay','No Timeout','>10 TrkPts','STOW']
-        idx = range(8)
+        idx = list(range(8))
         self.set(idx,onlist,offlist)
         onlist = ['Stowing','RA-Dec Mode','Track Mode','TimOutDis']
         offlist = ['Not Stowing','Az-El mode','Setpnt Mode','TimOutEna']
